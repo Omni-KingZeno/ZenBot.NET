@@ -3,13 +3,13 @@ using SysBot.Base;
 using SysBot.Pokemon.Z3;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace SysBot.Pokemon.WinForms;
 
@@ -44,6 +44,9 @@ public sealed partial class Main : Form
             RunningEnvironment = GetRunner(Config);
             Config.Hub.Folder.CreateDefaults(Program.WorkingDirectory);
         }
+
+        if (Program.IsDarkThemeSet(Config))
+            ApplyControlDarkMode(this);
 
         RTB_Logs.MaxLength = 32_767; // character length
         LoadControls();
@@ -301,5 +304,25 @@ public sealed partial class Main : Form
 
         if (isWifi)
             NUD_Port.Text = "6000";
+    }
+
+    private static readonly Type[] ForceDarkControls =
+    {
+        typeof(TabPage),
+        typeof(Panel)
+    };
+
+    private void ApplyControlDarkMode(Control control)
+    {
+        const int Dark = 32;
+
+        if (ForceDarkControls.Contains(control.GetType()))
+        {
+            control.BackColor = Color.FromArgb(Dark, Dark, Dark);
+            control.ForeColor = Color.White;
+        }
+
+        foreach (Control child in control.Controls)
+            ApplyControlDarkMode(child);
     }
 }
