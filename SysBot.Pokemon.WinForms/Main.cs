@@ -35,9 +35,12 @@ public sealed partial class Main : Form
 
         if (Program.IsDarkTheme)
         {
-            Tab_Bots.BackColor = Color.FromArgb(32, 32, 32);
-            Tab_Logs.BackColor = Color.FromArgb(32, 32, 32);
-            Tab_Hub.BackColor = Color.FromArgb(32, 32, 32);
+
+            foreach (var tab in new[] { Tab_Bots, Tab_Logs, Tab_Hub })
+                tab.BackColor = Color.FromArgb(32, 32, 32);
+
+            foreach (var text in new[] { TB_IP, NUD_Port })
+                text.BorderStyle = BorderStyle.FixedSingle;
         }
 
         RTB_Logs.MaxLength = 32_767; // character length
@@ -292,7 +295,7 @@ public sealed partial class Main : Form
     {
         var isWifi = CB_Protocol.SelectedIndex == 0;
         TB_IP.Visible = isWifi;
-        NUD_Port.ReadOnly = isWifi;
+        //NUD_Port.ReadOnly = isWifi;
 
         if (isWifi)
             NUD_Port.Text = "6000";
