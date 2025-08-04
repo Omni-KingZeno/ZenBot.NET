@@ -19,34 +19,26 @@ public sealed partial class Main : Form
     private readonly IPokeBotRunner RunningEnvironment;
     private readonly ProgramConfig Config;
 
-    public Main()
+    public Main(ProgramConfig config)
     {
         InitializeComponent();
 
+        Config = config;
         PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
-        if (File.Exists(Program.ConfigPath))
-        {
-            var lines = File.ReadAllText(Program.ConfigPath);
-            Config = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
-            LogConfig.MaxArchiveFiles = Config.Hub.MaxArchiveFiles;
-            LogConfig.LoggingEnabled = Config.Hub.LoggingEnabled;
+        RunningEnvironment = GetRunner(Config);
 
-            RunningEnvironment = GetRunner(Config);
-            foreach (var bot in Config.Bots)
-            {
-                bot.Initialize();
-                AddBot(bot);
-            }
-        }
-        else
+        foreach (var bot in Config.Bots)
         {
-            Config = new ProgramConfig();
-            RunningEnvironment = GetRunner(Config);
-            Config.Hub.Folder.CreateDefaults(Program.WorkingDirectory);
+            bot.Initialize();
+            AddBot(bot);
         }
 
-        if (Program.IsDarkThemeSet(Config))
-            ApplyControlDarkMode(this);
+        if (Program.IsDarkTheme)
+        {
+            Tab_Bots.BackColor = Color.FromArgb(32, 32, 32);
+            Tab_Logs.BackColor = Color.FromArgb(32, 32, 32);
+            Tab_Hub.BackColor = Color.FromArgb(32, 32, 32);
+        }
 
         RTB_Logs.MaxLength = 32_767; // character length
         LoadControls();
@@ -304,25 +296,5 @@ public sealed partial class Main : Form
 
         if (isWifi)
             NUD_Port.Text = "6000";
-    }
-
-    private static readonly Type[] ForceDarkControls =
-    {
-        typeof(TabPage),
-        typeof(Panel)
-    };
-
-    private void ApplyControlDarkMode(Control control)
-    {
-        const int Dark = 32;
-
-        if (ForceDarkControls.Contains(control.GetType()))
-        {
-            control.BackColor = Color.FromArgb(Dark, Dark, Dark);
-            control.ForeColor = Color.White;
-        }
-
-        foreach (Control child in control.Controls)
-            ApplyControlDarkMode(child);
     }
 }
