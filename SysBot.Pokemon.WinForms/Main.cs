@@ -301,4 +301,54 @@ public sealed partial class Main : Form
         if (isWifi)
             NUD_Port.Text = "6000";
     }
+
+    protected override void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+        CenterTopButtons();
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        CenterTopButtons();
+    }
+
+    private void CenterTopButtons()
+    {
+        int topLine = TC_Main.Top;
+        int tabHeaderHeight = TC_Main.DisplayRectangle.Top;
+        int bottomLine = topLine + tabHeaderHeight;
+        int availableHeight = bottomLine - topLine;
+
+        int minButtonHeight = 22;
+        float minFontSize = 6f;
+
+        void CenterResizeAndFontButton(Button btn)
+        {
+            if (btn.Tag is not Font originalFont)
+            {
+                originalFont = btn.Font;
+                btn.Tag = originalFont;
+            }
+
+            int targetHeight = Math.Min(originalFont.Height, availableHeight);
+            if (targetHeight < minButtonHeight)
+                targetHeight = minButtonHeight;
+
+            btn.Height = targetHeight;
+
+            float scale = (float)targetHeight / originalFont.Height;
+            float fontSize = Math.Max(minFontSize, Math.Min(originalFont.Size * scale, originalFont.Size));
+
+            if (Math.Abs(btn.Font.Size - fontSize) > 0.5f)
+                btn.Font = new Font(originalFont.FontFamily, fontSize, originalFont.Style);
+
+            btn.Top = topLine + (availableHeight - btn.Height) / 2;
+        }
+
+        CenterResizeAndFontButton(B_Start);
+        CenterResizeAndFontButton(B_Stop);
+        CenterResizeAndFontButton(B_RebootStop);
+    }
 }
