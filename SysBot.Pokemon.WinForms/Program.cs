@@ -1,9 +1,10 @@
-using Microsoft.Win32;
-using SysBot.Base;
 using System;
 using System.IO;
+using SysBot.Base;
+using Microsoft.Win32;
 using System.Text.Json;
 using System.Windows.Forms;
+using System.ComponentModel;
 
 namespace SysBot.Pokemon.WinForms;
 
@@ -28,6 +29,10 @@ internal static class Program
             ConfigPath = cmd[0];
 
         var config = InitConfig();
+
+        foreach (var container in DrawableCollectionEditor.CollectionContainers)
+            TypeDescriptor.AddProvider(new CollectionDescriptionProvider(container), container);
+
         Application.EnableVisualStyles();
 #pragma warning disable WFO5001
         if (IsDarkThemeSet(config))

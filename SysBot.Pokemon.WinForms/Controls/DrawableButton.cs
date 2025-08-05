@@ -9,11 +9,11 @@ public class DrawableButton : Button
 {
     private bool _hovered = false;
 
-    public Color NormalBackColor { get; set; } = Color.FromArgb(48, 48, 48);
-    public Color HoverBackColor { get; set; } = Color.FromArgb(64, 64, 64);
-    public Color BorderColor { get; set; } = Color.FromArgb(100, 100, 100);
-    public int BorderRadius { get; set; } = 5;
-    public int BorderThickness { get; set; } = 1;
+    public static Color NormalBackColor { get; set; } = Color.FromArgb(48, 48, 48);
+    public static Color HoverBackColor { get; set; } = Color.FromArgb(64, 64, 64);
+    public static Color BorderColor { get; set; } = Color.FromArgb(100, 100, 100);
+    public static int BorderRadius { get; set; } = 5;
+    public static int BorderThickness { get; set; } = 1;
 
     public DrawableButton()
     {
