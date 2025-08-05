@@ -295,6 +295,7 @@ public sealed partial class Main : Form
     {
         var isWifi = CB_Protocol.SelectedIndex == 0;
         TB_IP.Visible = isWifi;
+        NUD_Port.Visible = !isWifi;
         //NUD_Port.ReadOnly = isWifi;
 
         if (isWifi)
