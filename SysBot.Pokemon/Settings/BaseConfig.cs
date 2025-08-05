@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace SysBot.Pokemon;
 
@@ -20,6 +20,9 @@ public abstract class BaseConfig
     [Category(FeatureToggle), Description("Maximum number of old text log files to retain. Set this to <= 0 to disable log cleanup. Restart to apply changes.")]
     public int MaxArchiveFiles { get; set; } = 14;
 
+    [Category(FeatureToggle), Description("Program theme. 'Classic' uses the white theme, 'System' follows your Windows default theme, and 'Dark' enables a dark theme. If you're not on Windows 11, it's recommended to leave it on 'System'. Restart to apply changes.")]
+    public SystemColorTheme ColorTheme { get; set; } = SystemColorTheme.System;
+
     [Category(Debug), Description("Skips creating bots when the program is started; helpful for testing integrations.")]
     public bool SkipConsoleBotCreation { get; set; }
 
@@ -32,4 +35,11 @@ public abstract class BaseConfig
     public FolderSettings Folder { get; set; } = new();
 
     public abstract bool Shuffled { get; }
+
+    public enum SystemColorTheme
+    {
+        Light = 0,
+        System = 1,
+        Dark = 2,
+    }
 }

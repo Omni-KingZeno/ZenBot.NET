@@ -30,21 +30,21 @@ namespace SysBot.Pokemon.WinForms
         /// </summary>
         private void InitializeComponent()
         {
-            TC_Main = new System.Windows.Forms.TabControl();
+            TC_Main = new DrawableTabControl();
             Tab_Bots = new System.Windows.Forms.TabPage();
             CB_Protocol = new System.Windows.Forms.ComboBox();
             FLP_Bots = new System.Windows.Forms.FlowLayoutPanel();
             TB_IP = new System.Windows.Forms.TextBox();
             CB_Routine = new System.Windows.Forms.ComboBox();
             NUD_Port = new System.Windows.Forms.TextBox();
-            B_New = new System.Windows.Forms.Button();
+            B_New = new SysBot.Pokemon.WinForms.DrawableButton();
             Tab_Hub = new System.Windows.Forms.TabPage();
             PG_Hub = new System.Windows.Forms.PropertyGrid();
             Tab_Logs = new System.Windows.Forms.TabPage();
             RTB_Logs = new System.Windows.Forms.RichTextBox();
-            B_Stop = new System.Windows.Forms.Button();
-            B_Start = new System.Windows.Forms.Button();
-            B_RebootStop = new System.Windows.Forms.Button();
+            B_Stop = new SysBot.Pokemon.WinForms.DrawableButton();
+            B_Start = new SysBot.Pokemon.WinForms.DrawableButton();
+            B_RebootStop = new SysBot.Pokemon.WinForms.DrawableButton();
             TC_Main.SuspendLayout();
             Tab_Bots.SuspendLayout();
             Tab_Hub.SuspendLayout();
@@ -57,6 +57,7 @@ namespace SysBot.Pokemon.WinForms
             TC_Main.Controls.Add(Tab_Hub);
             TC_Main.Controls.Add(Tab_Logs);
             TC_Main.Dock = System.Windows.Forms.DockStyle.Fill;
+            TC_Main.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
             TC_Main.Location = new System.Drawing.Point(0, 0);
             TC_Main.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             TC_Main.Name = "TC_Main";
@@ -72,10 +73,10 @@ namespace SysBot.Pokemon.WinForms
             Tab_Bots.Controls.Add(CB_Routine);
             Tab_Bots.Controls.Add(NUD_Port);
             Tab_Bots.Controls.Add(B_New);
-            Tab_Bots.Location = new System.Drawing.Point(4, 24);
+            Tab_Bots.Location = new System.Drawing.Point(4, 25);
             Tab_Bots.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             Tab_Bots.Name = "Tab_Bots";
-            Tab_Bots.Size = new System.Drawing.Size(704, 390);
+            Tab_Bots.Size = new System.Drawing.Size(704, 389);
             Tab_Bots.TabIndex = 0;
             Tab_Bots.Text = "Bots";
             Tab_Bots.UseVisualStyleBackColor = true;
@@ -128,7 +129,6 @@ namespace SysBot.Pokemon.WinForms
             NUD_Port.Location = new System.Drawing.Point(215, 8);
             NUD_Port.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             NUD_Port.Name = "NUD_Port";
-            NUD_Port.ReadOnly = true;
             NUD_Port.Size = new System.Drawing.Size(67, 20);
             NUD_Port.TabIndex = 6;
             NUD_Port.Text = "6000";
@@ -147,11 +147,11 @@ namespace SysBot.Pokemon.WinForms
             // Tab_Hub
             // 
             Tab_Hub.Controls.Add(PG_Hub);
-            Tab_Hub.Location = new System.Drawing.Point(4, 24);
+            Tab_Hub.Location = new System.Drawing.Point(4, 25);
             Tab_Hub.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             Tab_Hub.Name = "Tab_Hub";
             Tab_Hub.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            Tab_Hub.Size = new System.Drawing.Size(704, 340);
+            Tab_Hub.Size = new System.Drawing.Size(704, 389);
             Tab_Hub.TabIndex = 2;
             Tab_Hub.Text = "Hub";
             Tab_Hub.UseVisualStyleBackColor = true;
@@ -164,29 +164,30 @@ namespace SysBot.Pokemon.WinForms
             PG_Hub.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             PG_Hub.Name = "PG_Hub";
             PG_Hub.PropertySort = System.Windows.Forms.PropertySort.Categorized;
-            PG_Hub.Size = new System.Drawing.Size(696, 334);
+            PG_Hub.Size = new System.Drawing.Size(696, 383);
             PG_Hub.TabIndex = 0;
             // 
             // Tab_Logs
             // 
             Tab_Logs.Controls.Add(RTB_Logs);
-            Tab_Logs.Location = new System.Drawing.Point(4, 24);
+            Tab_Logs.Location = new System.Drawing.Point(4, 25);
             Tab_Logs.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             Tab_Logs.Name = "Tab_Logs";
-            Tab_Logs.Size = new System.Drawing.Size(704, 340);
+            Tab_Logs.Size = new System.Drawing.Size(704, 389);
             Tab_Logs.TabIndex = 1;
             Tab_Logs.Text = "Logs";
             Tab_Logs.UseVisualStyleBackColor = true;
             // 
             // RTB_Logs
             // 
+            RTB_Logs.BorderStyle = System.Windows.Forms.BorderStyle.None;
             RTB_Logs.Dock = System.Windows.Forms.DockStyle.Fill;
             RTB_Logs.HideSelection = false;
             RTB_Logs.Location = new System.Drawing.Point(0, 0);
             RTB_Logs.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             RTB_Logs.Name = "RTB_Logs";
             RTB_Logs.ReadOnly = true;
-            RTB_Logs.Size = new System.Drawing.Size(704, 340);
+            RTB_Logs.Size = new System.Drawing.Size(704, 389);
             RTB_Logs.TabIndex = 0;
             RTB_Logs.Text = "";
             // 
@@ -196,7 +197,7 @@ namespace SysBot.Pokemon.WinForms
             B_Stop.Location = new System.Drawing.Point(495, 0);
             B_Stop.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             B_Stop.Name = "B_Stop";
-            B_Stop.Size = new System.Drawing.Size(69, 23);
+            B_Stop.Size = new System.Drawing.Size(69, 22);
             B_Stop.TabIndex = 4;
             B_Stop.Text = "Stop All";
             B_Stop.UseVisualStyleBackColor = true;
@@ -208,7 +209,7 @@ namespace SysBot.Pokemon.WinForms
             B_Start.Location = new System.Drawing.Point(412, 0);
             B_Start.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             B_Start.Name = "B_Start";
-            B_Start.Size = new System.Drawing.Size(69, 23);
+            B_Start.Size = new System.Drawing.Size(69, 22);
             B_Start.TabIndex = 3;
             B_Start.Text = "Start All";
             B_Start.UseVisualStyleBackColor = true;
@@ -220,7 +221,7 @@ namespace SysBot.Pokemon.WinForms
             B_RebootStop.Location = new System.Drawing.Point(578, 0);
             B_RebootStop.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             B_RebootStop.Name = "B_RebootStop";
-            B_RebootStop.Size = new System.Drawing.Size(121, 23);
+            B_RebootStop.Size = new System.Drawing.Size(121, 22);
             B_RebootStop.TabIndex = 3;
             B_RebootStop.Text = "Reboot And Stop";
             B_RebootStop.UseVisualStyleBackColor = true;
@@ -251,19 +252,19 @@ namespace SysBot.Pokemon.WinForms
         }
 
         #endregion
-        private System.Windows.Forms.TabControl TC_Main;
+        private SysBot.Pokemon.WinForms.DrawableTabControl TC_Main;
         private System.Windows.Forms.TabPage Tab_Bots;
         private System.Windows.Forms.TabPage Tab_Logs;
         private System.Windows.Forms.RichTextBox RTB_Logs;
         private System.Windows.Forms.TabPage Tab_Hub;
         private System.Windows.Forms.PropertyGrid PG_Hub;
-        private System.Windows.Forms.Button B_Stop;
-        private System.Windows.Forms.Button B_Start;
-        private System.Windows.Forms.Button B_RebootStop;
+        private SysBot.Pokemon.WinForms.DrawableButton B_Stop;
+        private SysBot.Pokemon.WinForms.DrawableButton B_Start;
+        private SysBot.Pokemon.WinForms.DrawableButton B_RebootStop;
         private System.Windows.Forms.TextBox TB_IP;
         private System.Windows.Forms.ComboBox CB_Routine;
         private System.Windows.Forms.TextBox NUD_Port;
-        private System.Windows.Forms.Button B_New;
+        private SysBot.Pokemon.WinForms.DrawableButton B_New;
         private System.Windows.Forms.FlowLayoutPanel FLP_Bots;
         private System.Windows.Forms.ComboBox CB_Protocol;
     }
