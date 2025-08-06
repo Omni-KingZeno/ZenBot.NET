@@ -306,12 +306,13 @@ public sealed partial class Main : Form
     {
         base.OnLoad(e);
         CenterTopButtons();
+        CenterAddButton();
     }
 
     protected override void OnResize(EventArgs e)
     {
         base.OnResize(e);
-        CenterTopButtons();
+        CenterAddButton();
     }
 
     private void CenterTopButtons()
@@ -350,5 +351,23 @@ public sealed partial class Main : Form
         CenterResizeAndFontButton(B_Start);
         CenterResizeAndFontButton(B_Stop);
         CenterResizeAndFontButton(B_RebootStop);
+    }
+
+    private void CenterAddButton()
+    {
+        B_New.Height = TB_IP.Height;
+        B_New.Top = TB_IP.Top;
+
+        if (B_New.Tag is not Font originalFont)
+        {
+            originalFont = B_New.Font;
+            B_New.Tag = originalFont;
+        }
+
+        float scale = (float)B_New.Height / originalFont.Height;
+        float fontSize = Math.Max(6f, Math.Min(originalFont.Size * scale, originalFont.Size));
+
+        if (Math.Abs(B_New.Font.Size - fontSize) > 0.5f)
+            B_New.Font = new Font(originalFont.FontFamily, fontSize, originalFont.Style);
     }
 }
