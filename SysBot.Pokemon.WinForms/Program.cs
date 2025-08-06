@@ -34,6 +34,8 @@ internal static class Program
             TypeDescriptor.AddProvider(new CollectionDescriptionProvider(container), container);
 
         Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+
 #pragma warning disable WFO5001
         if (IsDarkThemeSet(config))
         {
@@ -41,7 +43,7 @@ internal static class Program
             Application.SetColorMode(SystemColorMode.Dark);
         }
 #pragma warning restore WFO5001
-        Application.SetCompatibleTextRenderingDefault(false);
+
         Application.Run(new Main(config));
     }
 
