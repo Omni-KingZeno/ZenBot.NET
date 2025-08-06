@@ -56,7 +56,7 @@ public class DrawableCollectionEditor(Type type) : CollectionEditor(type)
         {
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderSize = 0;
-            btn.BackColor = DrawableButton.NormalBackColor;
+            btn.BackColor = DrawableButton.DarkNormalBackColor;
             btn.ForeColor = Color.White;
         }
         foreach (Control child in control.Controls)
