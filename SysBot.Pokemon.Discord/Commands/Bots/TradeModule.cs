@@ -59,7 +59,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             {
                 sb.AppendLine("Invalid lines detected:\n```");
                 foreach (var line in set.InvalidLines)
-                    sb.AppendLine(line);
+                    sb.AppendLine(line.Value);
                 sb.AppendLine("```");
             }
             if (set.Species is 0)

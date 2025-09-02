@@ -122,14 +122,21 @@ public class TradeExtensions<T> where T : PKM, new()
             _ => throw new ArgumentException("Invalid type", nameof(pkm)),
         };
 
-        var data = pkm.Data;
+        var data = pkm.Data.ToArray();
         for (int i = offset; i < (offset + MaxTrashCount); i++)
         {
             if (i >= (pkm.OriginalTrainerName.Length * 2) + offset)
                 data[i] = 0;
         }
 
-        return (T)Activator.CreateInstance(typeof(T), data)!;
+        return pkm switch
+        {
+            var t when t is PK8 => new PK8(data),
+            var t when t is PB8 => new PB8(data),
+            var t when t is PA8 => new PA8(data),
+            var t when t is PK9 => new PK9(data),
+            _ => throw new ArgumentException("Invalid type", nameof(pkm)),
+        };
     }
 
     private static bool HasRequestedTrainerDetails(T requested)

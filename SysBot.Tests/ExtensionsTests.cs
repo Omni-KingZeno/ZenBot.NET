@@ -67,8 +67,15 @@ public class ExtensionsTests
         if (trainerNameLength == MaxTrashCount)
             return 0;
 
-        var data = pkm.Data.AsSpan(offset + trainerNameLength, MaxTrashCount - trainerNameLength);
-        return data.ToArray().Count(b => b != 0);
+        var slice = pkm.Data.Slice(offset + trainerNameLength, MaxTrashCount - trainerNameLength);
+
+        int count = 0;
+        for (int i = 0; i < slice.Length; i++)
+        {
+            if (slice[i] != 0)
+                count++;
+        }
+        return count;
     }
 
     private const string FullTrainerName = "MANUMANUMANU";

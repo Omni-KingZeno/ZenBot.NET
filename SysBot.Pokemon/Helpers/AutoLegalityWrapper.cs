@@ -64,7 +64,7 @@ public static class AutoLegalityWrapper
         // We need all the encounter types present, so add the missing ones at the end.
         var missing = EncounterPriority.Except(cfg.PrioritizeEncounters);
         cfg.PrioritizeEncounters.AddRange(missing);
-        cfg.PrioritizeEncounters = cfg.PrioritizeEncounters.Distinct().ToList(); // Don't allow duplicates.
+        cfg.PrioritizeEncounters = [.. cfg.PrioritizeEncounters.Distinct()]; // Don't allow duplicates.
         EncounterMovesetGenerator.PriorityList = cfg.PrioritizeEncounters;
     }
 
@@ -118,10 +118,12 @@ public static class AutoLegalityWrapper
     private static void InitializeCoreStrings()
     {
         var lang = Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName[..2];
-        LocalizationUtil.SetLocalization(typeof(LegalityCheckStrings), lang);
+        LocalizationUtil.SetLocalization(typeof(MessageStrings), lang);
+
+        /*LocalizationUtil.SetLocalization(typeof(LegalityCheckStrings), lang);
         LocalizationUtil.SetLocalization(typeof(MessageStrings), lang);
         RibbonStrings.ResetDictionary(GameInfo.Strings.ribbons);
-        ParseSettings.ChangeLocalizationStrings(GameInfo.Strings.movelist, GameInfo.Strings.specieslist);
+        ParseSettings.ChangeLocalizationStrings(GameInfo.Strings.movelist, GameInfo.Strings.specieslist);*/
     }
 
     public static bool CanBeTraded(this PKM pk)

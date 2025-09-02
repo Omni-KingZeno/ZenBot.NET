@@ -182,7 +182,7 @@ public class StopConditionSettings
     }
 
     public static void ReadUnwantedMarks(StopConditionSettings settings, out IReadOnlyList<string> marks) =>
-        marks = settings.UnwantedMarks.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+        marks = [.. settings.UnwantedMarks.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim())];
 
     public virtual bool IsUnwantedMark(string mark, IReadOnlyList<string> marklist) => marklist.Contains(mark);
 
@@ -191,7 +191,7 @@ public class StopConditionSettings
         for (var mark = RibbonIndex.MarkLunchtime; mark <= RibbonIndex.MarkSlump; mark++)
         {
             if (pk.GetRibbon((int)mark))
-                return RibbonStrings.GetName($"Ribbon{mark}");
+                return GameInfo.GetStrings("en").Ribbons.GetName($"Ribbon{mark}");
         }
         return "";
     }
