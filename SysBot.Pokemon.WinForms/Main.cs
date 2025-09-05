@@ -7,7 +7,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -133,10 +132,6 @@ public sealed partial class Main : Form
         var lines = JsonSerializer.Serialize(cfg, ProgramConfigContext.Default.ProgramConfig);
         File.WriteAllText(Program.ConfigPath, lines);
     }
-
-    [JsonSerializable(typeof(ProgramConfig))]
-    [JsonSourceGenerationOptions(WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-    public sealed partial class ProgramConfigContext : JsonSerializerContext;
 
     private void B_Start_Click(object sender, EventArgs e)
     {
