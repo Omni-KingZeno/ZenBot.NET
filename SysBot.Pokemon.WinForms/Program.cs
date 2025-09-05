@@ -52,7 +52,7 @@ internal static class Program
         if (File.Exists(ConfigPath))
         {
             var lines = File.ReadAllText(ConfigPath);
-            var conf = JsonSerializer.Deserialize(lines, WinForms.Main.ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
+            var conf = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
             LogConfig.MaxArchiveFiles = conf.Hub.MaxArchiveFiles;
             LogConfig.LoggingEnabled = conf.Hub.LoggingEnabled;
             return conf;
