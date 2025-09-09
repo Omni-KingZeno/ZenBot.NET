@@ -76,9 +76,10 @@ public class TradeExtensions<T> where T : PKM, new()
             pkm.RefreshChecksum();
 
         var la = new LegalityAnalysis(pkm);
-        if (!la.Valid && la.Results.Any(l => l.Identifier is CheckIdentifier.TrashBytes))
+        if (la.Results.Any(l => l.Identifier is CheckIdentifier.TrashBytes or CheckIdentifier.Trainer && !l.Valid))
         {
-            pkm = (T)FixTrashChars(pkm);
+            pkm.SetString(pkm.OriginalTrainerTrash, partner.OT,
+                pkm.MaxStringLengthTrainer, StringConverterOption.ClearZero);
 
             if (!pkm.ChecksumValid)
                 pkm.RefreshChecksum();
@@ -108,35 +109,6 @@ public class TradeExtensions<T> where T : PKM, new()
                 $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({pkm.Version})");
 
         return true;
-    }
-
-    public static PKM FixTrashChars(T pkm)
-    {
-        const int MaxTrashCount = 0x1A;
-        var offset = pkm switch
-        {
-            var t when t is PK8 => 0xF8,
-            var t when t is PB8 => 0xF8,
-            var t when t is PA8 => 0x110,
-            var t when t is PK9 => 0xF8,
-            _ => throw new ArgumentException("Invalid type", nameof(pkm)),
-        };
-
-        var data = pkm.Data.ToArray();
-        for (int i = offset; i < (offset + MaxTrashCount); i++)
-        {
-            if (i >= (pkm.OriginalTrainerName.Length * 2) + offset)
-                data[i] = 0;
-        }
-
-        return pkm switch
-        {
-            var t when t is PK8 => new PK8(data),
-            var t when t is PB8 => new PB8(data),
-            var t when t is PA8 => new PA8(data),
-            var t when t is PK9 => new PK9(data),
-            _ => throw new ArgumentException("Invalid type", nameof(pkm)),
-        };
     }
 
     private static bool HasRequestedTrainerDetails(T requested)
