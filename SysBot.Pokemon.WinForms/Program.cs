@@ -1,10 +1,10 @@
 using System;
+using System.ComponentModel;
 using System.IO;
-using SysBot.Base;
-using Microsoft.Win32;
 using System.Text.Json;
 using System.Windows.Forms;
-using System.ComponentModel;
+using Microsoft.Win32;
+using SysBot.Base;
 
 namespace SysBot.Pokemon.WinForms;
 

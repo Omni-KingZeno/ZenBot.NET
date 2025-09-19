@@ -1,6 +1,6 @@
 using System;
-using PKHeX.Core;
 using System.Collections.Generic;
+using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -32,12 +32,12 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : P
     }
 
     private string GetShinyString() =>
-        PKM.ShinyXor == 0 ? "■" : PKM.IsShiny ? "★" : "";
+        PKM.ShinyXor == 0 ? "■ " : PKM.IsShiny ? "★ " : "";
 
     private string GetGenderString() => Config.UseGenderEmoji switch
     {
         true => $"<:GenderEmoji:{Config.GenderEmojiCodes.GetEmojiCode(PKM.Gender)}>",
-        _ => (Gender)PKM.Gender != PKHeX.Core.Gender.Genderless ? $" - {GameInfo.GenderSymbolUnicode[PKM.Gender]}" : ""
+        _ => (Gender)PKM.Gender != PKHeX.Core.Gender.Genderless ? $" {GameInfo.GenderSymbolUnicode[PKM.Gender]}" : ""
     };
 
     private List<string> GetMovesStrings()
@@ -58,7 +58,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : P
                     3 => $"({PKM.Move4_PP} PP)",
                     _ => throw new ArgumentOutOfRangeException(nameof(i), "Invalid move index.")
                 } : "";
-                moves.Add($"- {emoji}{name} {pp}");
+                moves.Add($"\\- {emoji}{name} {pp}");
             }
         }
         return moves;
@@ -88,4 +88,10 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : P
 
     internal string GetBallImageURL() =>
         "https://raw.githubusercontent.com/BakaKaito/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
+
+    internal string GetEggImageURL() =>
+        $"https://raw.githubusercontent.com/BakaKaito/HomeImages/main/Sprites/128x128/Egg_{(MoveType)PKM.PersonalInfo.Type1}.png";
+
+    internal string GetMarkImageURL() =>
+       $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png";
 }

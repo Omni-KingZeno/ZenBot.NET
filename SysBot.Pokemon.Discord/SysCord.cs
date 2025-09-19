@@ -1,14 +1,16 @@
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using PKHeX.Core;
-using SysBot.Base;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.Rest;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using PKHeX.Core;
+using SysBot.Base;
 using static Discord.GatewayIntents;
 
 namespace SysBot.Pokemon.Discord;
@@ -18,11 +20,14 @@ public static class SysCordSettings
     public static DiscordManager Manager { get; internal set; } = default!;
     public static DiscordSettings Settings => Manager.Config;
     public static PokeTradeHubConfig HubConfig { get; internal set; } = default!;
+    public static readonly List<ulong> Admins = [];
+    public static readonly List<ulong> Developers = [];
 }
 
 public sealed class SysCord<T> where T : PKM, new()
 {
     public static PokeBotRunner<T> Runner { get; private set; } = default!;
+    public static RestApplication App { get; private set; } = default!;
 
     private readonly DiscordSocketClient _client;
     private readonly DiscordManager Manager;
@@ -128,8 +133,21 @@ public sealed class SysCord<T> where T : PKM, new()
         await _client.LoginAsync(TokenType.Bot, apiToken).ConfigureAwait(false);
         await _client.StartAsync().ConfigureAwait(false);
 
-        var app = await _client.GetApplicationInfoAsync().ConfigureAwait(false);
-        Manager.Owner = app.Owner.Id;
+        App = await _client.GetApplicationInfoAsync().ConfigureAwait(false);
+        Manager.Owner = App.Owner.Id;
+        SysCordSettings.Admins.Add(App.Owner.Id);
+
+        if (App.Team != null)
+        {
+            foreach (var Member in App.Team.TeamMembers)
+            {
+                if (Member.Role is TeamRole.Owner or TeamRole.Admin)
+                    SysCordSettings.Admins.Add(Member.User.Id);
+
+                if (Member.Role is TeamRole.Developer)
+                    SysCordSettings.Developers.Add(Member.User.Id);
+            }
+        }
 
         // Wait infinitely so your bot actually stays connected.
         await MonitorStatusAsync(token).ConfigureAwait(false);
@@ -217,7 +235,7 @@ public sealed class SysCord<T> where T : PKM, new()
             await msg.Channel.SendMessageAsync("You are not permitted to use this command.").ConfigureAwait(false);
             return true;
         }
-        if (!mgr.CanUseCommandChannel(msg.Channel.Id) && msg.Author.Id != mgr.Owner)
+        if (App.Team != null ? !mgr.CanUseCommandChannel(msg.Channel.Id) && !SysCordSettings.Admins.Contains(msg.Author.Id) & !SysCordSettings.Developers.Contains(msg.Author.Id) : !mgr.CanUseCommandChannel(msg.Channel.Id) && msg.Author.Id != mgr.Owner && !mgr.CanUseSudo(context.User.Id))
         {
             if (Hub.Config.Discord.ReplyCannotUseCommandInChannel)
                 await msg.Channel.SendMessageAsync("You can't use that command here.").ConfigureAwait(false);

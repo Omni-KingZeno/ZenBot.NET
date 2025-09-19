@@ -9,7 +9,7 @@ public class DiscordSettings
     private const string Channels = nameof(Channels);
     private const string Roles = nameof(Roles);
     private const string Users = nameof(Users);
-    private const string Embeds = nameof(Embeds); 
+    private const string Embeds = nameof(Embeds);
     public override string ToString() => "Discord Integration Settings";
 
     // Startup

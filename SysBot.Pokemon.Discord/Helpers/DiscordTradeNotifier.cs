@@ -1,10 +1,9 @@
+using System;
+using System.Linq;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
-using System;
-using System.Diagnostics;
-using System.Linq;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -17,12 +16,6 @@ public class DiscordTradeNotifier<T>(T Data, PokeTradeTrainerInfo Info, int Code
 
     public void TradeInitialize(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
     {
-        if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && info.Type is PokeTradeType.Specific)
-        {
-            var embed = new TradeEmbedBuilder<T>(Data, Hub, new QueueUser(Info.ID, Trader.Username));
-            Context.Channel.SendMessageAsync("", embed: embed.Build()).ConfigureAwait(false);
-        }
-
         // Notify user in private messages
         var receive = Data.Species == 0 ? string.Empty : $" ({Data.Nickname})";
         Trader.SendMessageAsync($"Initializing trade{receive}. Please be ready. Your code is **{Code:0000 0000}**.").ConfigureAwait(false);

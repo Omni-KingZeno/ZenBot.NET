@@ -1,8 +1,8 @@
+using System.Text;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using PKHeX.Core;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -30,7 +30,7 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
         await ReplyAsync(Format.Code(sb.ToString())).ConfigureAwait(false);
     }
 
-    private static string GetDetailedSummary<TBot>(TBot z) where TBot: PokeRoutineExecutorBase
+    private static string GetDetailedSummary<TBot>(TBot z) where TBot : PokeRoutineExecutorBase
     {
         return $"- {z.Connection.Name} | {z.Connection.Label} - {z.Config.CurrentRoutineType} ~ {z.LastTime:hh:mm:ss} | {z.LastLogged}";
     }
