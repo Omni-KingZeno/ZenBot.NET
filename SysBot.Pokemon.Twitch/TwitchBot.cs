@@ -1,9 +1,9 @@
-using PKHeX.Core;
-using SysBot.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PKHeX.Core;
+using SysBot.Base;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -54,7 +54,6 @@ public class TwitchBot<T> where T : PKM, new()
         client.OnMessageReceived += Client_OnMessageReceived;
         client.OnWhisperReceived += Client_OnWhisperReceived;
         client.OnChatCommandReceived += Client_OnChatCommandReceived;
-        client.OnWhisperCommandReceived += Client_OnWhisperCommandReceived;
         client.OnConnected += Client_OnConnected;
         client.OnDisconnected += Client_OnDisconnected;
         client.OnLeftChannel += Client_OnLeftChannel;
@@ -193,21 +192,6 @@ public class TwitchBot<T> where T : PKM, new()
 
         var channel = e.Command.ChatMessage.Channel;
         client.SendMessage(channel, response);
-    }
-
-    private void Client_OnWhisperCommandReceived(object? sender, OnWhisperCommandReceivedArgs e)
-    {
-        if (!Hub.Config.Twitch.AllowCommandsViaWhisper || Hub.Config.Twitch.UserBlacklist.Contains(e.Command.WhisperMessage.Username))
-            return;
-
-        var msg = e.Command.WhisperMessage;
-        var c = e.Command.CommandText.ToLower();
-        var args = e.Command.ArgumentsAsString;
-        var response = HandleCommand(msg, c, args, true);
-        if (response.Length == 0)
-            return;
-
-        client.SendWhisper(msg.Username, response);
     }
 
     private string HandleCommand(TwitchLibMessage m, string c, string args, bool whisper)

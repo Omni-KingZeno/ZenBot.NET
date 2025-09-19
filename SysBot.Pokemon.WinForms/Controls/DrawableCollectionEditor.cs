@@ -1,7 +1,7 @@
 using System;
+using System.ComponentModel.Design;
 using System.Drawing;
 using System.Windows.Forms;
-using System.ComponentModel.Design;
 
 namespace SysBot.Pokemon.WinForms;
 

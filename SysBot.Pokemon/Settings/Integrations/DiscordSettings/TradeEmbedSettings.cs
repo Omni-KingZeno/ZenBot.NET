@@ -1,5 +1,5 @@
-using PKHeX.Core;
 using System.ComponentModel;
+using PKHeX.Core;
 
 namespace SysBot.Pokemon;
 
@@ -31,6 +31,12 @@ public class TradeEmbedSettings
     [Category(Text), Description("If true, show the move PP amount in the Discord embed.")]
     public bool ShowMovePP { get; set; } = false;
 
-    [Category(Text), Description("If true, show the Pokémon IVs and EVs in the Discord embed.")]
-    public bool ShowIVsAndEVs { get; set; } = false;
+    [Category(Text), Description("If true, show the Pokémon IVs in the Discord embed.")]
+    public bool ShowIVs { get; set; } = true;
+
+    [Category(Text), Description("If true, show the Pokémon EVs in the Discord embed.")]
+    public bool ShowEVs { get; set; } = true;
+
+    [Category(Text), Description("If true, will use Koi's TradeCord style embed layout")]
+    public bool UseAlternateLayout { get; set; } = false;
 }

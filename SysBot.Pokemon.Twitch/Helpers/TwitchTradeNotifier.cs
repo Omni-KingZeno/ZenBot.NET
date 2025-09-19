@@ -1,7 +1,7 @@
-using PKHeX.Core;
-using SysBot.Base;
 using System;
 using System.Linq;
+using PKHeX.Core;
+using SysBot.Base;
 using TwitchLib.Client;
 
 namespace SysBot.Pokemon.Twitch;
@@ -59,8 +59,6 @@ public class TwitchTradeNotifier<T> : IPokeTradeNotifier<T> where T : PKM, new()
         var receive = Data.Species == 0 ? string.Empty : $" ({Data.Nickname})";
         var msg = $"@{info.Trainer.TrainerName} (ID: {info.ID}): Initializing trade{receive} with you. Please be ready. Use the code you whispered me to search!";
         var dest = Settings.TradeStartDestination;
-        if (dest == TwitchMessageDestination.Whisper)
-            msg += $" Your trade code is: {(typeof(T) == typeof(PB7) ? string.Join(", ", info.PictoCodes) : $"{info.Code:0000 0000}")}";
         LogUtil.LogText(msg);
         SendMessage(msg, dest);
     }
@@ -73,8 +71,6 @@ public class TwitchTradeNotifier<T> : IPokeTradeNotifier<T> where T : PKM, new()
         var dest = Settings.TradeSearchDestination;
         if (dest == TwitchMessageDestination.Channel)
             message += " Use the code you whispered me to search!";
-        else if (dest == TwitchMessageDestination.Whisper)
-            message += $" Your trade code is: {(typeof(T) == typeof(PB7) ? string.Join(", ", info.PictoCodes) : $"{info.Code:0000 0000}")}";
         LogUtil.LogText(message);
         SendMessage($"@{info.Trainer.TrainerName} {message}", dest);
     }
@@ -101,9 +97,6 @@ public class TwitchTradeNotifier<T> : IPokeTradeNotifier<T> where T : PKM, new()
         {
             case TwitchMessageDestination.Channel:
                 Client.SendMessage(Channel, message);
-                break;
-            case TwitchMessageDestination.Whisper:
-                Client.SendWhisper(Username, message);
                 break;
         }
     }

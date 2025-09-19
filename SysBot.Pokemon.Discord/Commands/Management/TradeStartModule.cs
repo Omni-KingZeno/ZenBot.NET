@@ -1,11 +1,11 @@
-﻿using Discord;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
 using SysBot.Base;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -22,7 +22,6 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
         SysCord<T>.Runner.Hub.Queues.Forwarders.Remove(entry.Action);
     }
 
-#pragma warning disable RCS1158 // Static member in generic type should use a type parameter.
     public static void RestoreTradeStarting(DiscordSocketClient discord)
     {
         var cfg = SysCordSettings.Settings;
@@ -36,7 +35,6 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
     }
 
     public static bool IsStartChannel(ulong cid)
-#pragma warning restore RCS1158 // Static member in generic type should use a type parameter.
     {
         return Channels.TryGetValue(cid, out _);
     }

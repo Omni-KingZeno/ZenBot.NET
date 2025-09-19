@@ -1,12 +1,13 @@
+using System;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Text;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
 using SysBot.Base;
-using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -48,66 +49,9 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task TradeAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
     {
-        content = ReusableActions.StripCodeBlock(content);
-        var set = new ShowdownSet(content);
-        var template = AutoLegalityWrapper.GetTemplate(set);
-        if (set.InvalidLines.Count != 0 || set.Species is 0)
-        {
-            var sb = new StringBuilder(128);
-            sb.AppendLine("Unable to parse Showdown Set.");
-            var invalidlines = set.InvalidLines;
-            if (invalidlines.Count != 0)
-            {
-                var localization = BattleTemplateParseErrorLocalization.Get();
-                sb.AppendLine("Invalid lines detected:\n```");
-                foreach (var line in invalidlines)
-                {
-                    var error = line.Humanize(localization);
-                    sb.AppendLine(error);
-                }
-                sb.AppendLine("```");
-            }
-            if (set.Species is 0)
-                sb.AppendLine("Species could not be identified. Check your spelling.");
-
-            var msg = sb.ToString();
-            await ReplyAsync(msg).ConfigureAwait(false);
-            return;
-        }
-
-        try
-        {
-            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var pkm = sav.GetLegal(template, out var result); ;
-            var la = new LegalityAnalysis(pkm);
-            var spec = GameInfo.Strings.Species[template.Species];
-            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
-            if (pkm is not T pk || !la.Valid)
-            {
-                var reason = result switch
-                {
-                    "Timeout" => $"That {spec} set took too long to generate.",
-                    "VersionMismatch" => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
-                    _ => $"I wasn't able to create a {spec} from that set.",
-                };
-                var imsg = $"Oops! {reason}";
-                if (result == "Failed")
-                    imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(template, sav, pkm)}";
-                await ReplyAsync(imsg).ConfigureAwait(false);
-                return;
-            }
-            pk.ResetPartyStats();
-
-            var sig = Context.User.GetFavor();
-            await AddTradeToQueueAsync(code, Context.User.Username, pk, sig, Context.User).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            LogUtil.LogSafe(ex, nameof(TradeModule<T>));
-            var msg = $"Oops! An unexpected problem happened with this Showdown Set:\n```{string.Join("\n", set.GetSetLines())}```";
-            await ReplyAsync(msg).ConfigureAwait(false);
-        }
+        await TradeAsyncShowdown(code, content, Context.User).ConfigureAwait(false);
     }
+
 
     [Command("trade")]
     [Alias("t")]
@@ -176,6 +120,108 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     {
         var code = Info.GetRandomTradeCode();
         return TradeAsyncAttachUser(code, _);
+    }
+
+    [Command("TradeUser")]
+    [Alias("tu")]
+    [Summary("Maakes the bot trade the mentioned user the provided Showdown Set.")]
+    [RequireSudo]
+    public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
+    {
+        await TradeAsyncShowdown(code, content, user).ConfigureAwait(false);
+    }
+
+    [Command("TradeUser")]
+    [Alias("tu")]
+    [Summary("Maakes the bot trade the mentioned user the provided Showdown Set.")]
+    [RequireSudo]
+    public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Showdown Set")][Remainder] string content)
+    {
+            var code = Info.GetRandomTradeCode();
+            await TradeAsyncShowdown(code, content, user).ConfigureAwait(false);     
+    }
+
+    [Command("eggtrade")]
+    [Alias("egg")]
+    [Summary("Makes the bot trade you a Pokémon Egg converted from the provided Showdown Set.")]
+    [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
+    public async Task TradeEggAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
+    {
+        await TradeAsyncShowdown(code, content, Context.User, true).ConfigureAwait(false);
+    }
+
+    [Command("eggtrade")]
+    [Alias("egg")]
+    [Summary("Makes the bot trade you a Pokémon converted from the provided Showdown Set.")]
+    [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
+    public Task TradeEggAsync([Summary("Showdown Set")][Remainder] string content)
+    {
+        var code = Info.GetRandomTradeCode();
+        return TradeAsyncShowdown(code, content, Context.User, true);
+    }
+
+    private async Task TradeAsyncShowdown(int code, string content, SocketUser user, bool eggTrade = false)
+    {
+        content = ReusableActions.StripCodeBlock(content);
+        var set = new ShowdownSet(content);
+        var template = AutoLegalityWrapper.GetTemplate(set);
+        if (set.InvalidLines.Count != 0 || set.Species is 0)
+        {
+            var sb = new StringBuilder(128);
+            sb.AppendLine("Unable to parse Showdown Set.");
+            var invalidlines = set.InvalidLines;
+            if (invalidlines.Count != 0)
+            {
+                var localization = BattleTemplateParseErrorLocalization.Get();
+                sb.AppendLine("Invalid lines detected:\n```");
+                foreach (var line in invalidlines)
+                {
+                    var error = line.Humanize(localization);
+                    sb.AppendLine(error);
+                }
+                sb.AppendLine("```");
+            }
+            if (set.Species is 0)
+                sb.AppendLine("Species could not be identified. Check your spelling.");
+
+            var msg = sb.ToString();
+            await ReplyAsync(msg).ConfigureAwait(false);
+            return;
+        }
+
+        try
+        {
+            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+            var isEggRequest = eggTrade && Breeding.CanHatchAsEgg(set.Species);
+            var pkm = isEggRequest ? sav.GetLegalEgg(set, out var result) : sav.GetLegal(template, out result); ;
+            var la = new LegalityAnalysis(pkm);
+            var spec = GameInfo.Strings.Species[template.Species];
+            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+            if (pkm is not T pk || !la.Valid)
+            {
+                var reason = result switch
+                {
+                    "Timeout" => $"That {spec} set took too long to generate.",
+                    "VersionMismatch" => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
+                    _ => $"I wasn't able to create a {spec} from that set.",
+                };
+                var imsg = $"Oops! {reason}";
+                if (result == "Failed")
+                    imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(template, sav, pkm)}";
+                await ReplyAsync(imsg).ConfigureAwait(false);
+                return;
+            }
+            pk.ResetPartyStats();
+
+            var sig = user.GetFavor();
+            await AddTradeToQueueAsync(code, user.Username, pk, sig, Context.User).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogSafe(ex, nameof(TradeModule<T>));
+            var msg = $"Oops! An unexpected problem happened with this Showdown Set:\n```{string.Join("\n", set.GetSetLines())}```";
+            await ReplyAsync(msg).ConfigureAwait(false);
+        }
     }
 
     private async Task TradeAsyncAttach(int code, RequestSignificance sig, SocketUser usr)
