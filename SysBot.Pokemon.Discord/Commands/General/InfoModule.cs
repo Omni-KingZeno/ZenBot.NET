@@ -16,7 +16,8 @@ namespace SysBot.Pokemon.Discord;
 public class InfoModule : ModuleBase<SocketCommandContext>
 {
     private const string detail = "I am an open-source Discord bot powered by PKHeX.Core and other open-source software.";
-    private const string repo = "https://github.com/Manu098vm/ManuBot.NET";
+    private const string repo = "https://github.com/Omni-KingZeno/ZenBot.NET";
+    private const string upstreamRepo = "https://github.com/Manu098vm/ManuBot.NET";
     private const string upstream = "https://github.com/kwsch/SysBot.NET";
 
     [Command("info")]
@@ -32,7 +33,8 @@ public class InfoModule : ModuleBase<SocketCommandContext>
         };
 
         builder.AddField("Info",
-            $"- [This fork Source Code]({repo}) by manu098vm\n" +
+            $"- [This forks Source Code]({repo})\n" +
+            $"- [Upstream fork Source Code]({upstreamRepo}) by manu098vm\n" +
             $"Special thanks to notzyro, santacrab2, and 9Bitdo for their help with code, updates, and ongoing support.\n" +
             $"- [Upstream Source Code]({upstream}) by kwsch\n" +
             $"Credit to Kurt, Anubis, and Architdate for developing the original SysBot code.\n" +
