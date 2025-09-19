@@ -1,12 +1,12 @@
-using Discord;
-using Discord.WebSocket;
-using PKHeX.Core;
-using SysBot.Base;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
+using Discord.WebSocket;
+using PKHeX.Core;
+using SysBot.Base;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -44,7 +44,7 @@ public static class ReusableActions
     public static RequestSignificance GetFavor(this IUser user)
     {
         var mgr = SysCordSettings.Manager;
-        if (user.Id == mgr.Owner)
+        if (user.Id == mgr.Owner || SysCordSettings.Admins.Contains(user.Id))
             return RequestSignificance.Owner;
         if (mgr.CanUseSudo(user.Id))
             return RequestSignificance.Favored;
@@ -73,7 +73,7 @@ public static class ReusableActions
         return Format.Code(showdown);
     }
 
-    private static readonly string[] separator = [ ",", ", ", " " ];
+    private static readonly string[] separator = [",", ", ", " "];
 
     public static IReadOnlyList<string> GetListFromString(string str)
     {

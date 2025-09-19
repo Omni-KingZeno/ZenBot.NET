@@ -22,7 +22,7 @@ public class DiscordManager(DiscordSettings Config)
     public RemoteControlAccessList RolesDump => Config.RoleCanDump;
     public RemoteControlAccessList RolesRemoteControl => Config.RoleRemoteControl;
 
-    public bool CanUseSudo(ulong uid) => SudoDiscord.Contains(uid);
+    public bool CanUseSudo(ulong uid) => SudoDiscord.Contains(uid) || SysCordSettings.Developers.Contains(uid);
     public bool CanUseSudo(IEnumerable<string> roles) => roles.Any(SudoRoles.Contains);
 
     public bool CanUseCommandChannel(ulong channel) => (WhitelistedChannels.List.Count == 0 && WhitelistedChannels.AllowIfEmpty) || WhitelistedChannels.Contains(channel);

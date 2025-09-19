@@ -1,9 +1,11 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
 using PKHeX.Core;
-using System.Threading.Tasks;
+using SysBot.Pokemon.Discord.Helpers;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -25,10 +27,20 @@ public static class QueueHelper<T> where T : PKM, new()
             IUserMessage test = await trader.SendMessageAsync(helper).ConfigureAwait(false);
 
             // Try adding
-            var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg);
+            var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var embed);
 
             // Notify in channel
-            await context.Channel.SendMessageAsync(msg).ConfigureAwait(false);
+            var hub = SysCord<T>.Runner.Hub;
+            if (hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize)
+            {
+                _ = embed?.Build();
+                embed?.Builder.AddField("** **", msg, inline: false);
+                await context.Channel.SendMessageAsync(embed: embed?.Build()).ConfigureAwait(false);
+            }
+            else
+            {
+                await context.Channel.SendMessageAsync(msg).ConfigureAwait(false);
+            }
 
             // Notify in PM to mirror what is said in the channel.
             if (typeof(T) == typeof(PB7))
@@ -66,11 +78,11 @@ public static class QueueHelper<T> where T : PKM, new()
         return AddToQueueAsync(context, code, trainer, sig, trade, routine, type, context.User);
     }
 
-    private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg)
+    private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, out TradeEmbedBuilder<T>? embed)
     {
         var user = trader;
         var userID = user.Id;
-        var name = user.Username;
+        var name = NicknameHelper.Get(trader as IGuildUser);
 
         var trainer = new PokeTradeTrainerInfo(trainerName, userID);
         var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, user, context);
@@ -84,6 +96,7 @@ public static class QueueHelper<T> where T : PKM, new()
         if (added == QueueResultAdd.AlreadyInQueue)
         {
             msg = "Sorry, you are already in the queue.";
+            embed = null;
             return false;
         }
 
@@ -94,9 +107,11 @@ public static class QueueHelper<T> where T : PKM, new()
             ticketID = $", unique ID: {detail.ID}";
 
         var pokeName = "";
-        if (t == PokeTradeType.Specific && pk.Species != 0)
+        if (hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.None && t == PokeTradeType.Specific && pk.Species != 0)
             pokeName = $" Receiving: {GameInfo.GetStrings("en").Species[pk.Species]}.";
         msg = $"{user.Mention} - Added to the {type} queue{ticketID}. {pokeName} ";
+
+        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name));
 
         if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is PokeTradeType.Specific))
         {
@@ -114,41 +129,84 @@ public static class QueueHelper<T> where T : PKM, new()
 
     private static async Task HandleDiscordExceptionAsync(SocketCommandContext context, SocketUser trader, HttpException ex)
     {
+        var hub = SysCord<T>.Runner.Hub;
+        var app = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
+        var owner = app.Team != null ? app?.Team?.TeamMembers?.FirstOrDefault(member => member.Role == TeamRole.Owner)?.User.Id : app.Owner.Id;
         string message = string.Empty;
+        EmbedBuilder embedBuilder = new();
         switch (ex.DiscordCode)
         {
+            case DiscordErrorCode.UnknownMessage:
+                {
+                    // The message was deleted before we could delete it.
+                    message = "The message was deleted before I could delete it!";
+                    embedBuilder.Title = "Message Deletion Error";
+                }
+                break;
             case DiscordErrorCode.InsufficientPermissions or DiscordErrorCode.MissingPermissions:
-            {
-                // Check if the exception was raised due to missing "Send Messages" or "Manage Messages" permissions. Nag the bot owner if so.
-                var permissions = context.Guild.CurrentUser.GetPermissions(context.Channel as IGuildChannel);
-                if (!permissions.SendMessages)
                 {
-                    // Nag the owner in logs.
-                    message = "You must grant me \"Send Messages\" permissions!";
-                    Base.LogUtil.LogError(message, "QueueHelper");
-                    return;
+                    // Check if the exception was raised due to missing "Send Messages" or "Manage Messages" permissions. Nag the bot owner if so.
+                    var permissions = context.Guild.CurrentUser.GetPermissions(context.Channel as IGuildChannel);
+                    if (!permissions.SendMessages)
+                    {
+                        // Nag the owner in logs.
+                        message = "You must grant me \"Send Messages\" permissions!";
+                        Base.LogUtil.LogError(message, "QueueHelper");
+                        return;
+                    }
+                    if (!permissions.ManageMessages)
+                    {
+                        message = "I must be granted \"Manage Messages\" permissions!";
+                        embedBuilder.Title = "Permissions Error";
+                    }
                 }
-                if (!permissions.ManageMessages)
-                {
-                    var app = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
-                    var owner = app.Owner.Id;
-                    message = $"<@{owner}> You must grant me \"Manage Messages\" permissions!";
-                }
-            }
                 break;
             case DiscordErrorCode.CannotSendMessageToUser:
-            {
-                // The user either has DMs turned off, or Discord thinks they do.
-                message = context.User == trader ? "You must enable private messages in order to be queued!" : "The mentioned user must enable private messages in order for them to be queued!";
-            }
+                {
+                    // The user either has DMs turned off, or Discord thinks they do.
+                    message = context.User == trader ? $"{context.User.Mention}\nYou must enable Direct Messages in order for me to DM your trade code!" : "The mentioned user must enable private messages in order for me to DM them their trade code!";
+                    if (context.User == trader)
+                        hub.Queues.Info.ClearTrade(context.User.Id);
+                    else
+                        hub.Queues.Info.ClearTrade(trader.Id);
+                    embedBuilder.Title = "Privacy Error";
+                }
                 break;
             default:
-            {
-                // Send a generic error message.
-                message = ex.DiscordCode != null ? $"Discord error {(int)ex.DiscordCode}: {ex.Reason}" : $"Http error {(int)ex.HttpCode}: {ex.Message}";
-            }
+                {
+                    // Send a generic error message.
+                    message = ex.DiscordCode != null ? $"Discord error {(int)ex.DiscordCode}: {ex.Reason}" : $"Http error {(int)ex.HttpCode}: {ex.Message}";
+                }
                 break;
         }
-        await context.Channel.SendMessageAsync(message).ConfigureAwait(false);
+        embedBuilder.Description = message;
+        embedBuilder.Color = Color.Red;
+        embedBuilder.ThumbnailUrl = context.Client.CurrentUser.GetAvatarUrl();
+        var pingOwner = ex.DiscordCode == (DiscordErrorCode.InsufficientPermissions | DiscordErrorCode.MissingPermissions);
+        var embed = embedBuilder.Build();
+
+        try
+        {
+            // Get the bots permissions in the channel
+            var currentUser = context.Guild.GetUser(context.Client.CurrentUser.Id);
+            var channelPerms = currentUser.GetPermissions(context.Channel as IGuildChannel);
+
+            // Check embed links and attach files perms
+            bool canSendEmbed = channelPerms.Has(ChannelPermission.EmbedLinks);
+            bool canAttachFiles = channelPerms.Has(ChannelPermission.AttachFiles);
+
+            if (!canSendEmbed && !canAttachFiles || !canSendEmbed)
+            {
+                await context.Message.ReplyAsync(pingOwner ? $"<@{owner}> - {message}" : message).ConfigureAwait(false);
+            }
+            else
+            {
+                await context.Message.ReplyAsync(pingOwner ? $"<@{owner}>" : "", false, embed: embed).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            await context.Channel.SendMessageAsync(pingOwner ? $"<@{owner}> {message}" : message).ConfigureAwait(false);
+        }
     }
 }

@@ -1,7 +1,7 @@
-﻿using NLog;
+using System.IO;
+using NLog;
 using NLog.Config;
 using NLog.Targets;
-using System.IO;
 
 namespace SysBot.Base;
 

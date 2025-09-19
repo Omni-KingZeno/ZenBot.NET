@@ -1,8 +1,8 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -12,6 +12,9 @@ public sealed class RequireSudoAttribute : PreconditionAttribute
     public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
     {
         var mgr = SysCordSettings.Manager;
+        if (SysCordSettings.Admins.Contains(context.User.Id))
+            return Task.FromResult(PreconditionResult.FromSuccess());
+
         if (mgr.Config.AllowGlobalSudo && mgr.CanUseSudo(context.User.Id))
             return Task.FromResult(PreconditionResult.FromSuccess());
 

@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
- namespace SysBot.Base;
+namespace SysBot.Base;
 
 /// <summary>
 /// Bare minimum methods required to interact with a <see cref="IConsoleConnection"/> in a synchronous manner.

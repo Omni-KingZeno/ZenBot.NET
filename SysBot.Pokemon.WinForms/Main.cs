@@ -1,6 +1,3 @@
-using PKHeX.Core;
-using SysBot.Base;
-using SysBot.Pokemon.Z3;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,6 +6,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PKHeX.Core;
+using SysBot.Base;
+using SysBot.Pokemon.Z3;
 
 namespace SysBot.Pokemon.WinForms;
 

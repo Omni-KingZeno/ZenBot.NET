@@ -1,13 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Discord;
 using PKHeX.Core;
-using System;
+using SysBot.Pokemon.Discord.Helpers;
 
 namespace SysBot.Pokemon.Discord;
 
 public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
-    private EmbedBuilder Builder { get; init; } = new();
+    public EmbedBuilder Builder { get; init; } = new();
     private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings);
 
     public Embed Build()
@@ -20,102 +23,81 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) 
 
     public void InitializeEmbed()
     {
-        const string UNSET = "** **";
+        //Embed layout Style
+        var altStyle = Hub.Config.Discord.TradeEmbedSettings.UseAlternateLayout;
 
         Builder.Color = InitializeColor();
         Builder.Author = InitializeAuthor();
         Builder.Footer = InitializeFooter();
-        Builder.ThumbnailUrl = Strings.GetPokemonImageURL();
+        Builder.ThumbnailUrl = altStyle ? "" : Strings.GetPokemonImageURL();
+        Builder.ImageUrl = altStyle ? Strings.GetPokemonImageURL() : "";
 
         // Set the Pokémon Species as Embed Title
         var mark = Strings.Mark;
         var fieldName = mark.HasMark switch
         {
-            true => $"{Strings.Shiny} {Strings.Species} {Strings.Gender} {mark.Title}",
-            _ => $"{Strings.Shiny} {Strings.Species} {Strings.Gender}",
+            true => $"{Strings.Shiny}{Strings.Species}{mark.Title}{Strings.Gender}",
+            _ => $"{Strings.Shiny}{Strings.Species}{Strings.Gender}",
         };
 
+        // Add general Pokémon informations
+        var fieldValue = $"**Ability:** {Strings.Ability}{Environment.NewLine}" +
+                         (mark.HasMark ? $"**Mark:** {mark.Name}{Environment.NewLine}" : "") +
+                         $"**Level:** {PKM.CurrentLevel}{Environment.NewLine}" +
+                         (Strings.HasTeraType ? $"**Tera Type:** {Strings.TeraType}{Environment.NewLine}" : "") +
+                         $"**Nature:** {Strings.Nature}{Environment.NewLine}" +
+                         $"**Scale:** {Strings.Scale}{Environment.NewLine}";
+
+        //Add Pokémon IVs, if enabled
+        if (Hub.Config.Discord.TradeEmbedSettings.ShowIVs)
+        {
+            List<string> ivList =
+                [
+                    PKM.IV_HP  < 31 ? $"{PKM.IV_HP} HP" : "",
+                    PKM.IV_ATK < 31 ? $"{PKM.IV_ATK} Atk" : "",
+                    PKM.IV_DEF < 31 ? $"{PKM.IV_DEF} Def" : "",
+                    PKM.IV_SPA < 31 ? $"{PKM.IV_SPA} SpA" : "",
+                    PKM.IV_SPD < 31 ? $"{PKM.IV_SPD} SpD" : "",
+                    PKM.IV_SPE < 31 ? $"{PKM.IV_SPE} Spe" : "",
+                ];
+            ivList = [.. ivList.Where(s => !string.IsNullOrEmpty(s))];
+            var ivs = "**IVs: **" + (PKM.IVTotal == 186 ? "6IV" : string.Join(" / ", ivList));
+
+            fieldValue += ivs + Environment.NewLine;
+        }
+
+        //Add Pokémon EVs, if enabled
+        if (Hub.Config.Discord.TradeEmbedSettings.ShowIVs)
+        {
+            List<string> evList =
+                [
+                    PKM.EV_HP  > 0 ? $"{PKM.EV_HP} HP" : "",
+                    PKM.EV_ATK > 0 ? $"{PKM.EV_ATK} Atk" : "",
+                    PKM.EV_DEF > 0 ? $"{PKM.EV_DEF} Def" : "",
+                    PKM.EV_SPA > 0 ? $"{PKM.EV_SPA} SpA" : "",
+                    PKM.EV_SPD > 0 ? $"{PKM.EV_SPD} SpD" : "",
+                    PKM.EV_SPE > 0 ? $"{PKM.EV_SPE} Spe" : "",
+                ];
+            evList = [.. evList.Where(s => !string.IsNullOrEmpty(s))];
+            var evs = evList.Count == 0 ? "" : "**EVs: **" + string.Join(" / ", evList) + Environment.NewLine;
+
+            fieldValue += evs;
+        }
+
+        var moves = string.Join(Environment.NewLine, Strings.Moves);
         Builder.AddField(x =>
         {
             x.Name = fieldName;
-            x.Value = UNSET;
-            x.IsInline = false;
-        });
-
-        // Add Pokémon Held Item, if any
-        if (Strings.HasItem) { Builder.AddField(x =>
-        {
-            x.Name = $"**Held Item**: {Strings.HeldItem}";
-            x.Value = UNSET;
-            x.IsInline = false;
-        });}
-
-        // Add general Pokémon informations
-        var fieldValue = $"**Level:** {PKM.CurrentLevel}{Environment.NewLine}" +
-                         $"**Ability:** {Strings.Ability}{Environment.NewLine}" +
-                         $"**Nature:** {Strings.Nature}{Environment.NewLine}" +
-                         $"**Scale:** {Strings.Scale}";
-
-        if (Strings.HasTeraType)
-            fieldValue += $"{Environment.NewLine}**Tera Type:** {Strings.TeraType}";
-
-        if (mark.HasMark)
-            fieldValue += $"{Environment.NewLine}**Mark:** {mark.Name}";
-
-        Builder.AddField(x =>
-        {
-            x.Name = "Pokémon Info:";
-            x.Value = fieldValue;
+            x.Value = fieldValue + (altStyle ? "" : moves);
             x.IsInline = true;
         });
 
-        // Empty Field, so we build a two-column layout
-        var unsetField = new EmbedFieldBuilder
+        if (altStyle)
         {
-            Name = UNSET,
-            Value = UNSET,
-            IsInline = true
-        };
-        Builder.AddField(unsetField);
-
-        // Add Pokémon Moveset
-        Builder.AddField(x =>
-        {
-            x.Name = "Moveset:";
-            x.Value = string.Join(Environment.NewLine, Strings.Moves);
-            x.IsInline = true;
-        });
-
-        //Add Pokémon IVs and EVs, if enabled
-        if (Hub.Config.Discord.TradeEmbedSettings.ShowIVsAndEVs)
-        {
-            var ivs = $"**HP:** {PKM.IV_HP}{Environment.NewLine}" +
-                      $"**Atk:** {PKM.IV_ATK}{Environment.NewLine}" +
-                      $"**Def:** {PKM.IV_DEF}{Environment.NewLine}" +
-                      $"**SpA:** {PKM.IV_SPA}{Environment.NewLine}" +
-                      $"**SpD:** {PKM.IV_SPD}{Environment.NewLine}" +
-                      $"**Spe:** {PKM.IV_SPE}{Environment.NewLine}";
-
             Builder.AddField(x =>
             {
-                x.Name = "Pokémon IVs:";
-                x.Value = ivs;
-                x.IsInline = true;
-            });
-
-            Builder.AddField(unsetField); // Add empty field for two-column layout
-
-            var evs = $"**HP:** {PKM.EV_HP}{Environment.NewLine}" +
-                      $"**Atk:** {PKM.EV_ATK}{Environment.NewLine}" +
-                      $"**Def:** {PKM.EV_DEF}{Environment.NewLine}" +
-                      $"**SpA:** {PKM.EV_SPA}{Environment.NewLine}" +
-                      $"**SpD:** {PKM.EV_SPD}{Environment.NewLine}" +
-                      $"**Spe:** {PKM.EV_SPE}";
-
-            Builder.AddField(x =>
-            {
-                x.Name = "Pokémon EVs:";
-                x.Value = evs;
+                x.Name = "Moves:";
+                x.Value = moves;
                 x.IsInline = true;
             });
         }
@@ -124,18 +106,18 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) 
     }
 
     private Color InitializeColor() =>
-        PKM.IsShiny && (PKM.ShinyXor == 0 || PKM.FatefulEncounter) ? Color.Gold : PKM.IsShiny ? Color.LighterGrey : Color.Teal;
+        EmbedColorHelper.GetDiscordColor(PKM.IsShiny ? EmbedColorHelper.ShinyMap[((Species)PKM.Species, PKM.Form)] : (PersonalColor)PKM.PersonalInfo.Color);
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
-        Name = $"{trader.Username}'s Pokémon",
-        IconUrl = Strings.GetBallImageURL(),
+        Name = $"{trader.Username}'s {(PKM.IsShiny ? "Shiny " : "")} Pokémon {(PKM.IsEgg ? "Egg" : "")}",
+        IconUrl = PKM.IsEgg ? Strings.GetEggImageURL() : Strings.GetBallImageURL(),
     };
 
     private EmbedFooterBuilder InitializeFooter()
     {
         var type = Hub.Config.Discord.UseTradeEmbeds;
-        string footerText = Environment.NewLine;
+        string footerText = string.Empty;
 
         // Assume OT and TID can change during the trade process, only show them if the trade has been completed.
         if (type is TradeEmbedDisplay.TradeInitialize)
@@ -156,7 +138,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) 
                           $"{Environment.NewLine}Trade finished. Enjoy your Pokémon!";
         }
 
-        return new EmbedFooterBuilder { Text = footerText };
+        return new EmbedFooterBuilder { Text = footerText, IconUrl = Strings.Mark.HasMark ? Strings.GetMarkImageURL() : string.Empty };
     }
 }
 

@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
-using static System.Net.WebRequestMethods;
 
 namespace SysBot.Pokemon;
 
@@ -91,7 +90,7 @@ public class TwitchSettings
 
     public bool IsSudo(string username)
     {
-        var sudos = SudoList.Split([ ",", ", ", " " ], StringSplitOptions.RemoveEmptyEntries);
+        var sudos = SudoList.Split([",", ", ", " "], StringSplitOptions.RemoveEmptyEntries);
         return sudos.Contains(username);
     }
 }
@@ -100,5 +99,4 @@ public enum TwitchMessageDestination
 {
     Disabled,
     Channel,
-    Whisper,
 }
