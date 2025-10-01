@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using PKHeX.Core;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsSWSH;

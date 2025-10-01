@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.IO;
+using System.ComponentModel;
 
 namespace SysBot.Pokemon;
 

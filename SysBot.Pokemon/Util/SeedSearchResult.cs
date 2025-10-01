@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace SysBot.Pokemon;
 
 public record SeedSearchResult(Z3SearchResult Type, ulong Seed, int FlawlessIVCount, SeedCheckResults Mode)

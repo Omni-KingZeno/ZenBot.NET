@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using PKHeX.Core;
 using SysBot.Base;
 using TwitchLib.Client;

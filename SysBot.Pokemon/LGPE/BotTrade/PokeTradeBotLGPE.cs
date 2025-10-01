@@ -1,17 +1,12 @@
+using System.Diagnostics;
+using System.Globalization;
+using System.Net.Sockets;
+using System.Text;
 using PKHeX.Core;
 using PKHeX.Core.Searching;
 using SysBot.Base;
-using System.Net.Sockets;
-using System.Diagnostics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsLGPE;
-using System.Globalization;
 
 namespace SysBot.Pokemon;
 
@@ -51,7 +46,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             Log("Identifying trainer data of the host console.");
             var sav = await IdentifyTrainer(token).ConfigureAwait(false);
             RecentTrainerCache.SetRecentTrainer(sav);
-           
+
             Log($"Starting main {nameof(PokeTradeBotLGPE)} loop.");
             await InnerLoop(sav, token).ConfigureAwait(false);
         }
@@ -329,7 +324,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             await ExitTrade(false, token).ConfigureAwait(false);
             return result;
         }
-        if(poke.Type == PokeTradeType.Clone)
+        if (poke.Type == PokeTradeType.Clone)
         {
             var result = await ProcessCloneTradeAsync(poke, sav, token);
             await ExitTrade(false, token);
@@ -339,7 +334,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         while (await GetCurrentScreen(2, token).ConfigureAwait(false) is ScreenScenario.Box)
             await Click(A, 1000, token);
 
-        poke.SendNotification(this,"You have 15 seconds to select your trade Pokemon.");
+        poke.SendNotification(this, "You have 15 seconds to select your trade Pokemon.");
         Log("Waiting on trade screen...");
 
         await Task.Delay(15_000, token).ConfigureAwait(false);
@@ -415,7 +410,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             return PokeTradeResult.TradeEvolutionDetected;
         }
         // We'll keep watching B1S1 for a change to indicate a trade started -> should try quitting at that point.
-        var oldEC = await Connection.ReadBytesAsync(GetSlotOffset(0,slot), 8, token).ConfigureAwait(false);
+        var oldEC = await Connection.ReadBytesAsync(GetSlotOffset(0, slot), 8, token).ConfigureAwait(false);
         Log("Confirming and initiating trade.");
         await Click(A, 3_000, token).ConfigureAwait(false);
         for (int i = 0; i < 10; i++)
@@ -430,7 +425,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         Log("Checking for received pokemon in slot 1...");
         while (true)
         {
-            
+
             var newEC = await Connection.ReadBytesAsync(GetSlotOffset(0, slot), 8, token).ConfigureAwait(false);
             if (!newEC.SequenceEqual(oldEC))
             {
@@ -454,16 +449,16 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         }
     }
 
-    private async Task<PokeTradeResult> ProcessCloneTradeAsync(PokeTradeDetail<PB7> detail,SAV7b sav, CancellationToken token)
+    private async Task<PokeTradeResult> ProcessCloneTradeAsync(PokeTradeDetail<PB7> detail, SAV7b sav, CancellationToken token)
     {
-        detail.SendNotification(this,"Highlight the Pokemon in your box You would like Cloned up to 6 at a time! " +
+        detail.SendNotification(this, "Highlight the Pokemon in your box You would like Cloned up to 6 at a time! " +
             "You have 5 seconds between highlights to move to the next pokemon. (The first 5 starts now!). " +
             "If you would like to less than 6 remain on the same pokemon until the trade begins.");
         await Task.Delay(10_000, token);
 
         var offered = await ReadPokemon(TradePartnerPokemonOffset, token).ConfigureAwait(false);
         var clones = new List<PB7>() { offered };
-        detail.SendNotification(this,$"You added {(Species)offered.Species} to the clone list.");
+        detail.SendNotification(this, $"You added {(Species)offered.Species} to the clone list.");
 
         if (hub.Config.Discord.ReturnPKMs)
             detail.SendNotification(this, offered, "Here's what you showed me!");
@@ -488,14 +483,14 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             }
 
         }
-       
+
         var clonestring = new StringBuilder();
         foreach (var str in clones)
             clonestring.AppendLine($"{(Species)str.Species}");
-        detail.SendNotification(this,"Pokemon to be Cloned", clonestring.ToString());
-     
-        detail.SendNotification(this,"Exiting Trade to inject clones, please reconnect using the same link code.");
-        await ExitTrade(false,token);
+        detail.SendNotification(this, "Pokemon to be Cloned", clonestring.ToString());
+
+        detail.SendNotification(this, "Exiting Trade to inject clones, please reconnect using the same link code.");
+        await ExitTrade(false, token);
 
         foreach (var (i, clone) in clones.Select((clone, i) => (i, clone)))
         {
@@ -622,7 +617,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
     private async Task<PokeTradeResult> ProcessDumpTradeAsync(PokeTradeDetail<PB7> detail, CancellationToken token)
     {
-        detail.SendNotification(this,"Highlight the Pokemon in your box, you have 30 seconds");
+        detail.SendNotification(this, "Highlight the Pokemon in your box, you have 30 seconds");
         var offered = await ReadPokemon(TradePartnerPokemonOffset, token).ConfigureAwait(false);
         detail.SendNotification(this, offered, "Here's what you showed me!");
 
@@ -643,7 +638,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
                     DumpPokemon(DumpSetting.DumpFolder, detail.Type.ToString().ToLower(), offered);
             }
         }
-        detail.SendNotification(this,"Time is up!");
+        detail.SendNotification(this, "Time is up!");
         return PokeTradeResult.Success;
     }
 
@@ -759,14 +754,14 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         {
             if (ctr < 0)
             {
-                await RestartGameLGPE(hub.Config,token).ConfigureAwait(false);
+                await RestartGameLGPE(hub.Config, token).ConfigureAwait(false);
                 return;
             }
-            
+
             await Click(B, 1_000, token).ConfigureAwait(false);
             if (await IsOnOverworld(token).ConfigureAwait(false))
                 return;
-           
+
             await Click(await GetCurrentScreen(2, token).ConfigureAwait(false)
                 is ScreenScenario.Box or ScreenScenario.YesNoSelector ? A : B, 1_000, token).ConfigureAwait(false);
 

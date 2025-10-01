@@ -1,8 +1,5 @@
-using System;
 using System.ComponentModel;
-using System.IO;
 using System.Text.Json;
-using System.Windows.Forms;
 using Microsoft.Win32;
 using SysBot.Base;
 

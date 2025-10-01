@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Discord.Commands;
 
 namespace SysBot.Pokemon.Discord;

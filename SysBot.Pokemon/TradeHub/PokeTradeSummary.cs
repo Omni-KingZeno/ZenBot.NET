@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SysBot.Pokemon;
 
 public sealed record PokeTradeSummary(string Summary, IList<PokeTradeSummaryDetail> Details, object? ExtraInfo = null)

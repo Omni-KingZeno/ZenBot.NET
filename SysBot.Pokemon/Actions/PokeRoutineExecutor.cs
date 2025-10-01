@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using PKHeX.Core;
 using SysBot.Base;
 using static SysBot.Base.SwitchButton;

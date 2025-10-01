@@ -1,6 +1,3 @@
-﻿using System;
-using System.Windows.Forms;
-
 namespace SysBot.Pokemon.WinForms;
 
 public static class WinFormsUtil
