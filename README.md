@@ -1,9 +1,7 @@
-# ManuBot.NET
+# ZenBot.NET
 ![License](https://img.shields.io/badge/License-AGPLv3-blue.svg)
 
-<img width="714" height="450" alt="Preview" src="https://github.com/user-attachments/assets/8102220c-6781-4d2b-b5c9-e50af1c13cf2" />
-
-Fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
+Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github.com/Manu098vm/ManuBot.NET) fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
 
 **For a list of this fork’s features:**
 * Game Mode selector (LGPE / SwSh / BDSP / PLA / SV) available in Hub settings
@@ -22,15 +20,7 @@ Please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki) for de
 
 Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
-## Support Discord (with Trade Bots available to users):
-
-If you need support for this fork, feel free to join our Discord server!
-
-(Support for this fork is not provided in the PKHeX Discord, please do not bother the devs)
-
-[Support Server: Manu's Lair](https://discord.com/invite/yWveAjKbKt)
-
-[<img src="https://canary.discordapp.com/api/guilds/693083823197519873/widget.png?style=banner2">](https://discord.gg/yWveAjKbKt)
+Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
 ## SysBot.Base:
 - Base logic library to be built upon in game-specific projects.
