@@ -1,10 +1,11 @@
-﻿using PKHeX.Core;
+using PKHeX.Core;
 using System;
 using System.Threading;
 
 namespace SysBot.Pokemon;
 
-public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Trainer, IPokeTradeNotifier<TPoke> Notifier, PokeTradeType Type, int Code, bool IsFavored = false) : IEquatable<PokeTradeDetail<TPoke>>, IFavoredEntry where TPoke : PKM, new()
+public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Trainer, IPokeTradeNotifier<TPoke> Notifier, PokeTradeType Type, int Code, bool IsFavored = false, PictoCode[]? Code7b = null)
+    : IEquatable<PokeTradeDetail<TPoke>>, IFavoredEntry where TPoke : PKM, new()
 {
     // ReSharper disable once StaticMemberInGenericType
     /// <summary> Global variable indicating the amount of trades created. </summary>
@@ -16,6 +17,11 @@ public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Traine
     /// Trade Code
     /// </summary>
     public readonly int Code = Code;
+
+    /// <summary>
+    /// Picto Code sequence for LGPE trades
+    /// </summary>
+    public PictoCode[] PictoCodes => Code7b ?? PictoCodesExtensions.GetPictoCodesFromLinkCode(Code);
 
     /// <summary> Data to be traded </summary>
     public TPoke TradeData = TradeData;
@@ -55,6 +61,7 @@ public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Traine
     public void SendNotification(PokeRoutineExecutor<TPoke> routine, string message) => Notifier.SendNotification(routine, this, message);
     public void SendNotification(PokeRoutineExecutor<TPoke> routine, PokeTradeSummary obj) => Notifier.SendNotification(routine, this, obj);
     public void SendNotification(PokeRoutineExecutor<TPoke> routine, TPoke obj, string message) => Notifier.SendNotification(routine, this, obj, message);
+    public void SendNotification(PokeRoutineExecutor<TPoke> routine, string title, string message) => Notifier.SendNotification(routine, this, $"{title}{Environment.NewLine}{message}");
 
     public bool Equals(PokeTradeDetail<TPoke>? other)
     {

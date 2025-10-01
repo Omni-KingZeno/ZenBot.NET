@@ -158,6 +158,8 @@ public static class AutoLegalityWrapper
 
     public static ITrainerInfo GetTrainerInfo<T>() where T : PKM, new()
     {
+        if (typeof(T) == typeof(PB7))
+            return TrainerSettings.GetSavedTrainerData(GameVersion.GG);
         if (typeof(T) == typeof(PK8))
             return TrainerSettings.GetSavedTrainerData(GameVersion.SWSH);
         if (typeof(T) == typeof(PB8))

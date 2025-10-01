@@ -2,6 +2,7 @@ using PKHeX.Core;
 using SysBot.Base;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -100,8 +101,15 @@ public class TwitchBot<T> where T : PKM, new()
         });
     }
 
-    private bool AddToTradeQueue(T pk, int code, OnWhisperReceivedArgs e, RequestSignificance sig, PokeRoutineType type, out string msg)
+    private bool AddToTradeQueue(T pk, int code, PictoCode[]? code7b, OnWhisperReceivedArgs e, RequestSignificance sig, PokeRoutineType type, out string msg)
     {
+        if (typeof(T) == typeof(PB7) && code7b is null)
+        {
+            msg = $"@{e.WhisperMessage.Username} invalid Trade Code! Please write 3 names of available Pokémons." +
+                $"Valid entries: Pikachu, Eevee, Bulbasaur, Charmander, Squirtle, Pidgey, Caterpie, Rattata, Jigglypuff, Diglett.";
+            return false;
+        }
+
         // var user = e.WhisperMessage.UserId;
         var userID = ulong.Parse(e.WhisperMessage.UserId);
         var name = e.WhisperMessage.DisplayName;
@@ -109,7 +117,7 @@ public class TwitchBot<T> where T : PKM, new()
         var trainer = new PokeTradeTrainerInfo(name, ulong.Parse(e.WhisperMessage.UserId));
         var notifier = new TwitchTradeNotifier<T>(pk, trainer, code, e.WhisperMessage.Username, client, Channel, Hub.Config.Twitch);
         var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : PokeTradeType.Specific;
-        var detail = new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, sig == RequestSignificance.Favored);
+        var detail = new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, sig == RequestSignificance.Favored, code7b);
         var trade = new TradeEntry<T>(detail, userID, type, name);
 
         var added = Info.AddToTradeQueue(trade, userID, sig == RequestSignificance.Owner);
@@ -282,9 +290,10 @@ public class TwitchBot<T> where T : PKM, new()
         var msg = e.WhisperMessage.Message;
         try
         {
-            int code = Util.ToInt32(msg);
+            var code7b = typeof(T) == typeof(PB7) ? ParsePokemonNames(msg) : null;
+            int code = typeof(T) != typeof(PB7) ? Util.ToInt32(msg) : 0;
             var sig = GetUserSignificance(user);
-            _ = AddToTradeQueue(user.Entity, code, e, sig, PokeRoutineType.LinkTrade, out string message);
+            _ = AddToTradeQueue(user.Entity, code, code7b, e, sig, PokeRoutineType.LinkTrade, out string message);
             client.SendMessage(Channel, message);
         }
         catch (Exception ex)
@@ -292,6 +301,35 @@ public class TwitchBot<T> where T : PKM, new()
             LogUtil.LogSafe(ex, nameof(TwitchBot<T>));
             LogUtil.LogError($"{ex.Message}", nameof(TwitchBot<T>));
         }
+    }
+
+    private static PictoCode[]? ParsePokemonNames(string message)
+    {
+        var parsedPokemon = new List<PictoCode>();
+        var separators = new char[] { ',', '.', '-', ' ' };
+        var words = message.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+        var pokemonList = Enum.GetValues<PictoCode>();
+
+        try
+        {
+            foreach (var word in words)
+            {
+                parsedPokemon.Add(pokemonList.First(p => string.Equals(p.ToString(), word, StringComparison.OrdinalIgnoreCase)));
+                if (parsedPokemon.Count >= 3)
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogSafe(ex, nameof(TwitchBot<T>));
+            LogUtil.LogError($"{ex.Message}", nameof(TwitchBot<T>));
+            return null;
+        }
+
+        if (parsedPokemon.Count == 3)
+            return [.. parsedPokemon];
+        else
+            return null;
     }
 
     private RequestSignificance GetUserSignificance(TwitchQueue<T> user)

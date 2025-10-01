@@ -1,4 +1,4 @@
-﻿namespace SysBot.Base;
+namespace SysBot.Base;
 
 /// <summary>
 /// Valid configuration request types for the Nintendo Switch to be sent as a <see cref="SwitchCommand"/>.
@@ -29,4 +29,9 @@ public enum SwitchConfigureParameter
     /// Amount of time (milliseconds) to sleep between Hid keypresses
     /// </summary>
     keySleepTime,
+
+    /// <summary>
+    /// Controller type that will be used for the next <see cref="SwitchCommand.Configure"/> request.
+    /// </summary>
+    controllerType,
 }

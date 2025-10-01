@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 namespace SysBot.Pokemon.Discord;
@@ -25,6 +24,13 @@ public class DiscordTradeNotifier<T>(T Data, PokeTradeTrainerInfo Info, int Code
 
         // Notify user in private messages
         var receive = Data.Species == 0 ? string.Empty : $" ({Data.Nickname})";
+
+        if (typeof(T) == typeof(PB7))
+        {
+            var (attachment, embed) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(info.PictoCodes);
+            Trader.SendFileAsync(attachment, $"Initializing trade{receive}. Please be ready. Your code is ", false, embed.Build()).ConfigureAwait(false);
+            return;
+        }
         Trader.SendMessageAsync($"Initializing trade{receive}. Please be ready. Your code is **{Code:0000 0000}**.").ConfigureAwait(false);
     }
 
@@ -32,6 +38,13 @@ public class DiscordTradeNotifier<T>(T Data, PokeTradeTrainerInfo Info, int Code
     {
         var name = Info.TrainerName;
         var trainer = string.IsNullOrEmpty(name) ? string.Empty : $", {name}";
+
+        if (typeof(T) == typeof(PB7))
+        {
+            var (attachment, embed) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(info.PictoCodes);
+            Trader.SendFileAsync(attachment, $"I'm waiting for you{trainer}! Your code is ", false, embed.Build()).ConfigureAwait(false);
+            return;
+        }
         Trader.SendMessageAsync($"I'm waiting for you{trainer}! Your code is **{Code:0000 0000}**. My IGN is **{routine.InGameName}**.").ConfigureAwait(false);
     }
 

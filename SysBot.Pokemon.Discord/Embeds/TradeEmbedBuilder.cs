@@ -43,12 +43,12 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) 
         });
 
         // Add Pokémon Held Item, if any
-        if (Strings.HasItem) Builder.AddField(x =>
+        if (Strings.HasItem) { Builder.AddField(x =>
         {
             x.Name = $"**Held Item**: {Strings.HeldItem}";
             x.Value = UNSET;
             x.IsInline = false;
-        });
+        });}
 
         // Add general Pokémon informations
         var fieldValue = $"**Level:** {PKM.CurrentLevel}{Environment.NewLine}" +

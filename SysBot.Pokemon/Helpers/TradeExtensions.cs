@@ -24,6 +24,13 @@ public class TradeExtensions<T> where T : PKM, new()
         var original = trade.TradeData;
         pkm = (T)original.Clone();
 
+        //LGPE doesn't allow injection while already on the trade screen
+        if (typeof(T) == typeof(PB7))
+        {
+            Log("Can not apply Partner details: LGPE doesn't support injecting while on the trading screen.");
+            return false;
+        }
+
         //Invalid trade request. Ditto is often requested for Masuda method, better to not apply partner details.
         if ((Species)pkm.Species is Species.None or Species.Ditto || trade.Type is not PokeTradeType.Specific)
         {

@@ -7,8 +7,9 @@ public static class InitUtil
 {
     public static void InitializeStubs(ProgramMode mode)
     {
-        SaveFile sav8 = mode switch
+        SaveFile sav = mode switch
         {
+            ProgramMode.LGPE => new SAV7b(),
             ProgramMode.SWSH => new SAV8SWSH(),
             ProgramMode.BDSP => new SAV8BS(),
             ProgramMode.LA   => new SAV8LA(),
@@ -16,7 +17,7 @@ public static class InitUtil
             _                => throw new System.ArgumentOutOfRangeException(nameof(mode)),
         };
 
-        SetUpSpriteCreator(sav8);
+        SetUpSpriteCreator(sav);
     }
 
     private static void SetUpSpriteCreator(SaveFile sav)

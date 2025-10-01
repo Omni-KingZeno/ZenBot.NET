@@ -56,6 +56,12 @@ public abstract class SwitchRoutineExecutor<T> : RoutineExecutor<T> where T : cl
         await Connection.SendAsync(SwitchCommand.DetachController(UseCRLF), token).ConfigureAwait(false);
     }
 
+    public async Task SetController(SwitchController controller, CancellationToken token)
+    {
+        var cmd = SwitchCommand.Configure(SwitchConfigureParameter.controllerType, (int)controller);
+        await Connection.SendAsync(cmd, token).ConfigureAwait(false);
+    }
+
     public async Task SetScreen(ScreenState state, CancellationToken token)
     {
         await Connection.SendAsync(SwitchCommand.SetScreen(state, UseCRLF), token).ConfigureAwait(false);

@@ -98,6 +98,6 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
         var detail = TwitchBot<T>.Info.GetDetail(parse);
         return detail == null
             ? "Sorry, you are not currently in the queue."
-            : $"Your trade code is {detail.Trade.Code:0000 0000}";
+            : $"Your trade code is {(typeof(T) == typeof(PB7) ? string.Join(", ", detail.Trade.PictoCodes) : $"{detail.Trade.Code:0000 0000}")}";
     }
 }
