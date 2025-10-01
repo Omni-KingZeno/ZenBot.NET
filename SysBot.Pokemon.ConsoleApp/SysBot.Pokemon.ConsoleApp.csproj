@@ -1,6 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <LangVersion>13</LangVersion>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StartupObject>SysBot.Pokemon.ConsoleApp.Program</StartupObject>
   </PropertyGroup>

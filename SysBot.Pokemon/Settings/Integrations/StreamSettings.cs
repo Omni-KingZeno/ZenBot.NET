@@ -1,7 +1,4 @@
-using System;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using PKHeX.Core;
 using SysBot.Base;
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global

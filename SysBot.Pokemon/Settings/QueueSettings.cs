@@ -1,4 +1,3 @@
-﻿using System;
 using System.ComponentModel;
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 

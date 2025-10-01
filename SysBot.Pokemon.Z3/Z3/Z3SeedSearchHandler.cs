@@ -1,4 +1,3 @@
-using System;
 using PKHeX.Core;
 
 namespace SysBot.Pokemon.Z3;

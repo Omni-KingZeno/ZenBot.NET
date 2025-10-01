@@ -1,10 +1,5 @@
 using PKHeX.Core;
 using SysBot.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsLGPE;
 
@@ -21,7 +16,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
     public override async Task<PB7> ReadPokemon(ulong offset, int size, CancellationToken token) =>
         new PB7(await Connection.ReadBytesAsync((uint)offset, size, token).ConfigureAwait(false));
 
-    public async Task SetBoxPokemon(PB7 pk,int box, int slot, CancellationToken token)
+    public async Task SetBoxPokemon(PB7 pk, int box, int slot, CancellationToken token)
     {
         var offset = GetSlotOffset(box, slot);
         var chunkLength = BoxFormatSlotSize - 0x1C;
@@ -30,7 +25,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
         var chunk2 = pk.EncryptedPartyData.AsSpan(chunkLength).ToArray();
         await Connection.WriteBytesAsync(chunk2, (offset + (uint)chunkLength + 0x70), token).ConfigureAwait(false);
     }
-   
+
     public override async Task<PB7> ReadBoxPokemon(int box, int slot, CancellationToken token)
     {
         var offset = GetSlotOffset(box, slot);

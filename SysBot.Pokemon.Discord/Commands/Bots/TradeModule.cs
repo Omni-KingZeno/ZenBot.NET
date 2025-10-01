@@ -1,8 +1,4 @@
-using System;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
-using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -137,8 +133,8 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [RequireSudo]
     public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Showdown Set")][Remainder] string content)
     {
-            var code = Info.GetRandomTradeCode();
-            await TradeAsyncShowdown(code, content, user).ConfigureAwait(false);     
+        var code = Info.GetRandomTradeCode();
+        await TradeAsyncShowdown(code, content, user).ConfigureAwait(false);
     }
 
     [Command("eggtrade")]

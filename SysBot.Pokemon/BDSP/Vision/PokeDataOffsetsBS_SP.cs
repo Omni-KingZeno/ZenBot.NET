@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SysBot.Pokemon;
 
 public class PokeDataOffsetsBS_SP : BasePokeDataOffsetsBS

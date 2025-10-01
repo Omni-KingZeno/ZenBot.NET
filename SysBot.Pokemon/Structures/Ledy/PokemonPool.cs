@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using PKHeX.Core;
 using SysBot.Base;
 

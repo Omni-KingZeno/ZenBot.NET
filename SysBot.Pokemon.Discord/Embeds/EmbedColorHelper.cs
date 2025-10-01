@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Discord;
 using PKHeX.Core;
 using static PKHeX.Core.Species;

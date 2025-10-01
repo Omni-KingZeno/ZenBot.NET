@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Windows.Forms;
 using SysBot.Base;
 
 namespace SysBot.Pokemon.WinForms;
