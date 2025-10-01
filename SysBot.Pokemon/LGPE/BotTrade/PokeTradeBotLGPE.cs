@@ -37,6 +37,11 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
     /// </summary>
     public int FailedBarrier { get; private set; }
 
+    /// <summary>
+    /// Species that evolve upon trading. Cancel trades when they are offered.
+    /// </summary>
+    private readonly HashSet<int> TradeEvolutionSpecies = [64, 67, 78, 93];
+
     public override async Task MainLoop(CancellationToken token)
     {
         try
@@ -338,7 +343,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         Log("Waiting on trade screen...");
 
         await Task.Delay(15_000, token).ConfigureAwait(false);
-        var tradeResult = await ConfirmAndStartTrading(0, token);
+        var tradeResult = await ConfirmAndStartTrading(poke, 0, token);
         if (tradeResult != PokeTradeResult.Success)
         {
             if (tradeResult == PokeTradeResult.TrainerLeft)
@@ -399,8 +404,16 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         }
     }
 
-    private async Task<PokeTradeResult> ConfirmAndStartTrading(int slot, CancellationToken token)
+    private async Task<PokeTradeResult> ConfirmAndStartTrading(PokeTradeDetail<PB7> detail, int slot, CancellationToken token)
     {
+        var offeredData = await SwitchConnection.ReadBytesAsync(TradePartnerPokemonOffset, 0x104, token);
+        var offeredPoke = new PB7(offeredData);
+        if (TradeEvolutionSpecies.Contains(offeredPoke.Species))
+        {
+            detail.SendNotification(this, "Trade evolution was offered, canceling the trade.");
+            Log("Trade evolution detected, canceling trade.");
+            return PokeTradeResult.TradeEvolutionDetected;
+        }
         // We'll keep watching B1S1 for a change to indicate a trade started -> should try quitting at that point.
         var oldEC = await Connection.ReadBytesAsync(GetSlotOffset(0,slot), 8, token).ConfigureAwait(false);
         Log("Confirming and initiating trade.");
@@ -587,7 +600,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             detail.SendNotification(this, "You have 5 seconds left to get to the trade screen to not break the trade");
             await Task.Delay(5_000, token);
 
-            var tradeResult = await ConfirmAndStartTrading(clones.IndexOf(toSend), token);
+            var tradeResult = await ConfirmAndStartTrading(detail, clones.IndexOf(toSend), token);
             if (tradeResult != PokeTradeResult.Success)
             {
                 if (tradeResult == PokeTradeResult.TrainerLeft)
@@ -636,56 +649,48 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
     private async Task EnterLinkCode(PictoCode[] codes, CancellationToken token)
     {
-        hub.Config.Stream.StartEnterCode(this);
-        foreach (var code in codes)
+        int currentPosition = 0;
+
+        foreach (PictoCode code in codes)
         {
-            if ((int)code > 4)
-            {
-                await SetStick(SwitchStick.RIGHT, 0, -30000, 0, token).ConfigureAwait(false);
-                await SetStick(SwitchStick.RIGHT, 0, 0, 0, token).ConfigureAwait(false);
-            }
-            if ((int)code <= 4)
-            {
-                for (int i = (int)code; i > 0; i--)
-                {
-                    await SetStick(SwitchStick.RIGHT, 30000, 0, 0, token).ConfigureAwait(false);
-                    await SetStick(SwitchStick.RIGHT, 0, 0, 0, token).ConfigureAwait(false);
-                    await Task.Delay(500, token).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                for (int i = (int)code - 5; i > 0; i--)
-                {
-                    await SetStick(SwitchStick.RIGHT, 30000, 0, 0, token).ConfigureAwait(false);
-                    await SetStick(SwitchStick.RIGHT, 0, 0, 0, token).ConfigureAwait(false);
-                    await Task.Delay(500, token).ConfigureAwait(false);
-                }
-            }
+            int targetPosition = (int)code;
+            await SelectPicto(currentPosition, targetPosition, token).ConfigureAwait(false);
+
             await Click(A, 200, token).ConfigureAwait(false);
-            await Task.Delay(500, token).ConfigureAwait(false);
-            if ((int)code <= 4)
+            await Task.Delay(200, token).ConfigureAwait(false);
+
+            currentPosition = targetPosition;
+        }
+    }
+
+    private async Task SelectPicto(int currentPosition, int targetPosition, CancellationToken token)
+    {
+        if (currentPosition == targetPosition)
+            return;
+
+        int delay = hub.Config.Timings.KeypressTime;
+        int currentRow = (currentPosition >= 5) ? 1 : 0;
+        int currentColumn = currentPosition % 5;
+        int targetRow = (targetPosition >= 5) ? 1 : 0;
+        int targetColumn = targetPosition % 5;
+
+        if (currentRow != targetRow)
+        {
+            var vDirection = (targetRow > currentRow) ? -30000 : 30000;
+            await SetStick(SwitchStick.RIGHT, 0, (short)vDirection, 0, token).ConfigureAwait(false);
+            await SetStick(SwitchStick.RIGHT, 0, 0, delay, token).ConfigureAwait(false);
+            await Task.Delay(100, token).ConfigureAwait(false);
+        }
+
+        if (currentColumn != targetColumn)
+        {
+            var hDirection = (targetColumn > currentColumn) ? 30000 : -30000;
+            int steps = Math.Abs(targetColumn - currentColumn);
+            for (int i = 0; i < steps; i++)
             {
-                for (int i = (int)code; i > 0; i--)
-                {
-                    await SetStick(SwitchStick.RIGHT, -30000, 0, 0, token).ConfigureAwait(false);
-                    await SetStick(SwitchStick.RIGHT, 0, 0, 0, token).ConfigureAwait(false);
-                    await Task.Delay(500, token).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                for (int i = (int)code - 5; i > 0; i--)
-                {
-                    await SetStick(SwitchStick.RIGHT, -30000, 0, 0, token).ConfigureAwait(false);
-                    await SetStick(SwitchStick.RIGHT, 0, 0, 0, token).ConfigureAwait(false);
-                    await Task.Delay(500, token).ConfigureAwait(false);
-                }
-            }
-            if ((int)code > 4)
-            {
-                await SetStick(SwitchStick.RIGHT, 0, 30000, 0, token).ConfigureAwait(false);
-                await SetStick(SwitchStick.RIGHT, 0, 0, 0, token).ConfigureAwait(false);
+                await SetStick(SwitchStick.RIGHT, (short)hDirection, 0, 0, token).ConfigureAwait(false);
+                await SetStick(SwitchStick.RIGHT, 0, 0, delay, token).ConfigureAwait(false);
+                await Task.Delay(100, token).ConfigureAwait(false);
             }
         }
     }
