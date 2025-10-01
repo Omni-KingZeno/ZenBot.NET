@@ -44,13 +44,13 @@ public sealed partial class Main : Form
 
         RTB_Logs.MaxLength = 32_767; // character length
         LoadControls();
-        Text = $"{Text} ({Config.Mode})";
+        Text = $"{Text} ({Config.Hub.Mode})";
         Task.Run(BotMonitor);
 
-        InitUtil.InitializeStubs(Config.Mode);
+        InitUtil.InitializeStubs(Config.Hub.Mode);
     }
 
-    private static IPokeBotRunner GetRunner(ProgramConfig cfg) => cfg.Mode switch
+    private static IPokeBotRunner GetRunner(ProgramConfig cfg) => cfg.Hub.Mode switch
     {
         ProgramMode.LGPE => new PokeBotRunnerImpl<PB7>(cfg.Hub, new BotFactory7LGPE()),
         ProgramMode.SWSH => new PokeBotRunnerImpl<PK8>(cfg.Hub, new BotFactory8SWSH()),
@@ -222,7 +222,7 @@ public sealed partial class Main : Form
         PokeRoutineExecutorBase newBot;
         try
         {
-            Console.WriteLine($"Current Mode ({Config.Mode}) does not support this type of bot ({cfg.CurrentRoutineType}).");
+            Console.WriteLine($"Current Mode ({Config.Hub.Mode}) does not support this type of bot ({cfg.CurrentRoutineType}).");
             newBot = RunningEnvironment.CreateBotFromConfig(cfg);
         }
         catch

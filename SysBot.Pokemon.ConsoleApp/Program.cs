@@ -62,7 +62,7 @@ public static class BotContainer
         foreach (var bot in prog.Bots)
         {
             bot.Initialize();
-            if (!AddBot(env, bot, prog.Mode))
+            if (!AddBot(env, bot, prog.Hub.Mode))
                 Console.WriteLine($"Failed to add bot: {bot}");
         }
 
@@ -108,7 +108,7 @@ public static class BotContainer
         Environment = null;
     }
 
-    private static IPokeBotRunner GetRunner(ProgramConfig prog) => prog.Mode switch
+    private static IPokeBotRunner GetRunner(ProgramConfig prog) => prog.Hub.Mode switch
     {
         ProgramMode.LGPE => new PokeBotRunnerImpl<PB7>(prog.Hub, new BotFactory7LGPE()),
         ProgramMode.SWSH => new PokeBotRunnerImpl<PK8>(prog.Hub, new BotFactory8SWSH()),

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 
@@ -6,9 +6,16 @@ namespace SysBot.Pokemon;
 
 public sealed class PokeTradeHubConfig : BaseConfig
 {
+    private const string BotConfig = nameof(BotConfig);
     private const string BotTrade = nameof(BotTrade);
     private const string BotEncounter = nameof(BotEncounter);
     private const string Integration = nameof(Integration);
+
+    [Category(BotConfig), Description("Program mode. Select which games the bot should run. Restart to apply changes.")]
+    public ProgramMode Mode { get; set; } = ProgramMode.SV;
+
+    [Category(BotConfig), Description("Program theme. 'Light' uses the white theme, 'System' follows your Windows default theme, and 'Dark' enables a dark theme. Restart to apply changes.")]
+    public SystemColorTheme ColorTheme { get; set; } = SystemColorTheme.System;
 
     [Browsable(false)]
     public override bool Shuffled => Distribution.Shuffled;
@@ -74,4 +81,20 @@ public sealed class PokeTradeHubConfig : BaseConfig
     [Category(Integration), Description("Allows favored users to join the queue with a more favorable position than unfavored users.")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public FavoredPrioritySettings Favoritism { get; set; } = new();
+}
+
+public enum ProgramMode
+{
+    LGPE = 0,
+    SWSH = 1,
+    BDSP = 2,
+    LA = 3,
+    SV = 4,
+}
+
+public enum SystemColorTheme
+{
+    Light = 0,
+    System = 1,
+    Dark = 2,
 }

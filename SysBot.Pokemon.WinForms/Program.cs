@@ -65,17 +65,16 @@ internal static class Program
 
     private static bool IsDarkThemeSet(ProgramConfig config)
     {
-        return (config.Hub.ColorTheme is BaseConfig.SystemColorTheme.Dark ||
-            (config.Hub.ColorTheme is BaseConfig.SystemColorTheme.System &&
-            GetFromRegistry() is BaseConfig.SystemColorTheme.Dark));
+        var theme = config.Hub.ColorTheme;
+        return (theme is SystemColorTheme.Dark || (theme is SystemColorTheme.System && GetFromRegistry() is SystemColorTheme.Dark));
 
-        static BaseConfig.SystemColorTheme GetFromRegistry()
+        static SystemColorTheme GetFromRegistry()
         {
             const string keyPath = @"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
             using var key = Registry.CurrentUser.OpenSubKey(keyPath);
             if (key?.GetValue("AppsUseLightTheme") is int value)
-                return value == 0 ? BaseConfig.SystemColorTheme.Dark : BaseConfig.SystemColorTheme.Light;
-            return BaseConfig.SystemColorTheme.Light;
+                return value == 0 ? SystemColorTheme.Dark : SystemColorTheme.Light;
+            return SystemColorTheme.Light;
         }
     }
 }
