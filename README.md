@@ -1,19 +1,9 @@
-# ManuBot.NET
+# ZenBot.NET
 ![License](https://img.shields.io/badge/License-AGPLv3-blue.svg)
 
-Fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
+Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github.com/Manu098vm/ManuBot.NET) fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
 
 For details about fork-specific features, please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki).
-
-## Support Discords:
-
-If you need support for this fork, feel free to join our Discord server!
-
-(Support for this fork is not provided in the PKHeX Discord, please do not bother the devs)
-
-[Support Server: Manu's Lair](https://discord.com/invite/yWveAjKbKt)
-
-[<img src="https://canary.discordapp.com/api/guilds/693083823197519873/widget.png?style=banner2">](https://discord.gg/yWveAjKbKt)
 
 Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
