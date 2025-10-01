@@ -46,8 +46,8 @@ public static class QueueHelper<T> where T : PKM, new()
             if (typeof(T) == typeof(PB7))
             {
                 var codes = PictoCodesExtensions.GetPictoCodesFromLinkCode(code);
-                var (attachment, embed) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);
-                await trader.SendFileAsync(attachment, $"{msg}\nYour trade code will be ", false, embed.Build()).ConfigureAwait(false);
+                var (attachment, embedPicto) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);
+                await trader.SendFileAsync(attachment, $"{msg}\nYour trade code will be ", false, embedPicto.Build()).ConfigureAwait(false);
             }
             else
             {

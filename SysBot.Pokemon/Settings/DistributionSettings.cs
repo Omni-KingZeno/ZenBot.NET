@@ -27,6 +27,9 @@ public class DistributionSettings : ISynchronizationSetting
     [Category(Distribute), Description("Distribution Trade Link Code.")]
     public int TradeCode { get; set; } = 7196;
 
+    [Category(Distribute), Description("LGPE Distribution Picto Trade Code.")]
+    public LGPETradeCodeGenerator LGPETradeCode { get; set; } = new();
+
     [Category(Distribute), Description("Distribution Trade Link Code uses the Min and Max range rather than the fixed trade code.")]
     public bool RandomCode { get; set; }
 
@@ -43,4 +46,19 @@ public class DistributionSettings : ISynchronizationSetting
 
     [Category(Synchronize), Description("Link Trade: Using multiple distribution bots -- how long (seconds) a bot will wait for synchronization before continuing anyways.")]
     public double SynchronizeTimeout { get; set; } = 90;
+
+    [Category(Distribute), TypeConverter(typeof(ExpandableObjectConverter))]
+    public class LGPETradeCodeGenerator
+    {
+        public override string ToString() => "LGPE Picto Trade Code";
+
+        [Category(Distribute), Description("LGPE Distribution Picto Trade Code First Image")]
+        public PictoCode Picto1 { get; set; } = PictoCode.Pikachu;
+
+        [Category(Distribute), Description("LGPE Distribution Picto Trade Code Second Image")]
+        public PictoCode Picto2 { get; set; } = PictoCode.Pidgey;
+
+        [Category(Distribute), Description("LGPE Distribution Picto Trade Code Third Image")]
+        public PictoCode Picto3 { get; set; } = PictoCode.Diglett;
+    }
 }

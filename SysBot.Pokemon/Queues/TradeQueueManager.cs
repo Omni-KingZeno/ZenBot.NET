@@ -51,8 +51,9 @@ public class TradeQueueManager<T> where T : PKM, new()
 
         var random = Hub.Ledy.Pool.GetRandomPoke();
         var code = cfg.RandomCode ? Hub.Config.Trade.GetRandomTradeCode() : cfg.TradeCode;
+        var code7b = cfg.RandomCode ? PictoCodesExtensions.GetPictoCodesFromLinkCode(code) : [cfg.LGPETradeCode.Picto1, cfg.LGPETradeCode.Picto2, cfg.LGPETradeCode.Picto3];
         var trainer = new PokeTradeTrainerInfo("Random Distribution");
-        detail = new PokeTradeDetail<T>(random, trainer, PokeTradeHub<T>.LogNotifier, PokeTradeType.Random, code);
+        detail = new PokeTradeDetail<T>(random, trainer, PokeTradeHub<T>.LogNotifier, PokeTradeType.Random, code, false, code7b);
         return true;
     }
 
