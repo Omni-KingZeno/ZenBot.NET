@@ -39,7 +39,7 @@ public class TradeExtensions<T> where T : PKM, new()
         }
 
         //Current handler cannot be past gen OT
-        if (pkm.Generation != pkm.Format && !config.Legality.ForceTradePartnerDetails)
+        if (!pkm.IsEgg && pkm.Generation != pkm.Format && !config.Legality.ForceTradePartnerDetails)
         {
             Log("Can not apply Partner details: Current handler cannot be different gen OT.");
             return false;
@@ -73,7 +73,13 @@ public class TradeExtensions<T> where T : PKM, new()
         pkm.Language = partner.Language;
         pkm.Version = (GameVersion)partner.Game;
 
-        if (!original.IsNicknamed)
+        if (original.IsEgg && original.Language != partner.Language)
+        {
+            if (pkm is PB8) pkm.NicknameTrash.Clear();
+            pkm.Nickname = SpeciesName.GetEggName(pkm.Language, pkm.Format);
+        }
+
+        if (!original.IsNicknamed && !original.IsEgg)
             pkm.ClearNickname();
 
         if (original.IsShiny)
