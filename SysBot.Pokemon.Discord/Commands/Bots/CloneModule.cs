@@ -13,21 +13,10 @@ public class CloneModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Alias("c")]
     [Summary("Clones the Pokémon you show via Link Trade.")]
     [RequireQueueRole(nameof(DiscordManager.RolesClone))]
-    public Task CloneAsync(int code)
+    public Task CloneAsync([Summary("Trade Code")] int code)
     {
         var sig = Context.User.GetFavor();
         return QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, new T(), PokeRoutineType.Clone, PokeTradeType.Clone);
-    }
-
-    [Command("clone")]
-    [Alias("c")]
-    [Summary("Clones the Pokémon you show via Link Trade.")]
-    [RequireQueueRole(nameof(DiscordManager.RolesClone))]
-    public Task CloneAsync([Summary("Trade Code")][Remainder] string code)
-    {
-        int tradeCode = Util.ToInt32(code);
-        var sig = Context.User.GetFavor();
-        return QueueHelper<T>.AddToQueueAsync(Context, tradeCode == 0 ? Info.GetRandomTradeCode() : tradeCode, Context.User.Username, sig, new T(), PokeRoutineType.Clone, PokeTradeType.Clone);
     }
 
     [Command("clone")]

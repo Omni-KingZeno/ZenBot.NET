@@ -7,10 +7,10 @@ namespace SysBot.Pokemon.Discord;
 public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 {
     [Command("addSudo")]
-    [Summary("Adds mentioned user to global sudo")]
+    [Summary("Adds mentioned user(s) to global sudo")]
     [RequireOwner]
     // ReSharper disable once UnusedParameter.Global
-    public async Task SudoUsers([Summary("Mentioned User(s)")][Remainder] string _)
+    public async Task SudoUsers()
     {
         var users = Context.Message.MentionedUsers;
         var objects = users.Select(GetReference);
@@ -19,10 +19,10 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     }
 
     [Command("addSudoRole")]
-    [Summary("Adds mentioned role to role sudo")]
+    [Summary("Adds mentioned role(s) to role sudo")]
     [RequireOwner]
     // ReSharper disable once UnusedParameter.Global
-    public async Task SudoRoles([Summary("Mentioned Role(s)")][Remainder] string _)
+    public async Task SudoRoles()
     {
         var users = Context.Message.MentionedRoles;
         var objects = users.Select(GetRoleReference);
@@ -31,10 +31,10 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     }
 
     [Command("removeSudo")]
-    [Summary("Removes mentioned user from global sudo")]
+    [Summary("Removes mentioned user(s) from global sudo")]
     [RequireOwner]
     // ReSharper disable once UnusedParameter.Global
-    public async Task RemoveSudoUsers([Summary("Mentioned User(s)")][Remainder] string _)
+    public async Task RemoveSudoUsers()
     {
         var users = Context.Message.MentionedUsers;
         var objects = users.Select(GetReference);
@@ -43,9 +43,9 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     }
 
     [Command("removeSudorole")]
-    [Summary("Removes mentioned role from role sudo")]
+    [Summary("Removes mentioned role(s) from role sudo")]
     [RequireOwner]
-    public async Task RemoveSudoRoles([Summary("Mentioned Role(s)")] string _)
+    public async Task RemoveSudoRoles()
     {
         var users = Context.Message.MentionedRoles;
         var objects = users.Select(GetRoleReference);

@@ -19,6 +19,7 @@ public class InfoModule : ModuleBase<SocketCommandContext>
 
     [Command("info")]
     [Alias("about", "whoami", "owner")]
+    [Summary("Shows information about the bot")]
     public async Task InfoAsync()
     {
         var app = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);

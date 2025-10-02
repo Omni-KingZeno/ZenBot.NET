@@ -24,7 +24,7 @@ public sealed class SysCord<T> where T : PKM, new()
     public static PokeBotRunner<T> Runner { get; private set; } = default!;
     public static RestApplication App { get; private set; } = default!;
 
-    private readonly DiscordSocketClient _client;
+    public static DiscordSocketClient _client = new();
     private readonly DiscordManager Manager;
     public readonly PokeTradeHub<T> Hub;
 
@@ -49,7 +49,7 @@ public sealed class SysCord<T> where T : PKM, new()
         {
             // How much logging do you want to see?
             LogLevel = LogSeverity.Info,
-            GatewayIntents = Guilds | GuildMessages | DirectMessages | GuildMembers | GuildPresences | MessageContent,
+            GatewayIntents = Guilds | GuildMessages | GuildMessageReactions | DirectMessages | GuildMembers | GuildPresences | MessageContent,
             // If you or another service needs to do anything with messages
             // (ex. checking Reactions, checking the content of edited/deleted messages),
             // you must set the MessageCacheSize. You may adjust the number as needed.
@@ -179,6 +179,7 @@ public sealed class SysCord<T> where T : PKM, new()
         // Subscribe a handler to see if a message invokes a command.
         _client.Ready += LoadLoggingAndEcho;
         _client.MessageReceived += HandleMessageAsync;
+        _client.ReactionAdded += ReactionUtil.OnReactionAddedAsync;
     }
 
     private async Task HandleMessageAsync(SocketMessage arg)

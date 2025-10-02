@@ -39,20 +39,7 @@ public class QueueModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("queueClearUser")]
     [Alias("qcu", "tcu")]
-    [Summary("Clears the user from the trade queues. Will not remove a user if they are being processed.")]
-    [RequireSudo]
-    public async Task ClearTradeUserAsync([Summary("Username of the person to clear")] string _)
-    {
-        foreach (var user in Context.Message.MentionedUsers)
-        {
-            string msg = ClearTrade(user.Id);
-            await ReplyAsync(msg).ConfigureAwait(false);
-        }
-    }
-
-    [Command("queueClearUser")]
-    [Alias("qcu", "tcu")]
-    [Summary("Clears the user from the trade queues. Will not remove a user if they are being processed.")]
+    [Summary("Clears the mentioned user(s) from the trade queues. Will not remove a user if they are being processed.")]
     [RequireSudo]
     public async Task ClearTradeUserAsync()
     {
@@ -62,8 +49,12 @@ public class QueueModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             await ReplyAsync("No users mentioned").ConfigureAwait(false);
             return;
         }
-        foreach (var u in users)
-            await ClearTradeUserAsync(u.Id).ConfigureAwait(false);
+
+        foreach (var user in Context.Message.MentionedUsers)
+        {
+            string msg = ClearTrade(user.Id);
+            await ReplyAsync(msg).ConfigureAwait(false);
+        }
     }
 
     [Command("queueClearAll")]

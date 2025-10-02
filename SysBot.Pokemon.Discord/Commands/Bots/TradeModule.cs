@@ -48,7 +48,6 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         await TradeAsyncShowdown(code, content, Context.User).ConfigureAwait(false);
     }
 
-
     [Command("trade")]
     [Alias("t")]
     [Summary("Makes the bot trade you a Pokémon converted from the provided Showdown Set.")]
@@ -71,8 +70,9 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("banTrade")]
     [Alias("bt")]
+    [Summary("Adds provided NNID to the banned IDs list")]
     [RequireSudo]
-    public async Task BanTradeAsync([Summary("Online ID")] ulong nnid, string comment)
+    public async Task BanTradeAsync([Summary("Online ID")] ulong nnid, [Summary("Reason")] string comment)
     {
         SysCordSettings.HubConfig.TradeAbuse.BannedIDs.AddIfNew([GetReference(nnid, comment)]);
         await ReplyAsync("Done.").ConfigureAwait(false);
@@ -89,7 +89,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Alias("tu", "tradeOther")]
     [Summary("Makes the bot trade the mentioned user the attached file.")]
     [RequireSudo]
-    public async Task TradeAsyncAttachUser([Summary("Trade Code")] int code, [Remainder] string _)
+    public async Task TradeAsyncAttachUser([Summary("Trade Code")] int code)
     {
         if (Context.Message.MentionedUsers.Count > 1)
         {
@@ -112,15 +112,15 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Alias("tu", "tradeOther")]
     [Summary("Makes the bot trade the mentioned user the attached file.")]
     [RequireSudo]
-    public Task TradeAsyncAttachUser([Remainder] string _)
+    public Task TradeAsyncAttachUser()
     {
         var code = Info.GetRandomTradeCode();
-        return TradeAsyncAttachUser(code, _);
+        return TradeAsyncAttachUser(code);
     }
 
     [Command("TradeUser")]
     [Alias("tu")]
-    [Summary("Maakes the bot trade the mentioned user the provided Showdown Set.")]
+    [Summary("Makes the bot trade the mentioned user the provided Showdown Set.")]
     [RequireSudo]
     public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
     {
@@ -148,7 +148,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("eggtrade")]
     [Alias("egg")]
-    [Summary("Makes the bot trade you a Pokémon converted from the provided Showdown Set.")]
+    [Summary("Makes the bot trade you a Pokémon Egg converted from the provided Showdown Set.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public Task TradeEggAsync([Summary("Showdown Set")][Remainder] string content)
     {

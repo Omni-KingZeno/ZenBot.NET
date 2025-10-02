@@ -91,16 +91,106 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
         await ReplyAsync("Help has arrived!", false, builder.Build()).ConfigureAwait(false);
     }
 
+    [Command("ListCommands")]
+    [Alias("commands", "cmds")]
+    [Summary("Lists available commands by modules in paged format.")]
+    public async Task ListCommands()
+    {
+        var modules = Service.Modules.OrderBy(module => !module.Name.StartsWith("TradeM")).ThenBy(module => module.Name).ToList();
+        var embeds = new List<Embed>();
+
+        foreach (var module in modules)
+        {
+            var moduleName = module.Name;
+            if (moduleName.Contains("`1"))
+            {
+                moduleName = moduleName.Replace("`1", string.Empty);
+            }
+            if (moduleName.Contains("Module"))
+            {
+                moduleName = moduleName.Replace("Module", string.Empty);
+            }
+            var builder = new EmbedBuilder
+            {
+                Color = Color.Purple,
+                Description = $"## Commands in the {moduleName} module:",
+                ThumbnailUrl = "https://i.imgur.com/4hm3BUB.png"
+            };
+
+            var commands = module.Commands.OrderBy(cmd => cmd.Name).ToList();
+            HashSet<string> mentioned = [];
+            EmbedBuilder? currentBuilder = null;
+            int fieldCount = 0;
+
+            foreach (var cmd in commands)
+            {
+                var name = cmd.Name;
+                if (mentioned.Contains(name))
+                    continue;
+                if (cmd.Attributes.Any(z => z is RequireOwnerAttribute) && Context.Client.GetApplicationInfoAsync().Result.Owner.Id != Context.User.Id)
+                    continue;
+                if (cmd.Attributes.Any(z => z is RequireSudoAttribute) && !SysCordSettings.Manager.CanUseSudo(Context.User.Id))
+                    continue;
+                if (module.Name.Contains("Sudo") && Context.User.Id == Context.Client.GetApplicationInfoAsync().Result.Owner.Id)
+                    continue;
+
+                mentioned.Add(name);
+                var result = cmd.CheckPreconditionsAsync(Context).Result;
+                if (result.IsSuccess)
+                {
+                    if (currentBuilder == null || fieldCount >= 10)
+                    {
+                        if (currentBuilder != null)
+                        {
+                            embeds.Add(currentBuilder.Build());
+                        }
+
+                        currentBuilder = new EmbedBuilder
+                        {
+                            Color = Color.Purple,
+                            Description = fieldCount == 0 ?
+                                $"## Commands in the {moduleName} module:" :
+                                $"## Commands in the {moduleName} module (Cont'd):",
+                            ThumbnailUrl = "https://i.imgur.com/4hm3BUB.png"
+                        };
+                        fieldCount = 0;
+                    }
+
+                    currentBuilder.AddField(x =>
+                    {
+                        x.Name = string.Join(", ", cmd.Aliases);
+                        x.Value = GetCommandSummary(cmd) + "\n";
+                        x.IsInline = false;
+                    });
+                    fieldCount++;
+                }
+            }
+
+            if (currentBuilder != null && currentBuilder.Fields.Count > 0)
+            {
+                embeds.Add(currentBuilder.Build());
+            }
+        }
+
+        if (embeds.Count == 0)
+        {
+            await ReplyAsync("No commands available for you.").ConfigureAwait(false);
+            return;
+        }
+
+        await PaginatedMessage.CreateAsync(Context, embeds);
+    }
+
     private static string GetCommandSummary(CommandInfo cmd)
     {
-        return $"Summary: {cmd.Summary}\nParameters: {GetParameterSummary(cmd.Parameters)}";
+        return $"-# **Summary:**\n-  -# {cmd.Summary}\n-# **Parameters:** {GetParameterSummary(cmd.Parameters)}";
     }
 
     private static string GetParameterSummary(IReadOnlyList<ParameterInfo> p)
     {
         if (p.Count == 0)
             return "None";
-        return $"{p.Count}\n- " + string.Join("\n- ", p.Select(GetParameterSummary));
+        return $"{p.Count}\n  - -# " + string.Join("\n  - -# ", p.Select(GetParameterSummary));
     }
 
     private static string GetParameterSummary(ParameterInfo z)

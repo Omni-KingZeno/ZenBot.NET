@@ -10,7 +10,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     [Summary("Blacklists a mentioned Discord user.")]
     [RequireSudo]
     // ReSharper disable once UnusedParameter.Global
-    public async Task BlackListUsers([Remainder] string _)
+    public async Task BlackListUsers()
     {
         var users = Context.Message.MentionedUsers;
         var objects = users.Select(GetReference);
@@ -22,7 +22,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     [Summary("Adds a comment for a blacklisted Discord user ID.")]
     [RequireSudo]
     // ReSharper disable once UnusedParameter.Global
-    public async Task BlackListUsers(ulong id, [Remainder] string comment)
+    public async Task BlackListUserComment(ulong id, [Remainder] string comment)
     {
         var obj = SysCordSettings.Settings.UserBlacklist.List.Find(z => z.ID == id);
         if (obj is null)
@@ -40,7 +40,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     [Summary("Removes a mentioned Discord user from the blacklist.")]
     [RequireSudo]
     // ReSharper disable once UnusedParameter.Global
-    public async Task UnBlackListUsers([Remainder] string _)
+    public async Task UnBlackListUsers()
     {
         var users = Context.Message.MentionedUsers;
         var objects = users.Select(GetReference);
@@ -97,7 +97,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     [Command("bannedIDComment")]
     [Summary("Adds a comment for a banned online user ID.")]
     [RequireSudo]
-    public async Task BanOnlineIDs(ulong id, [Remainder] string comment)
+    public async Task BanOnlineIDs([Summary("User NID")] ulong id, [Remainder][Summary("New Comment")] string comment)
     {
         var me = SysCord<T>.Runner;
         var hub = me.Hub;
