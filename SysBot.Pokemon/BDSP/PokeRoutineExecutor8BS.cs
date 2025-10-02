@@ -121,7 +121,7 @@ public abstract class PokeRoutineExecutor8BS(PokeBotState Config) : PokeRoutineE
             Log("Turning off screen.");
             await SetScreen(ScreenState.Off, token).ConfigureAwait(false);
         }
-
+        await SetController(SwitchController.ProController, token);
         Log("Setting BDSP-specific hid waits.");
         await Connection.SendAsync(SwitchCommand.Configure(SwitchConfigureParameter.keySleepTime, 50), token).ConfigureAwait(false);
         await Connection.SendAsync(SwitchCommand.Configure(SwitchConfigureParameter.pollRate, 50), token).ConfigureAwait(false);

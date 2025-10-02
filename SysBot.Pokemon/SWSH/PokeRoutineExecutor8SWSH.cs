@@ -117,6 +117,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
             Log("Turning off screen.");
             await SetScreen(ScreenState.Off, token).ConfigureAwait(false);
         }
+        await SetController(SwitchController.ProController, token);
     }
 
     public async Task CleanExit(CancellationToken token)
