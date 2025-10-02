@@ -78,8 +78,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         try
         {
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var isEggRequest = set.Nickname.Equals("Egg", StringComparison.OrdinalIgnoreCase) && Breeding.CanHatchAsEgg(set.Species);
-            var pkm = isEggRequest ? sav.GetLegalEgg(set, out var result) : sav.GetLegal(template, out result); ;
+            var pkm = sav.GetLegal(template, out var result); ;
             var la = new LegalityAnalysis(pkm);
             var spec = GameInfo.Strings.Species[template.Species];
             pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;

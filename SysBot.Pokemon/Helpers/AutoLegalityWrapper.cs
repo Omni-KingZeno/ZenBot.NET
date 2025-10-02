@@ -55,7 +55,7 @@ public static class AutoLegalityWrapper
         // We need all the encounter types present, so add the missing ones at the end.
         var missing = EncounterPriority.Except(cfg.PrioritizeEncounters);
         cfg.PrioritizeEncounters.AddRange(missing);
-        cfg.PrioritizeEncounters = cfg.PrioritizeEncounters.Distinct().ToList(); // Don't allow duplicates.
+        cfg.PrioritizeEncounters = [.. cfg.PrioritizeEncounters.Distinct()]; // Don't allow duplicates.
         EncounterMovesetGenerator.PriorityList = cfg.PrioritizeEncounters;
     }
 
@@ -186,20 +186,6 @@ public static class AutoLegalityWrapper
             _ => "",
         };
         return result.Created;
-    }
-
-    public static PKM GetLegalEgg(this ITrainerInfo sav, ShowdownSet set, out string res)
-    {
-        var created = sav.GenerateEgg(set, out var status);
-        res = status switch
-        {
-            LegalizationResult.Regenerated      => "Regenerated",
-            LegalizationResult.Failed           => "Failed",
-            LegalizationResult.Timeout          => "Timeout",
-            LegalizationResult.VersionMismatch  => "VersionMismatch",
-            _ => "",
-        };
-        return created;
     }
 
     public static string GetLegalizationHint(IBattleTemplate set, ITrainerInfo sav, PKM pk) => set.SetAnalysis(sav, pk);

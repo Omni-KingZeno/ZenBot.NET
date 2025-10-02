@@ -20,8 +20,7 @@ public static class AutoLegalityExtensionsDiscord
         try
         {
             var template = AutoLegalityWrapper.GetTemplate(set);
-            var isEggRequest = set.Nickname.Equals("Egg", StringComparison.OrdinalIgnoreCase) && Breeding.CanHatchAsEgg(set.Species);
-            var pkm = isEggRequest ? sav.GetLegalEgg(set, out var result) : sav.GetLegal(template, out result);
+            var pkm = sav.GetLegal(template, out var result);
             var la = new LegalityAnalysis(pkm);
             var spec = GameInfo.Strings.Species[template.Species];
             if (!la.Valid)
