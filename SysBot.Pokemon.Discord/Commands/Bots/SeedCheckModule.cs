@@ -13,21 +13,10 @@ public class SeedCheckModule<T> : ModuleBase<SocketCommandContext> where T : PKM
     [Alias("checkMySeed", "checkSeed", "seed", "s", "sc")]
     [Summary("Checks the seed for a Pokémon.")]
     [RequireQueueRole(nameof(DiscordManager.RolesSeed))]
-    public Task SeedCheckAsync(int code)
+    public Task SeedCheckAsync([Summary("Trade Code")] int code)
     {
         var sig = Context.User.GetFavor();
         return QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, new T(), PokeRoutineType.SeedCheck, PokeTradeType.Seed);
-    }
-
-    [Command("seedCheck")]
-    [Alias("checkMySeed", "checkSeed", "seed", "s", "sc")]
-    [Summary("Checks the seed for a Pokémon.")]
-    [RequireQueueRole(nameof(DiscordManager.RolesSeed))]
-    public Task SeedCheckAsync([Summary("Trade Code")][Remainder] string code)
-    {
-        int tradeCode = Util.ToInt32(code);
-        var sig = Context.User.GetFavor();
-        return QueueHelper<T>.AddToQueueAsync(Context, tradeCode == 0 ? Info.GetRandomTradeCode() : tradeCode, Context.User.Username, sig, new T(), PokeRoutineType.SeedCheck, PokeTradeType.Seed);
     }
 
     [Command("seedCheck")]
@@ -60,7 +49,7 @@ public class SeedCheckModule<T> : ModuleBase<SocketCommandContext> where T : PKM
     [Command("findFrame")]
     [Alias("ff", "getFrameData")]
     [Summary("Prints the next shiny frame from the provided seed.")]
-    public async Task FindFrameAsync([Remainder] string seedString)
+    public async Task FindFrameAsync([Remainder][Summary("Seed")] string seedString)
     {
         var me = SysCord<T>.Runner;
         var hub = me.Hub;

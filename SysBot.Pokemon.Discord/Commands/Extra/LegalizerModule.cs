@@ -15,7 +15,7 @@ public class LegalizerModule<T> : ModuleBase<SocketCommandContext> where T : PKM
     }
 
     [Command("convert"), Alias("showdown")]
-    [Summary("Tries to convert the Showdown Set to pkm data.")]
+    [Summary("Tries to convert the Showdown Set to pkm data for requested Generation/Format.")]
     [Priority(1)]
     public Task ConvertShowdown([Summary("Generation/Format")] byte gen, [Remainder][Summary("Showdown Set")] string content)
     {
