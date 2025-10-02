@@ -158,6 +158,12 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task TradeAsyncShowdown(int code, string content, SocketUser user, bool eggTrade = false)
     {
+        if (eggTrade)
+        {
+            var lines = content.Split('\n').ToList();
+            lines.Insert(1, "Egg: Yes");
+            content = string.Join("\n", lines);
+        }
         content = ReusableActions.StripCodeBlock(content);
         var set = new ShowdownSet(content);
         var template = AutoLegalityWrapper.GetTemplate(set);
@@ -188,8 +194,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         try
         {
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var isEggRequest = eggTrade && Breeding.CanHatchAsEgg(set.Species);
-            var pkm = isEggRequest ? sav.GetLegalEgg(set, out var result) : sav.GetLegal(template, out result); ;
+            var pkm = sav.GetLegal(template, out var result);
             var la = new LegalityAnalysis(pkm);
             var spec = GameInfo.Strings.Species[template.Species];
             pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
