@@ -10,12 +10,19 @@ namespace SysBot.Pokemon.Discord;
 public static class QueueHelper<T> where T : PKM, new()
 {
     private const uint MaxTradeCode = 9999_9999;
+    private static readonly PokeTradeHub<T> Hub = SysCord<T>.Runner.Hub;
 
     public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader)
     {
         if ((uint)code > MaxTradeCode)
         {
             await context.Channel.SendMessageAsync("Trade code should be 00000000-99999999!").ConfigureAwait(false);
+            return;
+        }
+
+        if (Hub.Config.Trade.BannedTradeCodes.Contains((uint)code))
+        {
+            await context.Channel.SendMessageAsync($"**{code}** is not an allowed trade code.").ConfigureAwait(false);
             return;
         }
 
@@ -28,8 +35,7 @@ public static class QueueHelper<T> where T : PKM, new()
             var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var embed);
 
             // Notify in channel
-            var hub = SysCord<T>.Runner.Hub;
-            if (hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize)
+            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize)
             {
                 _ = embed?.Build();
                 embed?.Builder.AddField("** **", msg, inline: false);
@@ -109,9 +115,9 @@ public static class QueueHelper<T> where T : PKM, new()
             pokeName = $" Receiving: {GameInfo.GetStrings("en").Species[pk.Species]}.";
         msg = $"{user.Mention} - Added to the {type} queue{ticketID}. {pokeName} ";
 
-        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name));
+        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), t == PokeTradeType.MysteryEgg);
 
-        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is PokeTradeType.Specific))
+        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is PokeTradeType.Specific or PokeTradeType.MysteryEgg))
         {
             msg += $"Current Position: {position.Position}.";
             var botct = Info.Hub.Bots.Count;

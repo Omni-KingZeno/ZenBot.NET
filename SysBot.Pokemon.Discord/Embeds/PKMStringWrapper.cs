@@ -2,7 +2,7 @@ using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
 
-internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : PKM, new()
+internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool mysteryEgg) where T : PKM, new()
 {
     protected GameStrings GameStrings =>
         GameInfo.GetStrings(Language.GetLanguageCode(Config.ForceEmbedLanguage is LanguageID.None ? (LanguageID)PKM.Language : Config.ForceEmbedLanguage));
@@ -13,7 +13,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : P
     internal string Scale => GetScaleString();
     internal string TeraType => GetTeraTypeString();
 
-    internal string Ability => GameStrings.Ability[PKM.Ability];
+    internal string Ability => mysteryEgg ? "Unknown" : GameStrings.Ability[PKM.Ability];
     internal string Nature => GameStrings.Natures[(byte)PKM.Nature];
     internal string HeldItem => GameStrings.Item[PKM.HeldItem];
 
@@ -26,7 +26,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : P
     {
         var species = $"{SpeciesName.GetSpeciesNameGeneration(PKM.Species, PKM.Language, PKM.Generation)}";
         var forms = FormConverter.GetFormList(PKM.Species, GameStrings.types, GameStrings.forms, GameInfo.GenderSymbolASCII, PKM.Context);
-        return $"{species}{(forms.Length > 1 && PKM.Form > 0 ? $"-{$"{forms[PKM.Form]}"}" : "")}";
+        return mysteryEgg ? "Unknown" : $"{species}{(forms.Length > 1 && PKM.Form > 0 ? $"-{$"{forms[PKM.Form]}"}" : "")}";
     }
 
     private string GetShinyString() =>
@@ -81,15 +81,11 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config) where T : P
         return "";
     }
 
-    internal string GetPokemonImageURL() =>
-        TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, fullSize: false);
+    internal string GetPokemonImageURL(bool isEgg, bool isMysteryEgg) =>
+        TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, fullSize: false, isEgg, isMysteryEgg);
 
     internal string GetBallImageURL() =>
         "https://raw.githubusercontent.com/BakaKaito/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
-
-    internal string GetEggImageURL() =>
-        $"https://raw.githubusercontent.com/BakaKaito/HomeImages/main/Sprites/128x128/Egg_{(MoveType)PKM.PersonalInfo.Type1}.png";
-
     internal string GetMarkImageURL() =>
        $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png";
 }
