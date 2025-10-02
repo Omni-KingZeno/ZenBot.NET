@@ -94,7 +94,7 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
         await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pk, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
     }
 
-    public static T MysteryEgg(out T pkm)
+    private static T MysteryEgg(out T pkm)
     {
         Random rndm = new();
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
@@ -124,11 +124,11 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
             int randomNumber = rndm.Next(0, 1365);
             var shiny = randomNumber == 0;
 
-            var content = randomSpecies + $"\n.Nature=$0,24\n{(shiny ? "Shiny: Yes\n" : "")}" +
+            var content = randomSpecies + $"\nEgg: Yes\n.Nature=$0,24\n{(shiny ? "Shiny: Yes\n" : "")}" +
                           ".Moves=$suggest\n" +
                           ".AbilityNumber=$0,2";
             var set = new ShowdownSet(content);
-            pkm = (T)sav.GetLegalEgg(set, out _);
+            pkm = (T)sav.GetLegal(set, out _);
 
             var la = new LegalityAnalysis(pkm);
             if (!la.Valid)
