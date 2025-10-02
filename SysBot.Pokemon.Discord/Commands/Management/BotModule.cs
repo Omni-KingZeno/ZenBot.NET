@@ -50,6 +50,14 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
         await Context.Channel.EchoAndReply($"The bot at {ip} ({bot.Bot.Connection.Label}) has been commanded to Start.").ConfigureAwait(false);
     }
 
+    [Command("botStart")]
+    [Summary("Starts bot at the first IP address/port.")]
+    [RequireSudo]
+    public async Task StartBotAsync()
+    {
+        await StartBotAsync(BotIpHelper<T>.Get(SysCord<T>.Runner));
+    }
+
     [Command("botStop")]
     [Summary("Stops a bot by IP address/port.")]
     [RequireSudo]
@@ -64,6 +72,14 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
 
         bot.Stop();
         await Context.Channel.EchoAndReply($"The bot at {ip} ({bot.Bot.Connection.Label}) has been commanded to Stop.").ConfigureAwait(false);
+    }
+
+    [Command("botStop")]
+    [Summary("Stops the bot at the first IP address/port.")]
+    [RequireSudo]
+    public async Task StopBotAsync()
+    {
+        await StopBotAsync(BotIpHelper<T>.Get(SysCord<T>.Runner));
     }
 
     [Command("botIdle")]
@@ -83,6 +99,15 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
         await Context.Channel.EchoAndReply($"The bot at {ip} ({bot.Bot.Connection.Label}) has been commanded to Idle.").ConfigureAwait(false);
     }
 
+    [Command("botIdle")]
+    [Alias("botPause")]
+    [Summary("Commands a bot to Idle at first IP address/port.")]
+    [RequireSudo]
+    public async Task IdleBotAsync()
+    {
+        await IdleBotAsync(BotIpHelper<T>.Get(SysCord<T>.Runner));
+    }
+
     [Command("botChange")]
     [Summary("Changes the routine of a bot (trades).")]
     [RequireSudo]
@@ -97,6 +122,14 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
 
         bot.Bot.Config.Initialize(task);
         await Context.Channel.EchoAndReply($"The bot at {ip} ({bot.Bot.Connection.Label}) has been commanded to do {task} as its next task.").ConfigureAwait(false);
+    }
+
+    [Command("botChange")]
+    [Summary("Changes the routine of a bot at first IP.")]
+    [RequireSudo]
+    public async Task ChangeTaskAsync([Summary("Routine enum name")] PokeRoutineType task)
+    {
+        await ChangeTaskAsync(BotIpHelper<T>.Get(SysCord<T>.Runner), task);
     }
 
     [Command("botRestart")]
@@ -119,5 +152,42 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
             bot.Start();
             await Context.Channel.EchoAndReply($"The bot at {ip} ({c.Label}) has been commanded to Restart.").ConfigureAwait(false);
         }
+    }
+
+    [Command("botRestart")]
+    [Summary("Restarts the bot at the first IP address")]
+    [RequireSudo]
+    public async Task RestartBotAsync()
+    {
+        await RestartBotAsync(BotIpHelper<T>.Get(SysCord<T>.Runner));
+    }
+
+    [Command("peek")]
+    [Summary("Take and send a screenshot from the first available bot.")]
+    [RequireSudo]
+    public async Task Peek()
+    {
+        var source = new CancellationTokenSource();
+        var token = source.Token;
+
+        var bot = SysCord<T>.Runner.GetBot(BotIpHelper<T>.Get(SysCord<T>.Runner));
+        if (bot == null)
+        {
+            await ReplyAsync($"No bots available to take a screenshot.").ConfigureAwait(false);
+            return;
+        }
+
+        var c = bot.Bot.Connection;
+        var bytes = await c.PixelPeek(token).ConfigureAwait(false);
+        if (bytes.Length <= 1)
+        {
+            await ReplyAsync($"Failed to take a screenshot for bot at {bot.Bot.Config.Connection.IP}. Is the bot connected?").ConfigureAwait(false);
+            return;
+        }
+        MemoryStream ms = new(bytes);
+
+        var img = "cap.jpg";
+        var embed = new EmbedBuilder { ImageUrl = $"attachment://{img}", Color = Color.Purple }.WithFooter(new EmbedFooterBuilder { Text = $"Captured image from bot at address {bot.Bot.Config.Connection.IP}." });
+        await Context.Channel.SendFileAsync(ms, img, "", embed: embed.Build());
     }
 }

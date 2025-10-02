@@ -13,6 +13,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     public async Task ClickAsync(SwitchButton b)
     {
         var bot = SysCord<T>.Runner.Bots.Find(z => IsRemoteControlBot(z.Bot));
+        bot ??= SysCord<T>.Runner.GetBot(BotIpHelper<T>.Get(SysCord<T>.Runner));
         if (bot == null)
         {
             await ReplyAsync($"No bot is available to execute your command: {b}").ConfigureAwait(false);
@@ -43,6 +44,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     public async Task SetStickAsync(SwitchStick s, short x, short y, ushort ms = 1_000)
     {
         var bot = SysCord<T>.Runner.Bots.Find(z => IsRemoteControlBot(z.Bot));
+        bot ??= SysCord<T>.Runner.GetBot(BotIpHelper<T>.Get(SysCord<T>.Runner));
         if (bot == null)
         {
             await ReplyAsync($"No bot is available to execute your command: {s}").ConfigureAwait(false);
@@ -76,6 +78,15 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
         return SetScreen(true, ip);
     }
 
+    [Command("setScreenOn")]
+    [Alias("screenOn", "scrOn")]
+    [Summary("Turns the screen on")]
+    [RequireSudo]
+    public Task SetScreenOnAsync()
+    {
+        return SetScreen(true, BotIpHelper<T>.Get(SysCord<T>.Runner));
+    }
+
     [Command("setScreenOff")]
     [Alias("screenOff", "scrOff")]
     [Summary("Turns the screen off")]
@@ -83,6 +94,15 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     public Task SetScreenOffAsync([Remainder] string ip)
     {
         return SetScreen(false, ip);
+    }
+
+    [Command("setScreenOff")]
+    [Alias("screenOff", "scrOff")]
+    [Summary("Turns the screen off")]
+    [RequireSudo]
+    public Task SetScreenOffAsync()
+    {
+        return SetScreen(false, BotIpHelper<T>.Get(SysCord<T>.Runner));
     }
 
     private async Task SetScreen(bool on, string ip)

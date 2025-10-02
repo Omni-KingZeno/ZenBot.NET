@@ -24,6 +24,9 @@ public class TradeSettings : IBotStateSettings, ICountSettings
     [Category(TradeCode), Description("Maximum Link Code.")]
     public int MaxTradeCode { get; set; } = 8199;
 
+    [Category(TradeCode), Description("Banned Trade Codes.")]
+    public List<uint> BannedTradeCodes { get; set; } = [];
+
     [Category(Dumping), Description("Dump Trade: Dumping routine will stop after a maximum number of dumps from a single user.")]
     public int MaxDumpsPerTrade { get; set; } = 20;
 

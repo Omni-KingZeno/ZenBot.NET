@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -235,5 +236,52 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
         var offsetBytes = await ReadBytesFromCmdAsync(SwitchCommand.PointerRelative(jumps), sizeof(ulong), token).ConfigureAwait(false);
         Array.Reverse(offsetBytes, 0, 8);
         return BitConverter.ToUInt64(offsetBytes, 0);
+    }
+
+    public async Task<byte[]> PixelPeek(CancellationToken token)
+    {
+        await SendAsync(SwitchCommand.PixelPeek(), token).ConfigureAwait(false);
+        await Task.Delay(Connection.ReceiveBufferSize / DelayFactor + BaseDelay, token).ConfigureAwait(false);
+
+        var data = await FlexRead(token).ConfigureAwait(false);
+        var result = Array.Empty<byte>();
+        try
+        {
+            result = Decoder.ConvertPeekToBytes(data);
+        }
+        catch (Exception e)
+        {
+            LogError($"Malformed screenshot data received:\n{e.Message}");
+        }
+
+        return result;
+    }
+
+    private async Task<byte[]> FlexRead(CancellationToken token)
+    {
+        List<byte> flexBuffer = [];
+        int available = Connection.Available;
+        Connection.ReceiveTimeout = 1_000;
+
+        do
+        {
+            byte[] buffer = new byte[available];
+            try
+            {
+                Connection.Receive(buffer, available, SocketFlags.None);
+                flexBuffer.AddRange(buffer);
+            }
+            catch (Exception ex)
+            {
+                LogError($"Socket exception thrown while receiving data:\n{ex.Message}");
+                return [];
+            }
+
+            await Task.Delay(MaximumTransferSize / DelayFactor + BaseDelay, token).ConfigureAwait(false);
+            available = Connection.Available;
+        } while (flexBuffer.Count == 0 || flexBuffer.Last() != (byte)'\n');
+
+        Connection.ReceiveTimeout = 0;
+        return [.. flexBuffer];
     }
 }

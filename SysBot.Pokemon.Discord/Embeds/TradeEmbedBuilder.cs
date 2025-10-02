@@ -4,11 +4,11 @@ using SysBot.Pokemon.Discord.Helpers;
 
 namespace SysBot.Pokemon.Discord;
 
-public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) where T : PKM, new()
+public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, bool mysteryEgg) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
     public EmbedBuilder Builder { get; init; } = new();
-    private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings);
+    private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, mysteryEgg);
 
     public Embed Build()
     {
@@ -26,8 +26,8 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) 
         Builder.Color = InitializeColor();
         Builder.Author = InitializeAuthor();
         Builder.Footer = InitializeFooter();
-        Builder.ThumbnailUrl = altStyle ? "" : Strings.GetPokemonImageURL();
-        Builder.ImageUrl = altStyle ? Strings.GetPokemonImageURL() : "";
+        Builder.ThumbnailUrl = altStyle ? "" : Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg);
+        Builder.ImageUrl = altStyle ? Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg) : "";
 
         // Set the Pokémon Species as Embed Title
         var mark = Strings.Mark;
@@ -107,8 +107,8 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader) 
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
-        Name = $"{trader.Username}'s {(PKM.IsShiny ? "Shiny " : "")} Pokémon {(PKM.IsEgg ? "Egg" : "")}",
-        IconUrl = PKM.IsEgg ? Strings.GetEggImageURL() : Strings.GetBallImageURL(),
+        Name = $"{trader.Username}'s {(mysteryEgg ? "Mystery Egg" : PKM.IsShiny ? "Shiny " : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+        IconUrl = Strings.GetBallImageURL(),
     };
 
     private EmbedFooterBuilder InitializeFooter()

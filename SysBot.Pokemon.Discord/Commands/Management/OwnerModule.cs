@@ -10,7 +10,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Summary("Adds mentioned user to global sudo")]
     [RequireOwner]
     // ReSharper disable once UnusedParameter.Global
-    public async Task SudoUsers([Remainder] string _)
+    public async Task SudoUsers([Summary("Mentioned User(s)")][Remainder] string _)
     {
         var users = Context.Message.MentionedUsers;
         var objects = users.Select(GetReference);
@@ -18,15 +18,38 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
+    [Command("addSudoRole")]
+    [Summary("Adds mentioned role to role sudo")]
+    [RequireOwner]
+    // ReSharper disable once UnusedParameter.Global
+    public async Task SudoRoles([Summary("Mentioned Role(s)")][Remainder] string _)
+    {
+        var users = Context.Message.MentionedRoles;
+        var objects = users.Select(GetRoleReference);
+        SysCordSettings.Settings.RoleSudo.AddIfNew(objects);
+        await ReplyAsync("Done.").ConfigureAwait(false);
+    }
+
     [Command("removeSudo")]
     [Summary("Removes mentioned user from global sudo")]
     [RequireOwner]
     // ReSharper disable once UnusedParameter.Global
-    public async Task RemoveSudoUsers([Remainder] string _)
+    public async Task RemoveSudoUsers([Summary("Mentioned User(s)")][Remainder] string _)
     {
         var users = Context.Message.MentionedUsers;
         var objects = users.Select(GetReference);
         SysCordSettings.Settings.GlobalSudoList.RemoveAll(z => objects.Any(o => o.ID == z.ID));
+        await ReplyAsync("Done.").ConfigureAwait(false);
+    }
+
+    [Command("removeSudorole")]
+    [Summary("Removes mentioned role from role sudo")]
+    [RequireOwner]
+    public async Task RemoveSudoRoles([Summary("Mentioned Role(s)")] string _)
+    {
+        var users = Context.Message.MentionedRoles;
+        var objects = users.Select(GetRoleReference);
+        SysCordSettings.Settings.RoleSudo.RemoveAll(z => objects.Any(o => o.ID == z.ID));
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
@@ -49,6 +72,22 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     {
         var obj = GetReference(Context.Message.Channel);
         SysCordSettings.Settings.ChannelWhitelist.RemoveAll(z => z.ID == obj.ID);
+        await ReplyAsync("Done.").ConfigureAwait(false);
+    }
+
+    [Command("BanTradeCode")]
+    [Alias("btc")]
+    [Summary("Adds provided code to banned Trade Code list")]
+    [RequireOwner]
+    public async Task BanTradeCodeAsync([Summary("Trade Code")] uint code)
+    {
+        if (SysCord<T>.Runner.Hub.Config.Trade.BannedTradeCodes.Contains(code))
+        {
+            await ReplyAsync("Code already banned.").ConfigureAwait(false);
+            return;
+        }
+
+        SysCord<T>.Runner.Hub.Config.Trade.BannedTradeCodes.Add(code);
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
@@ -109,10 +148,10 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         Environment.Exit(0);
     }
 
-    private RemoteControlAccess GetReference(IUser channel) => new()
+    private RemoteControlAccess GetReference(IUser user) => new()
     {
-        ID = channel.Id,
-        Name = channel.Username,
+        ID = user.Id,
+        Name = user.Username,
         Comment = $"Added by {Context.User.Username} on {DateTime.Now:yyyy.MM.dd-hh:mm:ss}",
     };
 
@@ -120,6 +159,13 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     {
         ID = channel.Id,
         Name = channel.Name,
+        Comment = $"Added by {Context.User.Username} on {DateTime.Now:yyyy.MM.dd-hh:mm:ss}",
+    };
+
+    private RemoteControlAccess GetRoleReference(IRole role) => new()
+    {
+        ID = role.Id,
+        Name = $"{role.Name}",
         Comment = $"Added by {Context.User.Username} on {DateTime.Now:yyyy.MM.dd-hh:mm:ss}",
     };
 }
