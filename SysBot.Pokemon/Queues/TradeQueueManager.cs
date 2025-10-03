@@ -10,6 +10,7 @@ public class TradeQueueManager<T> where T : PKM, new()
     private readonly PokeTradeQueue<T> Seed = new(PokeTradeType.Seed);
     private readonly PokeTradeQueue<T> Clone = new(PokeTradeType.Clone);
     private readonly PokeTradeQueue<T> Dump = new(PokeTradeType.Dump);
+    private readonly PokeTradeQueue<T> Giveaway = new(PokeTradeType.Giveaway);
     public readonly TradeQueueInfo<T> Info;
     public readonly PokeTradeQueue<T>[] AllQueues;
 
@@ -17,7 +18,7 @@ public class TradeQueueManager<T> where T : PKM, new()
     {
         Hub = hub;
         Info = new TradeQueueInfo<T>(hub);
-        AllQueues = [Seed, Dump, Clone, Trade];
+        AllQueues = [Seed, Dump, Clone, Trade, Giveaway];
 
         foreach (var q in AllQueues)
             q.Queue.Settings = hub.Config.Favoritism;

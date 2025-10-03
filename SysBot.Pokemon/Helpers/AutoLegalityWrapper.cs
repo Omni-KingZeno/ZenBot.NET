@@ -116,7 +116,7 @@ public static class AutoLegalityWrapper
             TrainerSettings.Register(fallback);
     }
 
-    public static bool CanBeTraded(this PKM pk)
+    public static (bool, string) CanBeTraded(this PKM pk)
     {
         if (pk.IsNicknamed)
         {
@@ -124,16 +124,19 @@ public static class AutoLegalityWrapper
             int len = pk.LoadString(pk.NicknameTrash, nick);
             nick = nick[..len];
             if (StringsUtil.IsSpammyString(nick))
-                return false;
+                return (false, "Nickname contains illegal characters");
         }
         {
             Span<char> ot = stackalloc char[pk.TrashCharCountTrainer];
             int len = pk.LoadString(pk.OriginalTrainerTrash, ot);
             ot = ot[..len];
             if (StringsUtil.IsSpammyString(ot) && !IsFixedOT(new LegalityAnalysis(pk).EncounterOriginal, pk))
-                return false;
+                return (false, "OT contains illegal characters");
         }
-        return !FormInfo.IsFusedForm(pk.Species, pk.Form, pk.Format);
+        if (FormInfo.IsFusedForm(pk.Species, pk.Form, pk.Format))
+            return (false, "Fusions can't be traded!");
+
+        return (true, "");
     }
 
     public static bool IsFixedOT(IEncounterTemplate t, PKM pkm) => t switch

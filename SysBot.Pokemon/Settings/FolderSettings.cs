@@ -14,6 +14,9 @@ public class FolderSettings : IDumper
     [Category(Files), Description("Source folder: where PKM files to distribute are selected from.")]
     public string DistributeFolder { get; set; } = string.Empty;
 
+    [Category(Files), Description("Source folder: where PKM files for giveaways are selected from.")]
+    public string GiveAwayFolder { get; set; } = string.Empty;
+
     [Category(Files), Description("Destination folder: where all received PKM files are dumped to.")]
     public string DumpFolder { get; set; } = string.Empty;
 
@@ -27,5 +30,9 @@ public class FolderSettings : IDumper
         var distribute = Path.Combine(path, "distribute");
         Directory.CreateDirectory(distribute);
         DistributeFolder = distribute;
+
+        var giveaway = Path.Combine(path, "giveaway");
+        Directory.CreateDirectory(giveaway);
+        GiveAwayFolder = giveaway;
     }
 }

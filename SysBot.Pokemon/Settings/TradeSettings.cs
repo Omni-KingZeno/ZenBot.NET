@@ -59,6 +59,7 @@ public class TradeSettings : IBotStateSettings, ICountSettings
     private int _completedSeedChecks;
     private int _completedClones;
     private int _completedDumps;
+    private int _completedGiveawayTrades;
 
     [Category(Counts), Description("Completed Surprise Trades")]
     public int CompletedSurprise
@@ -102,6 +103,13 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         set => _completedDumps = value;
     }
 
+    [Category(Counts), Description("Completed Giveaway Trades (Specific User)")]
+    public int CompletedGiveawayTrades
+    {
+        get => _completedGiveawayTrades;
+        set => _completedGiveawayTrades = value;
+    }
+
     [Category(Counts), Description("When enabled, the counts will be emitted when a status check is requested.")]
     public bool EmitCountsOnStatusCheck { get; set; }
 
@@ -111,6 +119,7 @@ public class TradeSettings : IBotStateSettings, ICountSettings
     public void AddCompletedDistribution() => Interlocked.Increment(ref _completedDistribution);
     public void AddCompletedDumps() => Interlocked.Increment(ref _completedDumps);
     public void AddCompletedClones() => Interlocked.Increment(ref _completedClones);
+    public void AddCompletedGiveawayTrades() => Interlocked.Increment(ref _completedGiveawayTrades);
 
     public IEnumerable<string> GetNonZeroCounts()
     {
@@ -128,5 +137,7 @@ public class TradeSettings : IBotStateSettings, ICountSettings
             yield return $"Distribution Trades: {CompletedDistribution}";
         if (CompletedSurprise != 0)
             yield return $"Surprise Trades: {CompletedSurprise}";
+        if (CompletedGiveawayTrades != 0)
+            yield return $"-# **Support Trades:** {CompletedGiveawayTrades}";
     }
 }

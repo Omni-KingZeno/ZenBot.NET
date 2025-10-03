@@ -38,9 +38,10 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
             var pkm = sav.GetLegal(template, out var result);
 
-            if (!pkm.CanBeTraded())
+            var (canBeTraded, errorMessage) = pkm.CanBeTraded();
+            if (!canBeTraded)
             {
-                msg = $"Skipping trade, @{username}: Provided Pokémon content is blocked from trading!";
+                msg = $"Skipping trade, @{username}: {errorMessage}";
                 return false;
             }
 

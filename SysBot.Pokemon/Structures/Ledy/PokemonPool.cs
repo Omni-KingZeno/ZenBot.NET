@@ -78,9 +78,10 @@ public class PokemonPool<T>(BaseConfig Settings) : List<T>
                 continue;
             }
 
-            if (!dest.CanBeTraded())
+            (bool canBeTraded, string errorMessage) = dest.CanBeTraded();
+            if (!canBeTraded)
             {
-                LogUtil.LogInfo("SKIPPED: Provided file cannot be traded: " + dest.FileName, nameof(PokemonPool<T>));
+                LogUtil.LogInfo("SKIPPED: Provided file cannot be traded: " + dest.FileName + $" -- {errorMessage}", nameof(PokemonPool<T>));
                 continue;
             }
 
