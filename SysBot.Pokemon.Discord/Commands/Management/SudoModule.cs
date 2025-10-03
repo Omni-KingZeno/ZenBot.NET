@@ -8,8 +8,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 {
     [Command("blacklist")]
     [Summary("Blacklists a mentioned Discord user.")]
-    [RequireSudo]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireSudo]   
     public async Task BlackListUsers()
     {
         var users = Context.Message.MentionedUsers;
@@ -20,8 +19,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 
     [Command("blacklistComment")]
     [Summary("Adds a comment for a blacklisted Discord user ID.")]
-    [RequireSudo]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireSudo]   
     public async Task BlackListUserComment(ulong id, [Remainder] string comment)
     {
         var obj = SysCordSettings.Settings.UserBlacklist.List.Find(z => z.ID == id);
@@ -38,8 +36,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 
     [Command("unblacklist")]
     [Summary("Removes a mentioned Discord user from the blacklist.")]
-    [RequireSudo]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireSudo]   
     public async Task UnBlackListUsers()
     {
         var users = Context.Message.MentionedUsers;

@@ -7,9 +7,9 @@ public static class AutoLegalityWrapper
 {
     private static bool Initialized;
 
-    public static void EnsureInitialized(LegalitySettings cfg)
+    public static void EnsureInitialized(LegalitySettings cfg, bool forced = false)
     {
-        if (Initialized)
+        if (Initialized && !forced)
             return;
         Initialized = true;
         InitializeAutoLegality(cfg);
