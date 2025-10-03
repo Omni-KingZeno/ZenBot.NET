@@ -29,7 +29,8 @@ public class HubModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
             x.Value =
                 $"Bot Count: {botCount}\n" +
                 $"Bot State: {SummarizeBots(allBots)}\n" +
-                $"Pool Count: {hub.Ledy.Pool.Count}\n";
+                $"Pool Count: {hub.Ledy.Pool.Count}\n" +
+                $"GAPool Count: {hub.Giveaway.Pool.Count}\n";
             x.IsInline = false;
         });
 

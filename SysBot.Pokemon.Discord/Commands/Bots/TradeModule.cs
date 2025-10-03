@@ -270,10 +270,11 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task AddTradeToQueueAsync(int code, string trainerName, T pk, RequestSignificance sig, SocketUser usr)
     {
-        if (!pk.CanBeTraded())
+        var (canBeTraded, errorMessage) = pk.CanBeTraded();
+        if (!canBeTraded)
         {
             // Disallow anything that cannot be traded from the game (e.g. Fusions).
-            await ReplyAsync("Provided Pokémon content is blocked from trading!").ConfigureAwait(false);
+            await ReplyAsync($"{Context.User.Mention}, {errorMessage}").ConfigureAwait(false);
             return;
         }
 

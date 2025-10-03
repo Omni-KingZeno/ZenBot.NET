@@ -102,6 +102,10 @@ public abstract class PokeBotRunner<T>(PokeTradeHub<T> hub, BotFactory<T> Factor
         if (!Directory.Exists(path))
             LogUtil.LogError("The distribution folder was not found. Please verify that it exists!", "Hub");
 
+        var gaPath = Hub.Config.Folder.GiveAwayFolder;
+        if (!Directory.Exists(gaPath))
+            LogUtil.LogError("The GiveAway folder was not found. Please verify that it exists!", "Hub");
+
         path = Hub.Config.Folder.DumpFolder;
         if (Hub.Config.Folder.Dump && !Directory.Exists(path))
             LogUtil.LogError("The program is configured to dump files, but the dump folder was not found. Please verify that it exists!", "Hub");
@@ -109,6 +113,10 @@ public abstract class PokeBotRunner<T>(PokeTradeHub<T> hub, BotFactory<T> Factor
         var pool = Hub.Ledy.Pool;
         if (!pool.Reload(Hub.Config.Folder.DistributeFolder))
             LogUtil.LogError("Nothing to distribute for Empty Trade Queues!", "Hub");
+
+        var GApool = Hub.Giveaway.Pool;
+        if (!GApool.Reload(Hub.Config.Folder.GiveAwayFolder))
+            LogUtil.LogError("Nothing found in Giveaway pool.", "Hub");
     }
 
     public PokeRoutineExecutorBase CreateBotFromConfig(PokeBotState cfg) => Factory.CreateBot(Hub, cfg);

@@ -328,7 +328,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState Config) : Poke
         }
 
         // Confirm Box 1 Slot 1
-        if (poke.Type == PokeTradeType.Specific)
+        if (poke.Type == PokeTradeType.Specific || poke.Type == PokeTradeType.Giveaway)
         {
             for (int i = 0; i < 5; i++)
                 await Click(A, 0_500, token).ConfigureAwait(false);
