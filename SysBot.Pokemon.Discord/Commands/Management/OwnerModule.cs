@@ -8,8 +8,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 {
     [Command("addSudo")]
     [Summary("Adds mentioned user(s) to global sudo")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task SudoUsers()
     {
         var users = Context.Message.MentionedUsers;
@@ -20,8 +19,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 
     [Command("addSudoRole")]
     [Summary("Adds mentioned role(s) to role sudo")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task SudoRoles()
     {
         var users = Context.Message.MentionedRoles;
@@ -32,8 +30,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 
     [Command("removeSudo")]
     [Summary("Removes mentioned user(s) from global sudo")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task RemoveSudoUsers()
     {
         var users = Context.Message.MentionedUsers;
@@ -55,8 +52,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 
     [Command("addChannel")]
     [Summary("Adds a channel to the list of channels that are accepting commands.")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task AddChannel()
     {
         var obj = GetReference(Context.Message.Channel);
@@ -66,8 +62,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 
     [Command("removeChannel")]
     [Summary("Removes a channel from the list of channels that are accepting commands.")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task RemoveChannel()
     {
         var obj = GetReference(Context.Message.Channel);
@@ -91,11 +86,21 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
+    [Command("ReinitializeLegalitySettings")]
+    [Alias("reinit", "rils")]
+    [Summary("Reinitializes legality settings after changing Legality settings")]
+    [RequireOwner]
+    public async Task ReintializeLegality()
+    {
+        var message = await ReplyAsync("Re-Initializing Legality Settings...").ConfigureAwait(false);
+        AutoLegalityWrapper.EnsureInitialized(SysCord<T>.Runner.Hub.Config.Legality, true);
+        await message.ModifyAsync(msg => msg.Content = "Done").ConfigureAwait(false);
+    }
+
     [Command("leave")]
     [Alias("bye")]
     [Summary("Leaves the current server.")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task Leave()
     {
         await ReplyAsync("Goodbye.").ConfigureAwait(false);
@@ -105,8 +110,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Command("leaveguild")]
     [Alias("lg")]
     [Summary("Leaves guild based on supplied ID.")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task LeaveGuild(string userInput)
     {
         if (!ulong.TryParse(userInput, out ulong id))
@@ -128,8 +132,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
 
     [Command("leaveall")]
     [Summary("Leaves all servers the bot is currently in.")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task LeaveAll()
     {
         await ReplyAsync("Leaving all servers.").ConfigureAwait(false);
@@ -140,8 +143,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Command("sudoku")]
     [Alias("kill", "shutdown")]
     [Summary("Causes the entire process to end itself!")]
-    [RequireOwner]
-    // ReSharper disable once UnusedParameter.Global
+    [RequireOwner]   
     public async Task ExitProgram()
     {
         await Context.Channel.EchoAndReply("Shutting down... goodbye! **Bot services are going offline.**").ConfigureAwait(false);

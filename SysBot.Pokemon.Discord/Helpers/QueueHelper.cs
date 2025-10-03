@@ -163,6 +163,10 @@ public static class QueueHelper<T> where T : PKM, new()
                         message = "I must be granted \"Manage Messages\" permissions!";
                         embedBuilder.Title = "Permissions Error";
                     }
+                    if (!permissions.EmbedLinks)
+                    {
+                        message = "I'm missing the \"Embed Links\" permission!";
+                    }
                 }
                 break;
             case DiscordErrorCode.CannotSendMessageToUser:
