@@ -178,17 +178,6 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             return;
         }
 
-        for (int i = 0; i < embeds.Count; i++)
-        {
-            var builder = embeds[i].ToEmbedBuilder();
-            builder.Footer = new EmbedFooterBuilder
-            {
-                Text = $"Page {i + 1} of {embeds.Count}",
-                IconUrl = "https://i.imgur.com/nXNBrlr.png"
-            };
-            embeds[i] = builder.Build();
-        }
-
         await PaginatedMessage.CreateAsync(Context, embeds);
     }
 

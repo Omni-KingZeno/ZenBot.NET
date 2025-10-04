@@ -32,7 +32,7 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
 
             var embed = new EmbedBuilder
             {
-                Title = "Available  Pokémon",
+                Title = "Available Mystery Gift Pokémon",
                 Description = string.Join("\n", chunk),
                 Color = Color.DarkPurple
             }.Build();

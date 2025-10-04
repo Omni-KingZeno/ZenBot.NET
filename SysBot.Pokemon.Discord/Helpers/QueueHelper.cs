@@ -86,7 +86,15 @@ public static class QueueHelper<T> where T : PKM, new()
     {
         var user = trader;
         var userID = user.Id;
-        var name = NicknameHelper.Get((IGuildUser)trader);
+        string name;
+        if (trader is IGuildUser guildUser)
+        {
+            name = NicknameHelper.Get(guildUser);
+        }
+        else
+        {
+            name = trader.Username;
+        }
 
         var trainer = new PokeTradeTrainerInfo(trainerName, userID);
         var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, user, context);
