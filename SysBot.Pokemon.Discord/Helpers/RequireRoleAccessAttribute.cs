@@ -14,6 +14,9 @@ public sealed class RequireRoleAccessAttribute(string RoleName) : PreconditionAt
 
     public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
     {
+        if (SysCordSettings.Admins.Contains(context.User.Id))
+            return Task.FromResult(PreconditionResult.FromSuccess());
+
         var mgr = SysCordSettings.Manager;
         if (mgr.Config.AllowGlobalSudo && mgr.CanUseSudo(context.User.Id))
             return Task.FromResult(PreconditionResult.FromSuccess());
