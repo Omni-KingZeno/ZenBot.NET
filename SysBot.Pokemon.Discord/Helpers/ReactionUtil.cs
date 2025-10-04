@@ -49,7 +49,7 @@ public class PaginatedMessage
         UserId = userId;
     }
 
-    public static async Task CreateAsync(ICommandContext ctx, IList<Embed> pages, int timeoutSeconds = 20)
+    public static async Task CreateAsync(ICommandContext ctx, IList<Embed> pages, int timeoutSeconds = 30)
     {
         if (pages.Count == 0)
         {
@@ -72,7 +72,14 @@ public class PaginatedMessage
             return;
         }
 
-        var msg = await ctx.Channel.SendMessageAsync(embed: pages[0]).ConfigureAwait(false);
+        var embed = pages[0].ToEmbedBuilder();
+        embed.Footer = new EmbedFooterBuilder
+        {
+            Text = $"Page 1 of {pages.Count}",
+            IconUrl = "https://i.imgur.com/nXNBrlr.png"
+        };
+
+        var msg = await ctx.Channel.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);
         foreach (var emote in Controls)
             await msg.AddReactionAsync(emote).ConfigureAwait(false);
 
@@ -95,7 +102,10 @@ public class PaginatedMessage
             default: return;
         }
 
-        await Message.ModifyAsync(m => m.Embed = Pages[Page]).ConfigureAwait(false);
+        var embed = Pages[Page].ToEmbedBuilder();
+        embed.WithFooter($"Page {Page + 1} of {Pages.Count}", "https://i.imgur.com/nXNBrlr.png");
+
+        await Message.ModifyAsync(m => m.Embed = embed.Build()).ConfigureAwait(false);
         await Message.RemoveReactionAsync(reaction.Emote, reaction.User.Value).ConfigureAwait(false);
         LastActivity = DateTime.Now;
     }
