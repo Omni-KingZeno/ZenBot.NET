@@ -1,11 +1,28 @@
 # ManuBot.NET
 ![License](https://img.shields.io/badge/License-AGPLv3-blue.svg)
 
+<img width="714" height="450" alt="Preview" src="https://github.com/user-attachments/assets/8102220c-6781-4d2b-b5c9-e50af1c13cf2" />
+
 Fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
 
-For details about fork-specific features, please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki).
+**For a list of this fork’s features:**
+* Game Mode selector (LGPE / SwSh / BDSP / PLA / SV) available in Hub settings
+* WinForm executable compatible with Dark Mode (choose between Light, Dark, or System)
+* Egg text requests via the `Egg: Yes` parameter
+* Handle Wondercards as Discord attachments with the `trade` command
+* Support for past-generation file conversions
+* Discord trade embed display with custom emoji support
+* Configurable Discord / Twitch / Donation commands
+* `Reboot and Stop` routine to reset in-game status
+* `UseTradePartnerDetails` option to automatically apply partner OT details to traded Pokémon
+* Let’s Go Pikachu and Eevee support (thanks to [santacrab2](https://github.com/santacrab2/) for the codebase!)
+* Uses deps instead of nuget for faster legality and feature updates.
 
-## Support Discords:
+Please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki) for detailed configurations and troubleshooting guides.
+
+Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
+
+## Support Discord (with Trade Bots available to users):
 
 If you need support for this fork, feel free to join our Discord server!
 
@@ -14,8 +31,6 @@ If you need support for this fork, feel free to join our Discord server!
 [Support Server: Manu's Lair](https://discord.com/invite/yWveAjKbKt)
 
 [<img src="https://canary.discordapp.com/api/guilds/693083823197519873/widget.png?style=banner2">](https://discord.gg/yWveAjKbKt)
-
-Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
 ## SysBot.Base:
 - Base logic library to be built upon in game-specific projects.
