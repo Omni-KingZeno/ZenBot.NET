@@ -16,9 +16,17 @@ Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github
 * Let’s Go Pikachu and Eevee support (thanks to [santacrab2](https://github.com/santacrab2/) for the codebase!)
 * Uses deps instead of nuget for faster legality and feature updates.
 
-Please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki) for detailed configurations and troubleshooting guides.
+**A list of this fork’s features:**
+* Quicker LGPE Code Entry
+* Support for Discord App Teams
+* Reworked Embed layout with Alternate layout toggle
+* Reinitialize legality settings without restarting the program using a command.
+* MysteryModule for Random Pokemon and Egg trades
+* PermissionsModule for checking that all whitelisted channels have the correct permissions required for the bot to function correctly
+* GiveawayModule based on [Koi's](https://github.com/Koi-3088) [ForkBot.NET](https://github.com/Koi-3088/ForkBot.NET)
+* RoleModule for handling adding/removing of trade roles in settings
 
-Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
+Please refer to the [Wiki](https://github.com/Omni-KingZeno/ZenBot.NET/wiki) for detailed configurations and troubleshooting guides.
 
 Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
