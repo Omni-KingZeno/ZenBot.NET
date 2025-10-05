@@ -92,4 +92,7 @@ public class LegalitySettings
 
     [Category(Misc), Description("Override Pokémon OT info with trade partner OT for non-Native Pokémon or version-exclusive Pokémon. UseTradePartnerDetails (Trade Settings) must also be set to True.")]
     public bool ForceTradePartnerDetails { get; set; } = false;
+
+    [Category(Misc), Description("Checks player given Nicknames and Trainer Names for profanity. Bad words will be flagged using the appropriate console's lists.")]
+    public bool CheckWordFilter { get; set; } = false;
 }
