@@ -47,6 +47,7 @@ public static class AutoLegalityWrapper
             settings.HOMETransfer.HOMETransferTrackerNotPresent = Severity.Fishy;
 
         settings.Handler.CheckActiveHandler = false;
+        settings.WordFilter.CheckWordFilter = cfg.CheckWordFilter;
 
         // We need all the encounter types present, so add the missing ones at the end.
         var missing = EncounterPriority.Except(cfg.PrioritizeEncounters);
