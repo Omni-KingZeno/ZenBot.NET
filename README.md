@@ -3,7 +3,31 @@
 
 Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github.com/Manu098vm/ManuBot.NET) fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
 
-For details about fork-specific features, please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki).
+**A list of the base fork’s features:**
+* Game Mode selector (LGPE / SwSh / BDSP / PLA / SV) available in Hub settings
+* WinForm executable compatible with Dark Mode (choose between Light, Dark, or System)
+* Egg text requests via the `Egg: Yes` parameter
+* Handle Wondercards as Discord attachments with the `trade` command
+* Support for past-generation file conversions
+* Discord trade embed display with custom emoji support
+* Configurable Discord / Twitch / Donation commands
+* `Reboot and Stop` routine to reset in-game status
+* `UseTradePartnerDetails` option to automatically apply partner OT details to traded Pokémon
+* Let’s Go Pikachu and Eevee support (thanks to [santacrab2](https://github.com/santacrab2/) for the codebase!)
+* Uses deps instead of nuget for faster legality and feature updates.
+**A list of this fork’s features:**
+*Quicker LGPE Code Entry
+*MysteryModule for Random Pokemon and Egg trades
+*PermissionsModule for checking that all whitelisted channels for the bot have correct Perms
+*Support for Discord App Teams
+*Reworked Embed layout with Alternate layout available
+*GiveawayModule based on [Koi's](https://github.com/Koi-3088) [ForkBot.NET](https://github.com/Koi-3088/ForkBot.NET)
+*RoleModule for handling adding/removing of trade role settings
+*Reinitialize legality settings without restarting the bot using a command.
+
+Please refer to the [Wiki](https://github.com/Manu098vm/ManuBot.NET/wiki) for detailed configurations and troubleshooting guides.
+
+Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
 Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
 
