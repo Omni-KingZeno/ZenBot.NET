@@ -68,3 +68,6 @@ Pokémon API logic is provided by [PKHeX](https://github.com/kwsch/PKHeX/), and 
 
 # License
 Refer to the `License.md` for details regarding licensing.
+<div align="center">
+    <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2FOmni-KingZeno%2FZenBot.NET&label=VIews&icon=github&color=%236f42c1&message=&style=flat&tz=US%2FEastern">
+</div>
