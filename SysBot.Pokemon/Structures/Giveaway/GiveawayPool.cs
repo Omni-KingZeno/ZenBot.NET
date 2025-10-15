@@ -3,13 +3,11 @@ using SysBot.Base;
 
 namespace SysBot.Pokemon;
 
-public class PokemonGAPool<T>(BaseConfig settings) : List<T> where T : PKM, new()
+public class GiveawayPool<T> : List<T> where T : PKM, new()
 {
     private readonly int ExpectedSize = new T().Data.Length;
-    private readonly BaseConfig Settings = settings;
-    private bool Randomized => Settings.Shuffled;
 
-    public readonly Dictionary<string, GiveAwayRequest<T>> Files = [];
+    public readonly Dictionary<string, GiveawayRequest<T>> Files = [];
 
     public bool Reload(string path, SearchOption opt = SearchOption.AllDirectories)
     {
@@ -42,14 +40,14 @@ public class PokemonGAPool<T>(BaseConfig settings) : List<T> where T : PKM, new(
 
             if (dest.Species == 0)
             {
-                LogUtil.LogInfo("SKIPPED: Provided file is not valid: " + dest.FileName, nameof(PokemonGAPool<T>));
+                LogUtil.LogInfo("SKIPPED: Provided file is not valid: " + dest.FileName, nameof(GiveawayPool<T>));
                 continue;
             }
 
             (bool canBeTraded, string errorMessage) = dest.CanBeTraded();
             if (!canBeTraded)
             {
-                LogUtil.LogInfo("SKIPPED: Provided file cannot be traded: " + dest.FileName + $" -- {errorMessage}", nameof(PokemonPool<T>));
+                LogUtil.LogInfo("SKIPPED: Provided file cannot be traded: " + dest.FileName + $" -- {errorMessage}", nameof(GiveawayPool<T>));
                 continue;
             }
 
@@ -57,7 +55,7 @@ public class PokemonGAPool<T>(BaseConfig settings) : List<T> where T : PKM, new(
             if (!la.Valid)
             {
                 var reason = la.Report();
-                LogUtil.LogInfo($"SKIPPED: Provided file is not legal: {dest.FileName} -- {reason}", nameof(PokemonGAPool<T>));
+                LogUtil.LogInfo($"SKIPPED: Provided file is not legal: {dest.FileName} -- {reason}", nameof(GiveawayPool<T>));
                 continue;
             }
 
@@ -68,12 +66,16 @@ public class PokemonGAPool<T>(BaseConfig settings) : List<T> where T : PKM, new(
             if (!Files.ContainsKey(fn))
             {
                 Add(dest);
-                Files.Add(fn, new GiveAwayRequest<T>(dest, fn));
+                Files.Add(fn, new GiveawayRequest<T>(dest, fn));
             }
             else
             {
-                LogUtil.LogInfo("Provided file was not added due to duplicate name: " + dest.FileName, nameof(PokemonGAPool<T>));
+                LogUtil.LogInfo("Provided file was not added due to duplicate name: " + dest.FileName, nameof(GiveawayPool<T>));
             }
+
+            if (Count > 0)
+                LogUtil.LogInfo($"{Count} Pokémon loaded files to the Giveaway pool", nameof(GiveawayPool<T>));
+
             loadedAny = true;
         }
         return loadedAny;

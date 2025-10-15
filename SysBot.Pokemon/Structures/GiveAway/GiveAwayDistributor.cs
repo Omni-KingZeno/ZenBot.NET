@@ -1,15 +1,15 @@
-﻿using PKHeX.Core;
+using PKHeX.Core;
 
 namespace SysBot.Pokemon;
 
-public class GiveAwayDistributor<T> where T : PKM, new()
+public class GiveawayDistributor<T> where T : PKM, new()
 {
-    public readonly Dictionary<string, GiveAwayRequest<T>> GiveAway;
-    public readonly PokemonGAPool<T> Pool;
+    public readonly Dictionary<string, GiveawayRequest<T>> Giveaway;
+    public readonly GiveawayPool<T> Pool;
 
-    public GiveAwayDistributor(PokemonGAPool<T> GApool)
+    public GiveawayDistributor(GiveawayPool<T> GApool)
     {
         Pool = GApool;
-        GiveAway = Pool.Files;
+        Giveaway = Pool.Files;
     }
 }
