@@ -10,7 +10,8 @@ namespace SysBot.Pokemon.Discord;
 [Summary("Commands for Giveawy Pokémon.")]
 public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
-    private static TradeQueueInfo<T> Info => SysCord<T>.Runner.Hub.Queues.Info;
+    private static PokeTradeHub<T> Hub => SysCord<T>.Runner.Hub;
+    private static TradeQueueInfo<T> Info => Hub.Queues.Info;
 
     [Command("GiveawayQueue")]
     [Alias("gaq")]
@@ -35,7 +36,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     [RequireQueueRole(nameof(DiscordManager.RolesGiveaway))]
     public async Task DisplayGiveawayPoolCountAsync()
     {
-        var pool = Info.Hub.Giveaway.Pool;
+        var pool = Hub.Giveaway.Pool;
         if (pool.Count == 0)
         {
             await ReplyAsync("Giveaway pool is empty.").ConfigureAwait(false);
@@ -53,11 +54,6 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
                 Color = Color.Blue,
                 Title = $"Giveaway Pool",
                 Description = string.Join("\n", pages[i]),
-                Footer = new EmbedFooterBuilder
-                {
-                    Text = $"Page {i + 1} of {pages.Count}",
-                    IconUrl = "https://i.imgur.com/nXNBrlr.png"
-                }
             };
 
             embeds.Add(builder.Build());
@@ -72,14 +68,11 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     [RequireSudo]
     public async Task ReloadGAPoolAsync()
     {
-        var me = SysCord<T>.Runner;
-        var hub = me.Hub;
-
-        var pool = hub.Giveaway.Pool.Reload(hub.Config.Folder.GiveawayFolder);
+        var pool = Hub.Giveaway.Pool.Reload(Hub.Config.Folder.GiveawayFolder);
         if (!pool)
             await ReplyAsync("Failed to reload from folder.").ConfigureAwait(false);
         else
-            await ReplyAsync($"Reloaded from Giveaway folder. Giveaway Pool count: {hub.Giveaway.Pool.Count}").ConfigureAwait(false);
+            await ReplyAsync($"Reloaded from Giveaway folder. Giveaway Pool count: {Hub.Giveaway.Pool.Count}").ConfigureAwait(false);
 
     }
 
@@ -101,7 +94,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     {
         T pk;
         content = ReusableActions.StripCodeBlock(content);
-        var pool = Info.Hub.Giveaway.Pool;
+        var pool = Hub.Giveaway.Pool;
         if (pool.Count == 0)
         {
             await ReplyAsync("Giveaway pool is empty.").ConfigureAwait(false);
@@ -112,13 +105,13 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             var randomIndex = new Random().Next(pool.Count); // generate a random number between 0 and the number of items in the pool
             pk = pool[randomIndex]; // select the item at the randomly generated index
         }
-        else if (Info.Hub.Giveaway.Giveaway.TryGetValue(content, out GiveawayRequest<T>? val) && val is not null)
+        else if (Hub.Giveaway.Giveaway.TryGetValue(content, out GiveawayRequest<T>? val) && val is not null)
         {
             pk = val.RequestInfo;
         }
         else
         {
-            await ReplyAsync($"Requested Pokémon not available, use \"{Info.Hub.Config.Discord.CommandPrefix}giveawaypool\" for a full list of available giveaways!").ConfigureAwait(false);
+            await ReplyAsync($"Requested Pokémon not available, use \"{Hub.Config.Discord.CommandPrefix}giveawaypool\" for a full list of available giveaways!").ConfigureAwait(false);
             return;
         }
 
@@ -133,7 +126,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     public async Task AddGiveawayAttachAsync()
     {
         await Context.Message.DeleteAsync(RequestOptions.Default).ConfigureAwait(false);
-        await UploadGiveawayPokemonFile(Info.Hub.Config.Folder.GiveawayFolder).ConfigureAwait(false);
+        await UploadGiveawayPokemonFile(Hub.Config.Folder.GiveawayFolder).ConfigureAwait(false);
     }
 
     [Command("AddGiveawayPokemon")]
@@ -199,7 +192,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
                 }
                 pk.ResetPartyStats();
                 await Context.Message.DeleteAsync().ConfigureAwait(false);
-                await UploadGiveawayPokemonSet(Info.Hub.Config.Folder.GiveawayFolder, filename, pk, out var msg).ConfigureAwait(false);
+                await UploadGiveawayPokemonSet(Hub.Config.Folder.GiveawayFolder, filename, pk, out var msg).ConfigureAwait(false);
                 await ReplyAsync(msg).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -227,7 +220,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     public Task UploadGiveawayPokemonSet(string folder, string fileName, T pk, out string msg)
     {
         if (string.IsNullOrEmpty(folder))
-            Info.Hub.Config.Folder.GiveawayFolder = folder = "giveaway";
+            Hub.Config.Folder.GiveawayFolder = folder = "giveaway";
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
         var fn = Path.Combine(folder, fileName + Path.GetExtension(pk.FileName));

@@ -7,46 +7,46 @@ namespace SysBot.Pokemon.Discord;
 [Summary("Distribution Pool Module")]
 public class PoolModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
+    private static PokeTradeHub<T> Hub => SysCord<T>.Runner.Hub;
+
     [Command("poolReload")]
     [Summary("Reloads the bot pool from the setting's folder.")]
     [RequireSudo]
     public async Task ReloadPoolAsync()
     {
-        var me = SysCord<T>.Runner;
-        var hub = me.Hub;
-
-        var pool = hub.Ledy.Pool.Reload(hub.Config.Folder.DistributeFolder);
+        var pool = Hub.Ledy.Pool.Reload(Hub.Config.Folder.DistributeFolder);
         if (!pool)
             await ReplyAsync("Failed to reload from folder.").ConfigureAwait(false);
         else
-            await ReplyAsync($"Reloaded from folder. Pool count: {hub.Ledy.Pool.Count}").ConfigureAwait(false);
+            await ReplyAsync($"Reloaded from folder. Pool count: {Hub.Ledy.Pool.Count}").ConfigureAwait(false);
     }
 
     [Command("pool")]
     [Summary("Displays the details of Pokémon files in the random pool.")]
     public async Task DisplayPoolCountAsync()
     {
-        var me = SysCord<T>.Runner;
-        var hub = me.Hub;
-        var pool = hub.Ledy.Pool;
-        var count = pool.Count;
-        if (count is > 0 and < 20)
+        var pool = Hub.Ledy.Pool;
+        if (pool.Count == 0)
         {
-            var lines = pool.Files.Select((z, i) => $"{i + 1:00}: {z.Key} = {(Species)z.Value.RequestInfo.Species}");
-            var msg = string.Join("\n", lines);
+            await ReplyAsync("Distribution pool is empty.").ConfigureAwait(false);
+        }
 
-            var embed = new EmbedBuilder();
-            embed.AddField(x =>
-            {
-                x.Name = $"Count: {count}";
-                x.Value = msg;
-                x.IsInline = false;
-            });
-            await ReplyAsync("Pool Details", embed: embed.Build()).ConfigureAwait(false);
-        }
-        else
+        var lines = pool.Files.Select((z, i) => $"{i + 1:00}: {z.Key} = {(Species)z.Value.RequestInfo.Species}");
+        var embeds = new List<Embed>();
+        var pages = lines.Chunk(20).ToList();
+
+        for (int i = 0; i < pages.Count; i++)
         {
-            await ReplyAsync($"Pool Count: {count}").ConfigureAwait(false);
+            var builder = new EmbedBuilder
+            {
+                Color = Color.Blue,
+                Title = $"Distribution Pool",
+                Description = string.Join("\n", pages[i])
+            };
+
+            embeds.Add(builder.Build());
         }
+
+        await PaginatedMessage.CreateAsync(Context, embeds).ConfigureAwait(false);
     }
 }

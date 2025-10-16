@@ -80,18 +80,22 @@ public class PaginatedMessage
         };
 
         var msg = await ctx.Channel.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);
-        foreach (var emote in Controls)
-            await msg.AddReactionAsync(emote).ConfigureAwait(false);
+        if (pages.Count > 1)
+        {
+            foreach (var emote in Controls)
+                await msg.AddReactionAsync(emote).ConfigureAwait(false);
 
-        var paginator = new PaginatedMessage(msg, pages, ctx.User.Id);
-        ReactionUtil.AddHandler(msg.Id, paginator.HandleReaction);
+            var paginator = new PaginatedMessage(msg, pages, ctx.User.Id);
+            ReactionUtil.AddHandler(msg.Id, paginator.HandleReaction);
 
-        _ = paginator.MonitorAsync(timeoutSeconds);
+            _ = paginator.MonitorAsync(timeoutSeconds);
+        }
     }
 
     private async Task HandleReaction(SocketReaction reaction)
     {
         if (reaction.UserId != UserId) return;
+        var oldPage = Page;
 
         switch (reaction.Emote.Name)
         {
@@ -99,15 +103,18 @@ public class PaginatedMessage
             case "➡️" when Page < Pages.Count - 1: Page++; break;
             case "⏪": Page = 0; break;
             case "⏩": Page = Pages.Count - 1; break;
-            default: return;
         }
 
-        var embed = Pages[Page].ToEmbedBuilder();
-        embed.WithFooter($"Page {Page + 1} of {Pages.Count}", "https://i.imgur.com/nXNBrlr.png");
-
-        await Message.ModifyAsync(m => m.Embed = embed.Build()).ConfigureAwait(false);
         await Message.RemoveReactionAsync(reaction.Emote, reaction.User.Value).ConfigureAwait(false);
-        LastActivity = DateTime.Now;
+
+        if (Page != oldPage)
+        {
+            var embed = Pages[Page].ToEmbedBuilder();
+            embed.WithFooter($"Page {Page + 1} of {Pages.Count}", "https://i.imgur.com/nXNBrlr.png");
+
+            await Message.ModifyAsync(m => m.Embed = embed.Build()).ConfigureAwait(false);
+            LastActivity = DateTime.Now;
+        }
     }
 
     private async Task MonitorAsync(int timeoutSeconds)
