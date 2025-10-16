@@ -36,6 +36,9 @@ public class TradeSettings : IBotStateSettings, ICountSettings
     [Category(Dumping), Description("Dump Trade: If enabled, Dumping routine will output legality check information to the user.")]
     public bool DumpTradeLegalityCheck { get; set; } = true;
 
+    [Category(TradeConfig), Description("Shiny odds for Mystery Trades. One in chosen odds. Default is Shiny Charm odds.")]
+    public int MysteryShinyOdds { get; set; } = 1365;
+
     [Category(TradeConfig), Description("When enabled, the screen will be turned off during normal bot loop operation to save power.")]
     public bool ScreenOff { get; set; }
 

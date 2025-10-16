@@ -211,6 +211,9 @@ public class TwitchBot<T> where T : PKM, new()
             case "t":
                 var _ = TwitchCommandsHelper<T>.AddToWaitingList(args, m.DisplayName, m.Username, ulong.Parse(m.UserId), subscriber(), out string msg);
                 return msg;
+            case "egg":
+                var __ = TwitchCommandsHelper<T>.AddToWaitingList(args, m.DisplayName, m.Username, ulong.Parse(m.UserId), subscriber(), out msg, true);
+                return msg;
             case "ts":
             case "queue":
             case "position":

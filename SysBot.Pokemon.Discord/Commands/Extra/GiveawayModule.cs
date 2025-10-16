@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using SysBot.Base;
 
 namespace SysBot.Pokemon.Discord;
@@ -180,12 +181,12 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
                 {
                     var reason = result switch
                     {
-                        "Timeout" => $"That {spec} set took too long to generate.",
-                        "VersionMismatch" => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
+                        LegalizationResult.Timeout => $"That {spec} set took too long to generate.",
+                        LegalizationResult.VersionMismatch => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
                         _ => $"I wasn't able to create a {spec} from that set.",
                     };
                     var imsg = $"Oops! {reason}";
-                    if (result == "Failed")
+                    if (result == LegalizationResult.Failed)
                         imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(template, sav, pkm)}";
                     await ReplyAsync(imsg).ConfigureAwait(false);
                     return;

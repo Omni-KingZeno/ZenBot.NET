@@ -3,6 +3,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using SysBot.Base;
 
 namespace SysBot.Pokemon.Discord;
@@ -158,12 +159,6 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task TradeAsyncShowdown(int code, string content, SocketUser user, bool eggTrade = false)
     {
-        if (eggTrade)
-        {
-            var lines = content.Split('\n').ToList();
-            lines.Insert(1, "Egg: Yes");
-            content = string.Join("\n", lines);
-        }
         content = ReusableActions.StripCodeBlock(content);
         var set = new ShowdownSet(content);
         var template = AutoLegalityWrapper.GetTemplate(set);
@@ -194,7 +189,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         try
         {
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var pkm = sav.GetLegal(template, out var result);
+            var pkm = eggTrade ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(set, out result);
             var la = new LegalityAnalysis(pkm);
             var spec = GameInfo.Strings.Species[template.Species];
             pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
@@ -202,12 +197,12 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             {
                 var reason = result switch
                 {
-                    "Timeout" => $"That {spec} set took too long to generate.",
-                    "VersionMismatch" => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
+                    LegalizationResult.Timeout => $"That {spec} set took too long to generate.",
+                    LegalizationResult.VersionMismatch => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
                     _ => $"I wasn't able to create a {spec} from that set.",
                 };
                 var imsg = $"Oops! {reason}";
-                if (result == "Failed")
+                if (result == LegalizationResult.Failed)
                     imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(template, sav, pkm)}";
                 await ReplyAsync(imsg).ConfigureAwait(false);
                 return;

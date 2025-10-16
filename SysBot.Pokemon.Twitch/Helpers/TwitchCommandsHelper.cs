@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using SysBot.Base;
 
 namespace SysBot.Pokemon.Twitch;
@@ -6,7 +7,7 @@ namespace SysBot.Pokemon.Twitch;
 public static class TwitchCommandsHelper<T> where T : PKM, new()
 {
     // Helper functions for commands
-    public static bool AddToWaitingList(string setstring, string display, string username, ulong mUserId, bool sub, out string msg)
+    public static bool AddToWaitingList(string setstring, string display, string username, ulong mUserId, bool sub, out string msg, bool eggTrade = false)
     {
         if (!TwitchBot<T>.Info.GetCanQueue())
         {
@@ -36,7 +37,7 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
         try
         {
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var pkm = sav.GetLegal(template, out var result);
+            var pkm = eggTrade ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(set, out result);
 
             var (canBeTraded, errorMessage) = pkm.CanBeTraded();
             if (!canBeTraded)
@@ -58,7 +59,7 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
                 }
             }
 
-            var reason = result == "Timeout" ? "Set took too long to generate." : "Unable to legalize the Pokémon.";
+            var reason = result == LegalizationResult.Timeout ? "Set took too long to generate." : "Unable to legalize the Pokémon.";
             msg = $"Skipping trade, @{username}: {reason}";
         }
         catch (Exception ex)

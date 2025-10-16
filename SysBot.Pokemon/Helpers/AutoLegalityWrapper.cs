@@ -177,17 +177,10 @@ public static class AutoLegalityWrapper
 
     public static ITrainerInfo GetTrainerInfo(byte gen) => TrainerSettings.GetSavedTrainerData(gen);
 
-    public static PKM GetLegal(this ITrainerInfo sav, IBattleTemplate set, out string res)
+    public static PKM GetLegal(this ITrainerInfo sav, IBattleTemplate set, out LegalizationResult res)
     {
         var result = sav.GetLegalFromSet(set);
-        res = result.Status switch
-        {
-            LegalizationResult.Regenerated     => "Regenerated",
-            LegalizationResult.Failed          => "Failed",
-            LegalizationResult.Timeout         => "Timeout",
-            LegalizationResult.VersionMismatch => "VersionMismatch",
-            _ => "",
-        };
+        res = result.Status;
         return result.Created;
     }
 

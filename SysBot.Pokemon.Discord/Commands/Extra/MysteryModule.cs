@@ -1,5 +1,6 @@
 using Discord.Commands;
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -13,7 +14,6 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
     [Summary("Makes the bot trade you an egg of a random Pokemon.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task MysteryEggTradeAsync()
-
     {
         var code = Info.GetRandomTradeCode();
         await MysteryEggTradeAsync(code).ConfigureAwait(false);
@@ -54,81 +54,70 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task MysteryMonTradeAsync([Summary("Trade Code")] int code)
     {
-        Random rndm = new();
+        var sig = Context.User.GetFavor();
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
         var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
         var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID).Where(i => sav.Personal.IsSpeciesInGame((ushort)i)).Select(i => (ushort)i).ToList();
-        var specIndex = rndm.Next(availSpec.Count);
-        ushort speciesId = availSpec[specIndex];
-        var content = GameInfo.GetStrings("en").specieslist[speciesId];
-        int randomNumber = rndm.Next(0, 1365);
-        var shiny = randomNumber == 0;
-        content += $"\n.IVs=$rand\n" +
-            $".Nature=$0,24\n{(shiny ? "Shiny: Yes\n" : "")}" +
-            $".Moves=$suggest\n" +
-            $".AbilityNumber=$0,2\n" +
-            $".TeraTypeOverride=$rand\n" +
-            $".Ball=$0,37\n" +
-            $".DynamaxLevel=$0,10\n" +
-            $".TrainerTID7=$0001,3559\n" +
-            $".TrainerSID7=$000001,993401\n" +
-            $".OriginalTrainerName=Surprise!\n" +
-            $".GV_ATK=$0,7\n" +
-            $".GV_DEF=$0,7\n" +
-            $".GV_HP=$0,7\n" +
-            $".GV_SPA=$0,7\n" +
-            $".GV_SPD=$0,7\n" +
-            $".GV_SPE=$0,7";
 
-        var set = new ShowdownSet(content);
-        var template = AutoLegalityWrapper.GetTemplate(set);
-        var pkm = sav.GetLegal(template, out _);
-        var la = new LegalityAnalysis(pkm);
-        if (pkm is not T pk || set.InvalidLines.Count != 0 || !la.Valid)
+        while (true)
         {
-            await ReplyAsync("Oops! I had an issue generating a Pokémon for you!").ConfigureAwait(false);
+            var species = availSpec[Util.Rand.Next(availSpec.Count)];
+            var shiny = Util.Rand.Next(0, Info.Hub.Config.Trade.MysteryShinyOdds) == 0;
+            var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
+            var pkm = (T)sav.GetLegal(template, out _);
+            pkm.OriginalTrainerTrash.Clear();
+            pkm.OriginalTrainerName = "Surprise!";
+            pkm.SetSuggestedMoves();
+            pkm.SetNature((Nature)Util.Rand.Next(0, 24));
+            pkm.SetRandomIVs();
+            pkm.SetAbility(Util.Rand.Next(0, 2));
+            pkm.Ball = (byte)Util.Rand.Next(1, 26);
+
+            if (pkm is IDynamaxLevel d)
+                d.DynamaxLevel = (byte)Util.Rand.Next(0, 10);
+
+            if (pkm is ITeraType t)
+                t.TeraTypeOverride = (MoveType)Util.Rand.Next(0, TeraTypeUtil.MaxType + 1);
+
+            if (shiny)
+                pkm.SetShiny();
+
+            var la = new LegalityAnalysis(pkm);
+            if (!la.Valid)
+                continue;
+
+            pkm = (T)(EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm);
+            pkm.ResetPartyStats();
+            
+            await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
+
             return;
-        }
-        pk.ResetPartyStats();
-        var sig = Context.User.GetFavor();
-        await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pk, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
+        }        
     }
 
     private static T MysteryEgg(out T pkm)
     {
-        Random rndm = new();
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
         var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
+        var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID)
+                .Where(i => sav.Personal.IsSpeciesInGame((ushort)i) && Breeding.CanHatchAsEgg((ushort)i))
+                .Select(i => (ushort)i)
+                .ToList();
 
         while (true)
         {
-            bool foundValidSpecies = false;
-            Species randomSpecies = Species.None;
+            var species = availSpec[Util.Rand.Next(availSpec.Count)];
+            var shiny = Util.Rand.Next(0, Info.Hub.Config.Trade.MysteryShinyOdds) == 0;
+            var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
+            pkm = (T)sav.GenerateEgg(template, out _);
+            pkm.SetSuggestedMoves();
+            pkm.SetNature((Nature)Util.Rand.Next(0, 25));
+            pkm.SetAbility(Util.Rand.Next(0, 2));
+            pkm.SetRandomIVs();
+            pkm.Ball = (byte)Util.Rand.Next(0, 26);
 
-            while (!foundValidSpecies)
-            {
-                var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID)
-                    .Where(i => sav.Personal.IsSpeciesInGame((ushort)i))
-                    .Select(i => (ushort)i)
-                    .ToList();
-
-                ushort speciesId = availSpec[rndm.Next(availSpec.Count)];
-
-                if (Breeding.CanHatchAsEgg(speciesId))
-                {
-                    randomSpecies = (Species)speciesId;
-                    foundValidSpecies = true;
-                }
-            }
-
-            int randomNumber = rndm.Next(0, 1365);
-            var shiny = randomNumber == 0;
-
-            var content = randomSpecies + $"\nEgg: Yes\n.Nature=$0,24\n{(shiny ? "Shiny: Yes\n" : "")}" +
-                          ".Moves=$suggest\n" +
-                          ".AbilityNumber=$0,2";
-            var set = new ShowdownSet(content);
-            pkm = (T)sav.GetLegal(set, out _);
+            if (shiny)
+                pkm.SetShiny();
 
             var la = new LegalityAnalysis(pkm);
             if (!la.Valid)
