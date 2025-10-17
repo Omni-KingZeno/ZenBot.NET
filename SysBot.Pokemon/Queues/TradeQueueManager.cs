@@ -45,10 +45,16 @@ public class TradeQueueManager<T> where T : PKM, new()
         if (!cfg.DistributeWhileIdle && !force)
             return false;
 
-        if (Hub.Ledy.Pool.Count == 0)
+        if (Hub.Ledy.Pool.Count == 0 && !cfg.DistributeMysteryEggs)
             return false;
 
-        var random = Hub.Ledy.Pool.GetRandomPoke();
+        T random;
+        bool distributeEggs = cfg.DistributeMysteryEggs && TradeExtensions<T>.HasEggs(Hub.Config.Mode);      
+        if (distributeEggs)
+            TradeExtensions<T>.GenerateMysteryEgg(Hub.Config.Trade.MysteryShinyOdds, out random);
+        else
+            random = Hub.Ledy.Pool.GetRandomPoke();
+
         var code = cfg.RandomCode ? Hub.Config.Trade.GetRandomTradeCode() : cfg.TradeCode;
         var code7b = cfg.RandomCode ? PictoCodesExtensions.GetPictoCodesFromLinkCode(code) : [cfg.LGPETradeCode.Picto1, cfg.LGPETradeCode.Picto2, cfg.LGPETradeCode.Picto3];
         var trainer = new PokeTradeTrainerInfo("Random Distribution");

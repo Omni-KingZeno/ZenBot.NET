@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using SysBot.Base;
 
 namespace SysBot.Pokemon;
@@ -199,4 +200,81 @@ public class TradeExtensions<T> where T : PKM, new()
         baseLink[8] = pkm.IsShiny ? "r.png" : "n.png";
         return egg ? mysteryEgg ? mysteryEggURL : eggURL : string.Join("_", baseLink);
     }
+
+    public static T GenerateMysteryMon(int odds, out T pkm)
+    {
+        var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
+        var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
+        var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID).Where(i => sav.Personal.IsSpeciesInGame((ushort)i)).Select(i => (ushort)i).ToList();
+
+        while (true)
+        {
+            var species = availSpec[Util.Rand.Next(availSpec.Count)];
+            var shiny = Util.Rand.Next(0, odds) == 0;
+            var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
+            pkm = (T)sav.GetLegal(template, out _);
+            pkm.OriginalTrainerTrash.Clear();
+            pkm.OriginalTrainerName = "Surprise!";
+            pkm.SetSuggestedMoves();
+            pkm.SetNature((Nature)Util.Rand.Next(0, 24));
+            pkm.SetRandomIVs();
+            pkm.SetAbility(Util.Rand.Next(0, 2));
+            pkm.Ball = (byte)Util.Rand.Next(1, 26);
+
+            if (pkm is IDynamaxLevel d)
+                d.DynamaxLevel = (byte)Util.Rand.Next(0, 10);
+
+            if (pkm is ITeraType t)
+                t.TeraTypeOverride = (MoveType)Util.Rand.Next(0, TeraTypeUtil.MaxType + 1);
+
+            if (shiny)
+                pkm.SetShiny();
+
+            var la = new LegalityAnalysis(pkm);
+            if (!la.Valid)
+                continue;
+
+            pkm = (T)(EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm);
+            pkm.ResetPartyStats();
+
+            return pkm;
+        }
+    }
+
+    public static T GenerateMysteryEgg(int odds, out T pkm)
+    {
+        var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
+        var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
+        var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID)
+                .Where(i => sav.Personal.IsSpeciesInGame((ushort)i) && Breeding.CanHatchAsEgg((ushort)i))
+                .Select(i => (ushort)i)
+                .ToList();
+
+        while (true)
+        {
+            var species = availSpec[Util.Rand.Next(availSpec.Count)];
+            var shiny = Util.Rand.Next(0, odds) == 0;
+            var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
+            pkm = (T)sav.GenerateEgg(template, out _);
+            pkm.SetSuggestedMoves();
+            pkm.SetNature((Nature)Util.Rand.Next(0, 25));
+            pkm.SetAbility(Util.Rand.Next(0, 2));
+            pkm.SetRandomIVs();
+            pkm.Ball = (byte)Util.Rand.Next(0, 26);
+
+            if (shiny)
+                pkm.SetShiny();
+
+            var la = new LegalityAnalysis(pkm);
+            if (!la.Valid)
+                continue;
+
+            pkm = (T)(EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm);
+            pkm.ResetPartyStats();
+
+            return pkm;
+        }
+    }
+
+    public static bool HasEggs(ProgramMode mode) => mode is not ProgramMode.LGPE or ProgramMode.LA;
 }
