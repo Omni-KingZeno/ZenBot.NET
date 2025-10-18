@@ -25,10 +25,12 @@ Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github
 * PermissionsModule for checking that all whitelisted channels have the correct permissions required for the bot to function correctly
 * GiveawayModule based on [Koi's](https://github.com/Koi-3088) [ForkBot.NET](https://github.com/Koi-3088/ForkBot.NET)
 * RoleModule for handling adding/removing of trade roles in settings
+* Distribute Mystery Eggs in place of Distribution folder pk file with the `DistributeMysteryEggs` toggle
+* View a paginated list of available wondercards for the current game and trade Mystery Gift Pokémon generated from them using the MysteryGiftModule
 
 Please refer to the [Wiki](https://github.com/Omni-KingZeno/ZenBot.NET/wiki) for detailed configurations and troubleshooting guides.
 
-Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with code, updates, and ongoing support.
+Special thanks to [notzyro](https://github.com/zyro670), [santacrab2](https://github.com/santacrab2/), and [9Bitdo](https://github.com/9bitdo/) for their help with the original code, updates, and ongoing support.
 
 ## SysBot.Base:
 - Base logic library to be built upon in game-specific projects.
