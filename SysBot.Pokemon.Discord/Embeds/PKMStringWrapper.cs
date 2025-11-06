@@ -88,4 +88,20 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         "https://raw.githubusercontent.com/BakaKaito/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
     internal string GetMarkImageURL() =>
        $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png";
+
+    internal string GetItemImgURL(string item, bool smallsize)
+    {
+        item = item.Replace(" ", "").ToLower();
+
+        string? baseLink;
+        if (smallsize)
+        {
+            baseLink = $"https://www.serebii.net/itemdex/sprites/{item}.png";
+        }
+        else
+        {
+            baseLink = $"https://www.serebii.net/itemdex/sprites/sv/{item}.png";
+        }
+        return baseLink;
+    }
 }

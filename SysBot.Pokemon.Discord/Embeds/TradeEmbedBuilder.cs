@@ -26,7 +26,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         Builder.Color = InitializeColor();
         Builder.Author = InitializeAuthor();
         Builder.Footer = InitializeFooter();
-        Builder.ThumbnailUrl = altStyle ? "" : Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg);
+        Builder.ThumbnailUrl = altStyle ? Strings.HasItem ? Strings.GetItemImgURL(Strings.HeldItem, false) : "" : Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg);
         Builder.ImageUrl = altStyle ? Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg) : "";
 
         // Set the Pokémon Species as Embed Title
@@ -37,8 +37,14 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
             _ => $"{Strings.Shiny}{Strings.Species}{Strings.Gender}",
         };
 
+        if (Strings.HasItem && !altStyle)
+        {
+            fieldName += $" ➜ {Strings.HeldItem}";
+        }
+
         // Add general Pokémon informations
-        var fieldValue = $"**Ability:** {Strings.Ability}{Environment.NewLine}" +
+        var fieldValue = $"{(altStyle ? Strings.HasItem ? $"**Held Item:** {Strings.HeldItem}{Environment.NewLine}" : "" : "")}" +
+                         $"**Ability:** {Strings.Ability}{Environment.NewLine}" +
                          (mark.HasMark ? $"**Mark:** {mark.Name}{Environment.NewLine}" : "") +
                          $"**Level:** {PKM.CurrentLevel}{Environment.NewLine}" +
                          (Strings.HasTeraType ? $"**Tera Type:** {Strings.TeraType}{Environment.NewLine}" : "") +
