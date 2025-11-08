@@ -9,4 +9,5 @@ public enum PokeTradeType
     Dump,
     MysteryEgg,
     Giveaway,
+    ItemTrade
 }

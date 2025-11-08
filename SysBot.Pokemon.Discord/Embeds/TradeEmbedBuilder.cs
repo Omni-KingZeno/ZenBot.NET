@@ -4,11 +4,13 @@ using SysBot.Pokemon.Discord.Helpers;
 
 namespace SysBot.Pokemon.Discord;
 
-public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, bool mysteryEgg) where T : PKM, new()
+public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, PokeTradeType type) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
+    private bool MysteryEgg => type == PokeTradeType.MysteryEgg;
+    private bool ItemTrade => type == PokeTradeType.ItemTrade;
     public EmbedBuilder Builder { get; init; } = new();
-    private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, mysteryEgg);
+    private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, type == PokeTradeType.MysteryEgg);
 
     public Embed Build()
     {
@@ -26,8 +28,8 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         Builder.Color = InitializeColor();
         Builder.Author = InitializeAuthor();
         Builder.Footer = InitializeFooter();
-        Builder.ThumbnailUrl = altStyle ? Strings.HasItem ? Strings.GetItemImgURL(Strings.HeldItem, false) : "" : Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg);
-        Builder.ImageUrl = altStyle ? Strings.GetPokemonImageURL(PKM.IsEgg, mysteryEgg) : "";
+        Builder.ThumbnailUrl = altStyle ? ItemTrade ? Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg) : Strings.HasItem ? Strings.GetItemImgURL(Strings.HeldItem, false) : "" : Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg);
+        Builder.ImageUrl = altStyle ? ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg) : ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : "";
 
         // Set the Pokémon Species as Embed Title
         var mark = Strings.Mark;
@@ -88,14 +90,17 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         }
 
         var moves = string.Join(Environment.NewLine, Strings.Moves);
-        Builder.AddField(x =>
+        if (!ItemTrade)
         {
-            x.Name = fieldName;
-            x.Value = fieldValue + (altStyle ? "" : moves);
-            x.IsInline = true;
-        });
+            Builder.AddField(x =>
+            {
+                x.Name = fieldName;
+                x.Value = fieldValue + (altStyle ? "" : moves);
+                x.IsInline = true;
+            });
+        }
 
-        if (altStyle)
+        if (altStyle && !ItemTrade)
         {
             Builder.AddField(x =>
             {
@@ -113,7 +118,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
-        Name = $"{trader.Username}'s {(mysteryEgg ? "Mystery Egg" : PKM.IsShiny ? "Shiny " : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+        Name = $"{trader.Username}'s {(MysteryEgg ? "Mystery Egg" : PKM.IsShiny ? "Shiny " : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
         IconUrl = Strings.GetBallImageURL(),
     };
 
@@ -123,13 +128,25 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         string footerText = string.Empty;
 
         // Assume OT and TID can change during the trade process, only show them if the trade has been completed.
-        if (type is TradeEmbedDisplay.TradeComplete)
+        if (type is TradeEmbedDisplay.TradeInitialize)
+        {
+            var position = Hub.Queues.Info.CheckPosition(trader.UID, PokeRoutineType.LinkTrade);
+            var botCount = Hub.Queues.Info.Hub.Bots.Count;
+            footerText += $"Current Position: {position.Position}";
+
+            if (position.Position > botCount)
+            {
+                var eta = Hub.Config.Queues.EstimateDelay(position.Position, botCount);
+                footerText += $"{Environment.NewLine}Estimated wait time: {eta:F1} minutes.";
+            }
+        }
+        else if (type is TradeEmbedDisplay.TradeComplete)
         {
             footerText += $"OT: {PKM.OriginalTrainerName} | TID: {PKM.DisplayTID}" +
                           $"{Environment.NewLine}Trade finished. Enjoy your Pokémon!";
         }
-
-        return new EmbedFooterBuilder { Text = footerText, IconUrl = Strings.Mark.HasMark ? Strings.GetMarkImageURL() : string.Empty };
+        var imgURL = Strings.GetMarkImageURL();
+        return new EmbedFooterBuilder { Text = footerText, IconUrl = imgURL };
     }
 }
 

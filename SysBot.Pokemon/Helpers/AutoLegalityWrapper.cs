@@ -134,10 +134,14 @@ public static class AutoLegalityWrapper
             if (StringsUtil.IsSpammyString(ot) && !IsFixedOT(new LegalityAnalysis(pk).EncounterOriginal, pk))
                 return (false, "OT contains illegal characters");
         }
-        if (FormInfo.IsFusedForm(pk.Species, pk.Form, pk.Format))
-            return (false, "Fusions can't be traded!");
 
-        return (true, "");
+        if (TradeRestrictions.IsUntradableHeld(pk.Context, pk.HeldItem))
+            return (false, "That held item cannot be traded!");
+
+        if (TradeRestrictions.IsUntradable(pk.Species, pk.Form, pk is IFormArgument f ? f.FormArgument : 0, pk.Format))
+            return (false, "That form cannot be traded!");
+
+        return (true, string.Empty);
     }
 
     public static bool IsFixedOT(IEncounterTemplate t, PKM pkm) => t switch

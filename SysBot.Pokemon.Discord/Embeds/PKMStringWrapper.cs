@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic;
 using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
@@ -24,7 +25,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
 
     private string GetSpeciesString()
     {
-        var species = $"{SpeciesName.GetSpeciesNameGeneration(PKM.Species, PKM.Language, PKM.Generation)}";
+        var species = $"{SpeciesName.GetSpeciesName(PKM.Species, PKM.Language)}";
         var forms = FormConverter.GetFormList(PKM.Species, GameStrings.types, GameStrings.forms, GameInfo.GenderSymbolASCII, PKM.Context);
         return mysteryEgg ? "Unknown" : $"{species}{(forms.Length > 1 && PKM.Form > 0 ? $"-{$"{forms[PKM.Form]}"}" : "")}";
     }
@@ -87,7 +88,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     internal string GetBallImageURL() =>
         "https://raw.githubusercontent.com/BakaKaito/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
     internal string GetMarkImageURL() =>
-       $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png";
+       PKM is PA9 { IsAlpha: true } or PA8 { IsAlpha: true } ? "https://www.serebii.net/pokearth/hisui/icons/alphaza.png" : Mark.HasMark ? $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png" : string.Empty;
 
     internal string GetItemImgURL(string item, bool smallsize)
     {

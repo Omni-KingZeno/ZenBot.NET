@@ -32,11 +32,6 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
     /// </summary>
     public int FailedBarrier { get; private set; }
 
-    /// <summary>
-    /// Species that evolve upon trading. Cancel trades when they are offered.
-    /// </summary>
-    private readonly HashSet<int> TradeEvolutionSpecies = [64, 67, 78, 93];
-
     public override async Task MainLoop(CancellationToken token)
     {
         try
@@ -402,12 +397,11 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
     private async Task<PokeTradeResult> ConfirmAndStartTrading(PokeTradeDetail<PB7> detail, int slot, CancellationToken token)
     {
         var offeredData = await SwitchConnection.ReadBytesAsync(TradePartnerPokemonOffset, 0x104, token);
-        var offeredPoke = new PB7(offeredData);
-        if (TradeEvolutionSpecies.Contains(offeredPoke.Species))
+        var offered = new PB7(offeredData);
+        if (hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, detail.TradeData.Species))
         {
-            detail.SendNotification(this, "Trade evolution was offered, canceling the trade.");
-            Log("Trade evolution detected, canceling trade.");
-            return PokeTradeResult.TradeEvolutionDetected;
+            Log("Trade cancelled because trainer offered a Pokémon that would evolve upon trade.");
+            return PokeTradeResult.TradeEvolveNotAllowed;
         }
         // We'll keep watching B1S1 for a change to indicate a trade started -> should try quitting at that point.
         var oldEC = await Connection.ReadBytesAsync(GetSlotOffset(0, slot), 8, token).ConfigureAwait(false);

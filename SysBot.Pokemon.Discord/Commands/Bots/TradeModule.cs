@@ -189,7 +189,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         try
         {
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var pkm = eggTrade ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(set, out result);
+            var pkm = eggTrade ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(template, out result);
             var la = new LegalityAnalysis(pkm);
             var spec = GameInfo.Strings.Species[template.Species];
             pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;

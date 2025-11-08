@@ -46,8 +46,11 @@ public static class QueueHelper<T> where T : PKM, new()
                 await context.Channel.SendMessageAsync(msg).ConfigureAwait(false);
             }
 
-            // Notify in PM to mirror what is said in the channel.
-            if (typeof(T) == typeof(PB7))
+            // Notify in PM to mirror what was said in the channel.
+            if (result)
+                msg += $"\nYour trade code will be {(typeof(T) == typeof(PB7) ? "" : $"**{code:0000 0000}**.")}";
+
+                if (typeof(T) == typeof(PB7))
             {
                 var codes = PictoCodesExtensions.GetPictoCodesFromLinkCode(code);
                 var (attachment, embedPicto) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);
@@ -55,7 +58,7 @@ public static class QueueHelper<T> where T : PKM, new()
             }
             else
             {
-                await trader.SendMessageAsync($"{msg}\nYour trade code will be **{code:0000 0000}**.").ConfigureAwait(false);
+                await trader.SendMessageAsync($"{msg}").ConfigureAwait(false);
             }
 
             // Clean Up
@@ -123,9 +126,9 @@ public static class QueueHelper<T> where T : PKM, new()
             pokeName = $" Receiving: {GameInfo.GetStrings("en").Species[pk.Species]}.";
         msg = $"{user.Mention} - Added to the {type} queue{ticketID}. {pokeName} ";
 
-        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), t == PokeTradeType.MysteryEgg);
+        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), t);
 
-        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is PokeTradeType.Specific or PokeTradeType.MysteryEgg))
+        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is PokeTradeType.Specific or PokeTradeType.MysteryEgg or PokeTradeType.ItemTrade))
         {
             msg += $"Current Position: {position.Position}.";
             var botct = Info.Hub.Bots.Count;

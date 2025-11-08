@@ -39,6 +39,9 @@ public class TradeSettings : IBotStateSettings, ICountSettings
     [Category(TradeConfig), Description("Shiny odds for Mystery Trades. One in chosen odds. Default is Shiny Charm odds.")]
     public int MysteryShinyOdds { get; set; } = 1365;
 
+    [Category(TradeConfig), Description("Select default species for \"ItemTrade\", if configured.")]
+    public Species ItemTradeSpecies { get; set; } = Species.None;
+
     [Category(TradeConfig), Description("When enabled, the screen will be turned off during normal bot loop operation to save power.")]
     public bool ScreenOff { get; set; }
 
@@ -144,6 +147,6 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         if (CompletedSurprise != 0)
             yield return $"Surprise Trades: {CompletedSurprise}";
         if (CompletedGiveawayTrades != 0)
-            yield return $"-# **Support Trades:** {CompletedGiveawayTrades}";
-    }
+            yield return $"-# **Giveaway Trades:** {CompletedGiveawayTrades}";
+    }  
 }

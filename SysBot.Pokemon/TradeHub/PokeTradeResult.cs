@@ -12,7 +12,7 @@ public enum PokeTradeResult
     TrainerRequestBad,
     IllegalTrade,
     SuspiciousActivity,
-    TradeEvolutionDetected,
+    TradeEvolveNotAllowed,
 
     // Recovery -- General Bot Failures
     // Anything below here should be retried once if possible.
