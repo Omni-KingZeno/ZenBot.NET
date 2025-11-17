@@ -4,7 +4,7 @@
 Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github.com/Manu098vm/ManuBot.NET) fork of [kwsch](https://github.com/kwsch)'s [SysBot.NET](https://github.com/kwsch/SysBot.NET). 
 
 **For a list of this fork’s features:**
-* Game Mode selector (LGPE / SwSh / BDSP / PLA / SV) available in Hub settings
+* Game Mode selector (LGPE / SwSh / BDSP / PLA / SV / LZA) available in Hub settings
 * WinForm executable compatible with Dark Mode (choose between Light, Dark, or System)
 * Egg text requests via the `Egg: Yes` parameter
 * Handle Wondercards as Discord attachments with the `trade` command

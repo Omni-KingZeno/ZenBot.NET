@@ -276,5 +276,5 @@ public class TradeExtensions<T> where T : PKM, new()
         }
     }
 
-    public static bool HasEggs(ProgramMode mode) => mode is not ProgramMode.LGPE or ProgramMode.LA;
+    public static bool HasEggs(ProgramMode mode) => mode is not (ProgramMode.LGPE or ProgramMode.LA or ProgramMode.LZA);
 }

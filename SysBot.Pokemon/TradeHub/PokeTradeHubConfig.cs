@@ -12,7 +12,7 @@ public sealed class PokeTradeHubConfig : BaseConfig
     private const string Integration = nameof(Integration);
 
     [Category(BotConfig), Description("Program mode. Select which games the bot should run. Restart to apply changes.")]
-    public ProgramMode Mode { get; set; } = ProgramMode.SV;
+    public ProgramMode Mode { get; set; } = ProgramMode.LZA;
 
     [Category(BotConfig), Description("Program theme. 'Light' uses the white theme, 'System' follows your Windows default theme, and 'Dark' enables a dark theme. Restart to apply changes.")]
     public SystemColorTheme ColorTheme { get; set; } = SystemColorTheme.System;

@@ -32,7 +32,8 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
         }
         else
         {
-            await ReplyAsync($"{(typeof(T) == typeof(PA8) ? "PLA" : "LGPE")} does not have eggs!").ConfigureAwait(false);
+            var mode = Info.Hub.Config.Mode;
+            await ReplyAsync($"{mode} does not have eggs!").ConfigureAwait(false);
         }
     }
 
