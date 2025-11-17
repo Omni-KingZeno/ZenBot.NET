@@ -109,6 +109,9 @@ public class DiscordSettings
 
     [Category(Embeds), Description("Settings for Discord embeds used in trade requests.")]
     public TradeEmbedSettings TradeEmbedSettings { get; set; } = new();
+
+    [Category(Embeds), Description("Settings for Discord embeds used with the Announcement command.")]
+    public AnnouncementEmbedSettings AnnouncementEmbedSettings { get; set; } = new();
 }
 
 public enum TradeEmbedDisplay

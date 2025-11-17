@@ -21,6 +21,7 @@ Fork of [Manu098vm](https://github.com/Manu098vm)'s [ManuBot.NET](https://github
 * Support for Discord App Teams
 * Reworked Embed layout with Alternate layout toggle
 * Reinitialize legality settings without restarting the program using a command.
+* AnnouncementModule for broadcasting bot announcements to all whitelisted channels. Supports including image attachments with the commands
 * MysteryModule for Random Pokemon and Egg trades
 * PermissionsModule for checking that all whitelisted channels have the correct permissions required for the bot to function correctly
 * GiveawayModule based on [Koi's](https://github.com/Koi-3088) [ForkBot.NET](https://github.com/Koi-3088/ForkBot.NET)
