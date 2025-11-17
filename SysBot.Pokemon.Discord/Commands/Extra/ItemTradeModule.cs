@@ -69,6 +69,12 @@ public class ItemTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM
             return;
         }
 
+        if (TradeRestrictions.IsUntradableHeld(pk.Context, pk.HeldItem))
+        {
+            await ReplyAsync("The requested Item cannot be traded.").ConfigureAwait(false);
+            return;
+        }    
+
         pk.ResetPartyStats();
 
         var sig = Context.User.GetFavor();
