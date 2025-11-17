@@ -9,6 +9,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         GameInfo.GetStrings(Language.GetLanguageCode(Config.ForceEmbedLanguage is LanguageID.None ? (LanguageID)PKM.Language : Config.ForceEmbedLanguage));
 
     internal string Species => GetSpeciesString();
+    internal string Form => GetFormString();
     internal string Shiny => GetShinyString();
     internal string Gender => GetGenderString();
     internal string Scale => GetScaleString();
@@ -18,6 +19,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     internal string Nature => GameStrings.Natures[(byte)PKM.StatNature];
     internal string HeldItem => GameStrings.Item[PKM.HeldItem];
 
+    internal bool HasForm = PKM.Form > 0;
     internal bool HasTeraType => PKM is ITeraType { TeraType: > MoveType.Any };
     internal bool HasItem => PKM.HeldItem > 0;
     internal PokemonMark Mark => new(PKM);
@@ -26,8 +28,14 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     private string GetSpeciesString()
     {
         var species = $"{SpeciesName.GetSpeciesName(PKM.Species, PKM.Language)}";
+        return mysteryEgg ? "Unknown" : $"{species}";
+    }
+
+    private string GetFormString()
+    {
         var forms = FormConverter.GetFormList(PKM.Species, GameStrings.types, GameStrings.forms, GameInfo.GenderSymbolASCII, PKM.Context);
-        return mysteryEgg ? "Unknown" : $"{species}{(forms.Length > 1 && PKM.Form > 0 ? $"-{$"{forms[PKM.Form]}"}" : "")}";
+        var form = forms[PKM.Form];
+        return form;
     }
 
     private string GetShinyString() =>
@@ -47,7 +55,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             if (PKM.Moves[i] is { } move && move is not (ushort)Move.None)
             {
                 var type = (MoveType)MoveInfo.GetType(move, PKM.Context);
-                var emoji = $"{(Config.UseMoveEmoji ? $"<:TypeEmoji:{Config.TypesEmojiCodes.GetEmojiCode(type)}> " : "")}";
+                var emoji = $"{(Config.UseMoveEmoji ? $"<:TypeEmoji:{Config.MoveTypesEmojiCodes.GetEmojiCode(type)}> " : "")}";
                 var name = GameStrings.movelist[move];
                 var pp = Config.ShowMovePP ? i switch
                 {
@@ -76,7 +84,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         {
             var type = (GemType)(tera.TeraType + 2);
             if (Config.UseTeraEmoji)
-                return $"<:TypeEmoji:{Config.TypesEmojiCodes.GetEmojiCode(type)}>";
+                return $"<:TypeEmoji:{Config.TeraTypesEmojiCodes.GetEmojiCode(type)}>";
             return $"{GameStrings.types[type is GemType.Stellar ? 18 : (int)(type - 2)]}";
         }
         return "";

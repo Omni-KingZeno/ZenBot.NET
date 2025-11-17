@@ -1,6 +1,7 @@
 using Discord;
 using PKHeX.Core;
 using SysBot.Pokemon.Discord.Helpers;
+using static SysBot.Pokemon.TradeEmbedSettings;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -22,95 +23,216 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     public void InitializeEmbed()
     {
-        //Embed layout Style
+        // Embed layout Style
         var altStyle = Hub.Config.Discord.TradeEmbedSettings.UseAlternateLayout;
-
         Builder.Color = InitializeColor();
         Builder.Author = InitializeAuthor();
         Builder.Footer = InitializeFooter();
         Builder.ThumbnailUrl = altStyle ? ItemTrade ? Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg) : Strings.HasItem ? Strings.GetItemImgURL(Strings.HeldItem, false) : "" : Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg);
         Builder.ImageUrl = altStyle ? ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg) : ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : "";
 
-        // Set the Pokémon Species as Embed Title
-        var mark = Strings.Mark;
-        var fieldName = mark.HasMark switch
+        // Build field value based on EmbedDisplayedInfo setting
+        var fieldValue = "";
+        var moves = "";
+        var displayedInfo = Hub.Config.Discord.TradeEmbedSettings.EmbedDisplayedInfo;
+
+        foreach (var info in displayedInfo)
         {
-            true => $"{Strings.Shiny}{Strings.Species}{mark.Title}{Strings.Gender}",
-            _ => $"{Strings.Shiny}{Strings.Species}{Strings.Gender}",
-        };
-
-        if (Strings.HasItem && !altStyle)
-        {
-            fieldName += $" ➜ {Strings.HeldItem}";
-        }
-
-        // Add general Pokémon informations
-        var fieldValue = $"{(altStyle ? Strings.HasItem ? $"**Held Item:** {Strings.HeldItem}{Environment.NewLine}" : "" : "")}" +
-                         $"**Ability:** {Strings.Ability}{Environment.NewLine}" +
-                         (mark.HasMark ? $"**Mark:** {mark.Name}{Environment.NewLine}" : "") +
-                         $"**Level:** {PKM.CurrentLevel}{Environment.NewLine}" +
-                         (Strings.HasTeraType ? $"**Tera Type:** {Strings.TeraType}{Environment.NewLine}" : "") +
-                         $"**Nature:** {Strings.Nature}{Environment.NewLine}" +
-                         $"**Scale:** {Strings.Scale}{Environment.NewLine}";
-
-        //Add Pokémon IVs, if enabled
-        if (Hub.Config.Discord.TradeEmbedSettings.ShowIVs)
-        {
-            List<string> ivList =
-                [
-                    PKM.IV_HP  < 31 ? $"{PKM.IV_HP} HP" : "",
-                    PKM.IV_ATK < 31 ? $"{PKM.IV_ATK} Atk" : "",
-                    PKM.IV_DEF < 31 ? $"{PKM.IV_DEF} Def" : "",
-                    PKM.IV_SPA < 31 ? $"{PKM.IV_SPA} SpA" : "",
-                    PKM.IV_SPD < 31 ? $"{PKM.IV_SPD} SpD" : "",
-                    PKM.IV_SPE < 31 ? $"{PKM.IV_SPE} Spe" : "",
-                ];
-            ivList = [.. ivList.Where(s => !string.IsNullOrEmpty(s))];
-            var ivs = "**IVs: **" + (PKM.IVTotal == 186 ? "6IV" : string.Join(" / ", ivList));
-
-            fieldValue += ivs + Environment.NewLine;
-        }
-
-        //Add Pokémon EVs, if enabled
-        if (Hub.Config.Discord.TradeEmbedSettings.ShowIVs)
-        {
-            List<string> evList =
-                [
-                    PKM.EV_HP  > 0 ? $"{PKM.EV_HP} HP" : "",
-                    PKM.EV_ATK > 0 ? $"{PKM.EV_ATK} Atk" : "",
-                    PKM.EV_DEF > 0 ? $"{PKM.EV_DEF} Def" : "",
-                    PKM.EV_SPA > 0 ? $"{PKM.EV_SPA} SpA" : "",
-                    PKM.EV_SPD > 0 ? $"{PKM.EV_SPD} SpD" : "",
-                    PKM.EV_SPE > 0 ? $"{PKM.EV_SPE} Spe" : "",
-                ];
-            evList = [.. evList.Where(s => !string.IsNullOrEmpty(s))];
-            var evs = evList.Count == 0 ? "" : "**EVs: **" + string.Join(" / ", evList) + Environment.NewLine;
-
-            fieldValue += evs;
-        }
-
-        var moves = string.Join(Environment.NewLine, Strings.Moves);
-        if (!ItemTrade)
-        {
-            Builder.AddField(x =>
+            var line = GetDisplayInfoLine(info);
+            if (!string.IsNullOrEmpty(line))
             {
-                x.Name = fieldName;
-                x.Value = fieldValue + (altStyle ? "" : moves);
-                x.IsInline = true;
-            });
+                if (info == DisplayedInfo.Moves)
+                {
+                    moves = line; // Store moves separately for alternate layout
+                }
+                else
+                {
+                    fieldValue += line + Environment.NewLine;
+                }
+            }
         }
 
-        if (altStyle && !ItemTrade)
+        if (altStyle)
         {
-            Builder.AddField(x =>
+            if (!ItemTrade)
             {
-                x.Name = "Moves:";
-                x.Value = moves;
-                x.IsInline = true;
-            });
+                Builder.AddField(x =>
+                {
+                    x.Name = "__Details:__";
+                    x.Value = fieldValue;
+                    x.IsInline = true;
+                });
+
+                if (!string.IsNullOrEmpty(moves))
+                {
+                    Builder.AddField(x =>
+                    {
+                        x.Name = "__Moves:__";
+                        x.Value = moves;
+                        x.IsInline = true;
+                    });
+                }
+            }
+        }
+        else
+        {
+            if (!ItemTrade)
+            {
+                Builder.Description = fieldValue += moves;
+            }
         }
 
         Initialized = true;
+    }
+
+    private string GetDisplayInfoLine(DisplayedInfo info)
+    {
+        return info switch
+        {
+            DisplayedInfo.Ability => $"**Ability:** {Strings.Ability}",
+
+            DisplayedInfo.Alpha when PKM is IAlpha alpha && alpha.IsAlpha => "**Alpha:** Yes",
+
+            DisplayedInfo.AVs when PKM is IAwakened awakened => GetAwakenedValuesString(awakened),
+
+            DisplayedInfo.Ball => $"**Ball:** {GameInfo.Strings.balllist[PKM.Ball]}",
+
+            DisplayedInfo.EVs => GetEVString(),
+
+            DisplayedInfo.Form when PKM.Form > 0 && Strings.HasForm => $"**Form:** {Strings.Form}",
+
+            DisplayedInfo.Friendship => $"**Friendship:** {PKM.CurrentFriendship}",
+
+            DisplayedInfo.Gigantamax when PKM is IGigantamax gmax && gmax.CanGigantamax => "**Gigantamax:** Yes",
+
+            DisplayedInfo.GVs when PKM is IGanbaru ganbaru => GetGanbaruValuesString(ganbaru),
+
+            DisplayedInfo.Height when PKM is IScaledSize scaled => $"**Height:** {scaled.HeightScalar}",
+
+            DisplayedInfo.IVs => GetIVString(),
+
+            DisplayedInfo.Language => $"**Language:** {(LanguageID)PKM.Language}",
+
+            DisplayedInfo.Level => $"**Level:** {PKM.CurrentLevel}",
+
+            DisplayedInfo.Mark when Strings.Mark.HasMark => $"**Mark:** {Strings.Mark.Name}{Environment.NewLine}",
+
+            DisplayedInfo.Moves => string.Join(Environment.NewLine, Strings.Moves),
+
+            DisplayedInfo.Nature => $"**Nature:** {Strings.Nature}",
+
+            DisplayedInfo.Nickname when !string.IsNullOrEmpty(PKM.Nickname) && PKM.Nickname != GameInfo.Strings.Species[PKM.Species] => $"**Nickname:** {PKM.Nickname}",
+
+            DisplayedInfo.Scale => $"**Scale:** {Strings.Scale}",
+
+            DisplayedInfo.Shiny when PKM.IsShiny => $"**Shiny:** {(PKM.ShinyXor == 0 ? "Square" : "Star")}",
+            DisplayedInfo.Shiny => "**Shiny:** No",
+
+            DisplayedInfo.Species => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesForm when Strings.HasForm => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender}**",
+            DisplayedInfo.SpeciesForm => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesHeldItem when Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesHeldItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesFormHeldItem when Strings.HasForm && Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesFormHeldItem when Strings.HasForm => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormHeldItem when Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesFormHeldItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesMark when Strings.Mark.HasMark => $"**{Strings.Shiny}{Strings.Species}{Strings.Mark.Title}{Strings.Gender}**",
+            DisplayedInfo.SpeciesMark => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesFormMark when Strings.HasForm && Strings.Mark.HasMark => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Mark.Title}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormMark when Strings.HasForm => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormMark when Strings.Mark.HasMark => $"**{Strings.Shiny}{Strings.Species}{Strings.Mark.Title}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormMark => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesMarkHeldItem when Strings.Mark.HasMark && Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Mark.Title}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesMarkHeldItem when Strings.Mark.HasMark => $"**{Strings.Shiny}{Strings.Species}{Strings.Mark.Title}{Strings.Gender}**",
+            DisplayedInfo.SpeciesMarkHeldItem when Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesMarkHeldItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.HasForm && Strings.Mark.HasMark && Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Mark.Title}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.Mark.HasMark && Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Mark.Title}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.HasForm && Strings.Mark.HasMark => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Mark.Title}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.HasForm && Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.Mark.HasMark => $"**{Strings.Shiny}{Strings.Species}{Strings.Mark.Title}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.HasItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender} ➜ {Strings.HeldItem}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem when Strings.HasForm => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender}**",
+            DisplayedInfo.SpeciesFormMarkHeldItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
+
+            DisplayedInfo.StatNature when PKM.StatNature != PKM.Nature => $"**Stat Nature:** {PKM.StatNature}",
+
+            DisplayedInfo.TeraType when Strings.HasTeraType => $"**Tera Type:** {Strings.TeraType}",
+
+            DisplayedInfo.TeraTypeOverride when PKM is ITeraType tera && tera.TeraTypeOverride != tera.TeraType => $"**Tera Type Override:** {tera.TeraTypeOverride}",
+
+            DisplayedInfo.Weight when PKM is IScaledSize scaled => $"**Weight:** {scaled.WeightScalar}",
+
+            _ => ""
+        };
+    }
+
+    private string GetIVString()
+    {
+        List<string> ivList =
+        [
+            PKM.IV_HP  < 31 ? $"{PKM.IV_HP} HP" : "",
+            PKM.IV_ATK < 31 ? $"{PKM.IV_ATK} Atk" : "",
+            PKM.IV_DEF < 31 ? $"{PKM.IV_DEF} Def" : "",
+            PKM.IV_SPA < 31 ? $"{PKM.IV_SPA} SpA" : "",
+            PKM.IV_SPD < 31 ? $"{PKM.IV_SPD} SpD" : "",
+            PKM.IV_SPE < 31 ? $"{PKM.IV_SPE} Spe" : "",
+        ];
+        ivList = [.. ivList.Where(s => !string.IsNullOrEmpty(s))];
+        return "**IVs:** " + (PKM.IVTotal == 186 ? "6IV" : string.Join(" / ", ivList));
+    }
+
+    private string GetEVString()
+    {
+        List<string> evList =
+        [
+            PKM.EV_HP  > 0 ? $"{PKM.EV_HP} HP" : "",
+            PKM.EV_ATK > 0 ? $"{PKM.EV_ATK} Atk" : "",
+            PKM.EV_DEF > 0 ? $"{PKM.EV_DEF} Def" : "",
+            PKM.EV_SPA > 0 ? $"{PKM.EV_SPA} SpA" : "",
+            PKM.EV_SPD > 0 ? $"{PKM.EV_SPD} SpD" : "",
+            PKM.EV_SPE > 0 ? $"{PKM.EV_SPE} Spe" : "",
+        ];
+        evList = [.. evList.Where(s => !string.IsNullOrEmpty(s))];
+        return evList.Count == 0 ? "" : "**EVs:** " + string.Join(" / ", evList);
+    }
+
+    private string GetAwakenedValuesString(IAwakened awakened)
+    {
+        List<string> avList =
+        [
+            awakened.AV_HP  > 0 ? $"{awakened.AV_HP} HP" : "",
+            awakened.AV_ATK > 0 ? $"{awakened.AV_ATK} Atk" : "",
+            awakened.AV_DEF > 0 ? $"{awakened.AV_DEF} Def" : "",
+            awakened.AV_SPA > 0 ? $"{awakened.AV_SPA} SpA" : "",
+            awakened.AV_SPD > 0 ? $"{awakened.AV_SPD} SpD" : "",
+            awakened.AV_SPE > 0 ? $"{awakened.AV_SPE} Spe" : "",
+        ];
+        avList = [.. avList.Where(s => !string.IsNullOrEmpty(s))];
+        return avList.Count == 0 ? "" : "**AVs:** " + string.Join(" / ", avList);
+    }
+
+    private string GetGanbaruValuesString(IGanbaru ganbaru)
+    {
+        List<string> gvList =
+        [
+            ganbaru.GV_HP  > 0 ? $"{ganbaru.GV_HP} HP" : "",
+            ganbaru.GV_ATK > 0 ? $"{ganbaru.GV_ATK} Atk" : "",
+            ganbaru.GV_DEF > 0 ? $"{ganbaru.GV_DEF} Def" : "",
+            ganbaru.GV_SPA > 0 ? $"{ganbaru.GV_SPA} SpA" : "",
+            ganbaru.GV_SPD > 0 ? $"{ganbaru.GV_SPD} SpD" : "",
+            ganbaru.GV_SPE > 0 ? $"{ganbaru.GV_SPE} Spe" : "",
+        ];
+        gvList = [.. gvList.Where(s => !string.IsNullOrEmpty(s))];
+        return gvList.Count == 0 ? "" : "**GVs:** " + string.Join(" / ", gvList);
     }
 
     private Color InitializeColor() =>

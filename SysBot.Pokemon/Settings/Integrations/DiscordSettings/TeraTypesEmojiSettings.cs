@@ -4,7 +4,7 @@ using PKHeX.Core;
 namespace SysBot.Pokemon;
 
 [TypeConverter(typeof(ExpandableObjectConverter))]
-public class TypesEmojiSettings()
+public class TeraTypesEmojiSettings()
 {
     public const string Types = nameof(Types);
     public override string ToString() => "Types Emoji Settings";
@@ -65,29 +65,6 @@ public class TypesEmojiSettings()
 
     [Category(Types), Description($"Discord code for the Stellar Type Emoji.")]
     public string StellarEmojiCode { get; set; } = string.Empty;
-
-    public string GetEmojiCode(MoveType type) => type switch
-    {
-        MoveType.Normal => NormalEmojiCode,
-        MoveType.Fighting => FightingEmojiCode,
-        MoveType.Flying => FlyingEmojiCode,
-        MoveType.Poison => PoisonEmojiCode,
-        MoveType.Ground => GroundEmojiCode,
-        MoveType.Rock => RockEmojiCode,
-        MoveType.Bug => BugEmojiCode,
-        MoveType.Ghost => GhostEmojiCode,
-        MoveType.Steel => SteelEmojiCode,
-        MoveType.Fire => FireEmojiCode,
-        MoveType.Water => WaterEmojiCode,
-        MoveType.Grass => GrassEmojiCode,
-        MoveType.Electric => ElectricEmojiCode,
-        MoveType.Psychic => PsychicEmojiCode,
-        MoveType.Ice => IceEmojiCode,
-        MoveType.Dragon => DragonEmojiCode,
-        MoveType.Dark => DarkEmojiCode,
-        MoveType.Fairy => FairyEmojiCode,
-        _ => throw new ArgumentOutOfRangeException(nameof(type))
-    };
 
     public string GetEmojiCode(GemType type) => type switch
     {
