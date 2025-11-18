@@ -35,7 +35,7 @@ public static class QueueHelper<T> where T : PKM, new()
             var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var embed);
 
             // Notify in channel
-            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize)
+            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && TradeEmbedBuilder<T>.TypeSupportsEmbed(type))
             {
                 _ = embed?.Build();
                 embed?.Builder.AddField("** **", msg, inline: false);
@@ -50,7 +50,7 @@ public static class QueueHelper<T> where T : PKM, new()
             if (result)
                 msg += $"\nYour trade code will be {(typeof(T) == typeof(PB7) ? "" : $"**{code:0000 0000}**.")}";
 
-                if (typeof(T) == typeof(PB7))
+            if (typeof(T) == typeof(PB7))
             {
                 var codes = PictoCodesExtensions.GetPictoCodesFromLinkCode(code);
                 var (attachment, embedPicto) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);

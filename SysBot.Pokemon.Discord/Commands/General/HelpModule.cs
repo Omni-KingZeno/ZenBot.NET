@@ -5,25 +5,27 @@ namespace SysBot.Pokemon.Discord;
 
 public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContext>
 {
-    [Command("help")]
+    [Command("Legacyhelp")]
     [Summary("Lists available commands.")]
     public async Task HelpAsync()
     {
+        var embeds = new List<EmbedBuilder>();
         var builder = new EmbedBuilder
         {
-            Color = new Color(114, 137, 218),
-            Description = "These are the commands you can use:",
+            Color = Color.Purple,
+            Title = "These are the commands you can use:",
         };
+        embeds.Add(builder);
 
         var mgr = SysCordSettings.Manager;
         var app = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
-        var owner = app.Owner.Id;
+        var owner = app.Team?.OwnerUserId ?? app.Owner.Id;
         var uid = Context.User.Id;
 
-        foreach (var module in Service.Modules)
+        HashSet<string> mentioned = [];
+        foreach (var module in Service.Modules.OrderBy(module => module.Name))
         {
             string? description = null;
-            HashSet<string> mentioned = [];
             foreach (var cmd in module.Commands)
             {
                 var name = cmd.Name;
@@ -47,6 +49,16 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             if (gen != -1)
                 moduleName = moduleName[..gen];
 
+            if (builder.Fields.Count >= 24)
+            {
+                builder = new EmbedBuilder
+                {
+                    Color = Color.Purple,
+                    Title = "Commands (continued):",
+                };
+                embeds.Add(builder);
+            }
+
             builder.AddField(x =>
             {
                 x.Name = moduleName;
@@ -55,7 +67,13 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             });
         }
 
-        await ReplyAsync("Help has arrived!", false, builder.Build()).ConfigureAwait(false);
+        bool isFirst = true;
+        foreach (var embed in embeds)
+        {
+            var message = isFirst ? "Help has arrived!" : null;
+            await ReplyAsync(message, false, embed.Build()).ConfigureAwait(false);
+            isFirst = false;
+        }
     }
 
     [Command("help")]
@@ -72,7 +90,7 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
 
         var builder = new EmbedBuilder
         {
-            Color = new Color(114, 137, 218),
+            Color = Color.Purple,
             Description = $"Here are some commands like **{command}**:",
         };
 
@@ -92,7 +110,7 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
     }
 
     [Command("ListCommands")]
-    [Alias("commands", "cmds")]
+    [Alias("help", "commands", "cmds")]
     [Summary("Lists available commands by modules in paged format.")]
     public async Task ListCommands()
     {
@@ -110,16 +128,15 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             {
                 moduleName = moduleName.Replace("Module", string.Empty);
             }
-            var builder = new EmbedBuilder
+            var currentBuilder = new EmbedBuilder
             {
                 Color = Color.Purple,
                 Description = $"## Commands in the {moduleName} module:",
-                ThumbnailUrl = "https://i.imgur.com/4hm3BUB.png"
+                ThumbnailUrl = "https://static.wikia.nocookie.net/pokemonfireash/images/c/c2/Professor_Oak.png/revision/latest?cb=20220702133216"
             };
 
             var commands = module.Commands.OrderBy(cmd => cmd.Name).ToList();
             HashSet<string> mentioned = [];
-            EmbedBuilder? currentBuilder = null;
             int fieldCount = 0;
 
             foreach (var cmd in commands)
@@ -151,7 +168,7 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
                             Description = fieldCount == 0 ?
                                 $"## Commands in the {moduleName} module:" :
                                 $"## Commands in the {moduleName} module (Cont'd):",
-                            ThumbnailUrl = "https://i.imgur.com/4hm3BUB.png"
+                            ThumbnailUrl = "https://static.wikia.nocookie.net/pokemonfireash/images/c/c2/Professor_Oak.png/revision/latest?cb=20220702133216"
                         };
                         fieldCount = 0;
                     }

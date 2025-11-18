@@ -23,6 +23,7 @@ public class InfoModule : ModuleBase<SocketCommandContext>
     public async Task InfoAsync()
     {
         var app = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
+        var owner = app.Team.TeamMembers.FirstOrDefault(member => member.Role == TeamRole.Owner)?.User ?? app.Owner;
 
         var builder = new EmbedBuilder
         {
@@ -33,10 +34,10 @@ public class InfoModule : ModuleBase<SocketCommandContext>
         builder.AddField("Info",
             $"- [This forks Source Code]({repo})\n" +
             $"- [Upstream fork Source Code]({upstreamRepo}) by manu098vm\n" +
-            $"Special thanks to notzyro, santacrab2, and 9Bitdo for their help with code, updates, and ongoing support.\n" +
             $"- [Upstream Source Code]({upstream}) by kwsch\n" +
-            $"Credit to Kurt, Anubis, and Architdate for developing the original SysBot code.\n" +
-            $"- {Format.Bold("Owner")}: {app.Owner} ({app.Owner.Id})\n" +
+            $"- Special thanks to Manu and his contributors for the original fork this bot is based on\n" +
+            $"- Credit to Kurt, Anubis, and Architdate for developing the original SysBot code.\n" +
+            $"- {Format.Bold("Owner")}: {owner} ({owner.Id})\n" +
             $"- {Format.Bold("Library")}: Discord.Net ({DiscordConfig.Version})\n" +
             $"- {Format.Bold("Uptime")}: {GetUptime()}\n" +
             $"- {Format.Bold("Runtime")}: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.ProcessArchitecture} " +

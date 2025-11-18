@@ -94,7 +94,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, fullSize: false, isEgg, isMysteryEgg);
 
     internal string GetBallImageURL() =>
-        "https://raw.githubusercontent.com/BakaKaito/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
+        "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
     internal string GetMarkImageURL() =>
        PKM is PA9 { IsAlpha: true } or PA8 { IsAlpha: true } ? "https://www.serebii.net/pokearth/hisui/icons/alphaza.png" : Mark.HasMark ? $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png" : string.Empty;
 

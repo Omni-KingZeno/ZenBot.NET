@@ -270,6 +270,17 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         var imgURL = Strings.GetMarkImageURL();
         return new EmbedFooterBuilder { Text = footerText, IconUrl = imgURL };
     }
+
+    public static bool TypeSupportsEmbed(PokeTradeType type)
+    {
+        return type switch
+        {
+            PokeTradeType.Specific or
+            PokeTradeType.MysteryEgg or
+            PokeTradeType.ItemTrade => true,
+            _ => false,
+        };
+    }
 }
 
 public record QueueUser(ulong UID, string Username);
