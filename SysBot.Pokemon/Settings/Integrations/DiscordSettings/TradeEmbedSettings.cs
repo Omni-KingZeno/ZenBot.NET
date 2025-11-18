@@ -11,7 +11,7 @@ public class TradeEmbedSettings
     public override string ToString() => "Discord Embed Settings";
 
     [Category(Text), Description("Informaiton to be displayed in Trade Embeds")]
-    public DisplayedInfo[] EmbedDisplayedInfo { get; set; } = [DisplayedInfo.Ability, DisplayedInfo.Nature, DisplayedInfo.Ball, DisplayedInfo.Shiny, DisplayedInfo.Level, DisplayedInfo.TeraTypeOverride, DisplayedInfo.Moves];
+    public DisplayedInfo[] EmbedDisplayedInfo { get; set; } = [DisplayedInfo.SpeciesFormHeldItem, DisplayedInfo.Ability, DisplayedInfo.Nature, DisplayedInfo.Ball, DisplayedInfo.Shiny, DisplayedInfo.Alpha, DisplayedInfo.Level, DisplayedInfo.IVs, DisplayedInfo.Moves];
 
     [Category(Text), Description("If true, will use Koi's TradeCord style embed layout")]
     public bool UseAlternateLayout { get; set; } = false;
