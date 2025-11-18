@@ -240,7 +240,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
-        Name = $"{trader.Username}'s {(MysteryEgg ? "Mystery Egg" : PKM.IsShiny ? "Shiny " : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+        Name = $"{trader.Username}'s {(MysteryEgg ? "Mystery Egg" : PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
         IconUrl = Strings.GetBallImageURL(),
     };
 
