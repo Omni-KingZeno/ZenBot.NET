@@ -142,12 +142,11 @@ public class TradeExtensions<T> where T : PKM, new()
         return false;
     }
 
-    public static string GetPokemonImageURL(T pkm, bool canGmax, bool fullSize, bool egg, bool mysteryEgg)
+    public static string GetPokemonImageURL(T pkm, bool canGmax, bool fullSize, bool egg)
     {
         bool md = false;
         bool fd = false;
         var eggURL = $"https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/Egg_{(MoveType)pkm.PersonalInfo.Type1}.png";
-        var mysteryEggURL = $"https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png";
         string[] baseLink;
         if (fullSize)
             baseLink = "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/512x512/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_');
@@ -198,7 +197,7 @@ public class TradeExtensions<T> where T : PKM, new()
         baseLink[5] = canGmax ? "g" : "n";
         baseLink[6] = "0000000" + (pkm.Species == (int)Species.Alcremie && !canGmax ? pkm.Data[0xD0] : 0);
         baseLink[8] = pkm.IsShiny ? "r.png" : "n.png";
-        return egg ? mysteryEgg ? mysteryEggURL : eggURL : string.Join("_", baseLink);
+        return egg ? eggURL : string.Join("_", baseLink);
     }
 
     public static T GenerateMysteryMon(int odds, out T pkm)

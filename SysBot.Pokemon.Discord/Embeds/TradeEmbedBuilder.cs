@@ -5,11 +5,11 @@ using static SysBot.Pokemon.TradeEmbedSettings;
 
 namespace SysBot.Pokemon.Discord;
 
-public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, PokeTradeType type) where T : PKM, new()
+public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, PokeRoutineType rType, PokeTradeType type) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
-    private bool MysteryEgg => type == PokeTradeType.MysteryEgg;
-    private bool ItemTrade => type == PokeTradeType.ItemTrade;
+    private bool MysteryEgg => type is PokeTradeType.MysteryEgg;
+    private bool AltTrade => type is (PokeTradeType.ItemTrade or PokeTradeType.Clone or PokeTradeType.Dump);
     public EmbedBuilder Builder { get; init; } = new();
     private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, type == PokeTradeType.MysteryEgg);
 
@@ -28,8 +28,16 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         Builder.Color = InitializeColor();
         Builder.Author = InitializeAuthor();
         Builder.Footer = InitializeFooter();
-        Builder.ThumbnailUrl = altStyle ? ItemTrade ? Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg) : Strings.HasItem ? Strings.GetItemImgURL(Strings.HeldItem, false) : "" : Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg);
-        Builder.ImageUrl = altStyle ? ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : Strings.GetPokemonImageURL(PKM.IsEgg, MysteryEgg) : ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : "";
+        if (altStyle)
+        {
+            Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL(type) : Strings.GetImageURL(type);
+            Builder.ThumbnailUrl = AltTrade ? string.Empty : Strings.GetThumbnailURL(type);
+        }
+        else
+        {
+            Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL(type) : string.Empty;
+            Builder.ThumbnailUrl = AltTrade ? string.Empty : Strings.GetImageURL(type);
+        }
 
         // Build field value based on EmbedDisplayedInfo setting
         var fieldValue = "";
@@ -54,7 +62,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
         if (altStyle)
         {
-            if (!ItemTrade)
+            if (!AltTrade)
             {
                 Builder.AddField(x =>
                 {
@@ -76,7 +84,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         }
         else
         {
-            if (!ItemTrade)
+            if (!AltTrade)
             {
                 Builder.Description = fieldValue += moves;
             }
@@ -177,17 +185,20 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     private string GetIVString()
     {
+        bool allImperfect = PKM.IV_HP < 31 && PKM.IV_ATK < 31 && PKM.IV_DEF < 31 &&
+                            PKM.IV_SPA < 31 && PKM.IV_SPD < 31 && PKM.IV_SPE < 31;
+
         List<string> ivList =
         [
-            PKM.IV_HP  < 31 ? $"{PKM.IV_HP} HP" : "",
-            PKM.IV_ATK < 31 ? $"{PKM.IV_ATK} Atk" : "",
-            PKM.IV_DEF < 31 ? $"{PKM.IV_DEF} Def" : "",
-            PKM.IV_SPA < 31 ? $"{PKM.IV_SPA} SpA" : "",
-            PKM.IV_SPD < 31 ? $"{PKM.IV_SPD} SpD" : "",
-            PKM.IV_SPE < 31 ? $"{PKM.IV_SPE} Spe" : "",
+            PKM.IV_HP  < 31 ? (allImperfect ? $"{PKM.IV_HP}" : $"{PKM.IV_HP} HP") : "",
+            PKM.IV_ATK < 31 ? (allImperfect ? $"{PKM.IV_ATK}" : $"{PKM.IV_ATK} Atk") : "",
+            PKM.IV_DEF < 31 ? (allImperfect ? $"{PKM.IV_DEF}" : $"{PKM.IV_DEF} Def") : "",
+            PKM.IV_SPA < 31 ? (allImperfect ? $"{PKM.IV_SPA}" : $"{PKM.IV_SPA} SpA") : "",
+            PKM.IV_SPD < 31 ? (allImperfect ? $"{PKM.IV_SPD}" : $"{PKM.IV_SPD} SpD") : "",
+            PKM.IV_SPE < 31 ? (allImperfect ? $"{PKM.IV_SPE}" : $"{PKM.IV_SPE} Spe") : "",
         ];
         ivList = [.. ivList.Where(s => !string.IsNullOrEmpty(s))];
-        return "**IVs:** " + (PKM.IVTotal == 186 ? "6IV" : string.Join(" / ", ivList));
+        return "**IVs:** " + (PKM.IVTotal == 186 ? "6IV" : string.Join(allImperfect ? "/" : " / ", ivList));
     }
 
     private string GetEVString()
@@ -235,7 +246,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         return gvList.Count == 0 ? "" : "**GVs:** " + string.Join(" / ", gvList);
     }
 
-    private Color InitializeColor() =>
+    private Color InitializeColor() => AltTrade ? Color.Purple :
         EmbedColorHelper.GetDiscordColor(PKM.IsShiny ? EmbedColorHelper.ShinyMap[((Species)PKM.Species, PKM.Form)] : (PersonalColor)PKM.PersonalInfo.Color);
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
@@ -252,7 +263,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         // Assume OT and TID can change during the trade process, only show them if the trade has been completed.
         if (type is TradeEmbedDisplay.TradeInitialize)
         {
-            var position = Hub.Queues.Info.CheckPosition(trader.UID, PokeRoutineType.LinkTrade);
+            var position = Hub.Queues.Info.CheckPosition(trader.UID, rType);
             var botCount = Hub.Queues.Info.Hub.Bots.Count;
             footerText += $"Current Position: {position.Position}";
 
@@ -277,7 +288,9 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         {
             PokeTradeType.Specific or
             PokeTradeType.MysteryEgg or
-            PokeTradeType.ItemTrade => true,
+            PokeTradeType.ItemTrade or
+            PokeTradeType.Clone or
+            PokeTradeType.Dump => true,
             _ => false,
         };
     }

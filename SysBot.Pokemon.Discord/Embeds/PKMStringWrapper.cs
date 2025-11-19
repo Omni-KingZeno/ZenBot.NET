@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
@@ -43,7 +42,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
 
     private string GetGenderString() => Config.UseGenderEmoji switch
     {
-        true => $"<:GenderEmoji:{Config.GenderEmojiCodes.GetEmojiCode(PKM.Gender)}>",
+        true => $"<:{(Gender)PKM.Gender}GenderEmoji:{Config.GenderEmojiCodes.GetEmojiCode(PKM.Gender)}>",
         _ => (Gender)PKM.Gender != PKHeX.Core.Gender.Genderless ? $" {GameInfo.GenderSymbolUnicode[PKM.Gender]}" : ""
     };
 
@@ -55,7 +54,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             if (PKM.Moves[i] is { } move && move is not (ushort)Move.None)
             {
                 var type = (MoveType)MoveInfo.GetType(move, PKM.Context);
-                var emoji = $"{(Config.UseMoveEmoji ? $"<:TypeEmoji:{Config.MoveTypesEmojiCodes.GetEmojiCode(type)}> " : "")}";
+                var emoji = $"<:{type}TypeEmoji:{Config.MoveTypesEmojiCodes.GetEmojiCode(type)}>";
                 var name = GameStrings.movelist[move];
                 var pp = Config.ShowMovePP ? i switch
                 {
@@ -65,7 +64,8 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
                     3 => $"({PKM.Move4_PP} PP)",
                     _ => throw new ArgumentOutOfRangeException(nameof(i), "Invalid move index.")
                 } : "";
-                moves.Add($"\\- {emoji}{name} {pp}");
+                var prefix = Config.UseMoveEmoji ? emoji : "\\-";
+                moves.Add($"{prefix} {name} {pp}");
             }
         }
         return moves;
@@ -84,14 +84,40 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         {
             var type = (GemType)(tera.TeraType + 2);
             if (Config.UseTeraEmoji)
-                return $"<:TypeEmoji:{Config.TeraTypesEmojiCodes.GetEmojiCode(type)}>";
+                return $"<:{type}TeraEmoji:{Config.TeraTypesEmojiCodes.GetEmojiCode(type)}>";
             return $"{GameStrings.types[type is GemType.Stellar ? 18 : (int)(type - 2)]}";
         }
         return "";
     }
 
-    internal string GetPokemonImageURL(bool isEgg, bool isMysteryEgg) =>
-        TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, fullSize: false, isEgg, isMysteryEgg);
+    internal string GetImageURL(PokeTradeType type)
+    {
+        return type switch
+        {
+            PokeTradeType.Specific => GetPokemonImageURL(PKM.IsEgg),
+            PokeTradeType.Clone => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
+            PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
+            PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
+            PokeTradeType.ItemTrade => GetPokemonImageURL(PKM.IsEgg),
+            _ => string.Empty,
+        };
+    }
+
+    internal string GetThumbnailURL(PokeTradeType type)
+    {
+        return type switch
+        {
+            PokeTradeType.Specific => HasItem ? GetItemImgURL(HeldItem, false) : string.Empty,
+            PokeTradeType.Clone => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
+            PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
+            PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
+            PokeTradeType.ItemTrade => HasItem ? GetItemImgURL(HeldItem, false) : string.Empty,
+            _ => string.Empty,
+        };
+    }
+
+    internal string GetPokemonImageURL(bool isEgg) =>
+        TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, fullSize: false, isEgg);
 
     internal string GetBallImageURL() =>
         "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();

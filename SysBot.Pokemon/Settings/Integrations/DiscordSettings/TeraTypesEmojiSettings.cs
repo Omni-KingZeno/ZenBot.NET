@@ -7,63 +7,63 @@ namespace SysBot.Pokemon;
 public class TeraTypesEmojiSettings()
 {
     public const string Types = nameof(Types);
-    public override string ToString() => "Types Emoji Settings";
+    public override string ToString() => "Tera Emoji Settings";
 
-    [Category(Types), Description($"Discord code for the Normal Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Normal Tera Emoji.")]
     public string NormalEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Fighting Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Fighting Tera Emoji.")]
     public string FightingEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Flying Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Flying Tera Emoji.")]
     public string FlyingEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Poison Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Poison Tera Emoji.")]
     public string PoisonEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Ground Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Ground Tera Emoji.")]
     public string GroundEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Rock Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Rock Tera Emoji.")]
     public string RockEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Bug Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Bug Tera Emoji.")]
     public string BugEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Ghost Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Ghost Tera Emoji.")]
     public string GhostEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Steel Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Steel Tera Emoji.")]
     public string SteelEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Fire Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Fire Tera Emoji.")]
     public string FireEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Water Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Water Tera Emoji.")]
     public string WaterEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Grass Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Grass Tera Emoji.")]
     public string GrassEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Electric Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Electric Tera Emoji.")]
     public string ElectricEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Psychic Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Psychic Tera Emoji.")]
     public string PsychicEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Ice Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Ice Tera Emoji.")]
     public string IceEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Dragon Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Dragon Tera Emoji.")]
     public string DragonEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Dark Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Dark Tera Emoji.")]
     public string DarkEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Fairy Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Fairy Tera Emoji.")]
     public string FairyEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Stellar Type Emoji.")]
+    [Category(Types), Description($"Discord code for the Stellar Tera Emoji.")]
     public string StellarEmojiCode { get; set; } = string.Empty;
 
     public string GetEmojiCode(GemType type) => type switch

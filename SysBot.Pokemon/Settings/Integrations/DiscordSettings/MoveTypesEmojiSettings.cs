@@ -63,9 +63,6 @@ public class MoveTypesEmojiSettings()
     [Category(Types), Description($"Discord code for the Fairy Type Emoji.")]
     public string FairyEmojiCode { get; set; } = string.Empty;
 
-    [Category(Types), Description($"Discord code for the Stellar Type Emoji.")]
-    public string StellarEmojiCode { get; set; } = string.Empty;
-
     public string GetEmojiCode(MoveType type) => type switch
     {
         MoveType.Normal => NormalEmojiCode,

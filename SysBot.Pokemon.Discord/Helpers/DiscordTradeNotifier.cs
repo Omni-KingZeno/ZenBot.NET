@@ -58,7 +58,7 @@ public class DiscordTradeNotifier<T>(T Data, PokeTradeTrainerInfo Info, int Code
 
         if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeComplete && info.Type is PokeTradeType.Specific)
         {
-            var embed = new TradeEmbedBuilder<T>(Data, Hub, new QueueUser(Info.ID, Trader.Username), info.Type);
+            var embed = new TradeEmbedBuilder<T>(Data, Hub, new QueueUser(Info.ID, Trader.Username), PokeRoutineType.LinkTrade, info.Type);
             Context.Channel.SendMessageAsync("", embed: embed.Build()).ConfigureAwait(false);
         }
     }

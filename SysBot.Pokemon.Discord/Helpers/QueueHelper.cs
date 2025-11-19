@@ -126,9 +126,9 @@ public static class QueueHelper<T> where T : PKM, new()
             pokeName = $" Receiving: {GameInfo.GetStrings("en").Species[pk.Species]}.";
         msg = $"{user.Mention} - Added to the {type} queue{ticketID}. {pokeName} ";
 
-        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), t);
+        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), type, t);
 
-        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is PokeTradeType.Specific or PokeTradeType.MysteryEgg or PokeTradeType.ItemTrade))
+        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is not (PokeTradeType.Seed or PokeTradeType.Random)))
         {
             msg += $"Current Position: {position.Position}.";
             var botct = Info.Hub.Bots.Count;
