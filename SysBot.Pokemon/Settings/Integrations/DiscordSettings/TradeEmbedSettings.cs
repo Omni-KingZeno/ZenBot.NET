@@ -72,6 +72,7 @@ public class TradeEmbedSettings
         StatNature,
         TeraType,
         TeraTypeOverride,
-        Weight
+        Weight,
+        HeldItem
     }
 }

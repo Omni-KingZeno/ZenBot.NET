@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
@@ -42,7 +43,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
 
     private string GetGenderString() => Config.UseGenderEmoji switch
     {
-        true => $"<:{(Gender)PKM.Gender}GenderEmoji:{Config.GenderEmojiCodes.GetEmojiCode(PKM.Gender)}>",
+        true => $" <:{(Gender)PKM.Gender}GenderEmoji:{Config.GenderEmojiCodes.GetEmojiCode(PKM.Gender)}>",
         _ => (Gender)PKM.Gender != PKHeX.Core.Gender.Genderless ? $" {GameInfo.GenderSymbolUnicode[PKM.Gender]}" : ""
     };
 
@@ -83,11 +84,24 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         if (PKM is ITeraType tera)
         {
             var type = (GemType)(tera.TeraType + 2);
-            if (Config.UseTeraEmoji)
-                return $"<:{type}TeraEmoji:{Config.TeraTypesEmojiCodes.GetEmojiCode(type)}>";
-            return $"{GameStrings.types[type is GemType.Stellar ? 18 : (int)(type - 2)]}";
+            var tName = GameStrings.types[type is GemType.Stellar ? 18 : (int)(type - 2)];
+
+            return $"{tName}{(Config.UseTeraEmoji ? $" <:{type}TeraEmoji:{Config.TeraTypesEmojiCodes.GetEmojiCode(type)}>" : string.Empty)}";
         }
         return "";
+    }
+
+    internal string GetAuthorText(string trader, PokeTradeType type)
+    {
+        return type switch
+        {
+            PokeTradeType.Clone => "Cloning Pod Activated",
+            PokeTradeType.Dump => "Pokémon Scanner Activated",
+            PokeTradeType.ItemTrade => $"{trader}'s {HeldItem}",
+            PokeTradeType.MysteryEgg => $"{trader}'s Mystery Egg",
+            PokeTradeType.Specific or PokeTradeType.Giveaway => $"{trader}'s {(PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+            _ => string.Empty
+        };
     }
 
     internal string GetImageURL(PokeTradeType type)
@@ -111,7 +125,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             PokeTradeType.Clone => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
             PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
-            PokeTradeType.ItemTrade => HasItem ? GetItemImgURL(HeldItem, false) : string.Empty,
+            PokeTradeType.ItemTrade => GetItemImgURL(HeldItem, false),
             _ => string.Empty,
         };
     }

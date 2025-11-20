@@ -8,7 +8,6 @@ namespace SysBot.Pokemon.Discord;
 public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, PokeRoutineType rType, PokeTradeType type) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
-    private bool MysteryEgg => type is PokeTradeType.MysteryEgg;
     private bool AltTrade => type is (PokeTradeType.ItemTrade or PokeTradeType.Clone or PokeTradeType.Dump);
     public EmbedBuilder Builder { get; init; } = new();
     private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, type == PokeTradeType.MysteryEgg);
@@ -31,12 +30,12 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         if (altStyle)
         {
             Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL(type) : Strings.GetImageURL(type);
-            Builder.ThumbnailUrl = AltTrade ? string.Empty : Strings.GetThumbnailURL(type);
+            Builder.ThumbnailUrl = AltTrade ? type == PokeTradeType.ItemTrade ? Strings.GetImageURL(type) : string.Empty : Strings.GetThumbnailURL(type);
         }
         else
         {
             Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL(type) : string.Empty;
-            Builder.ThumbnailUrl = AltTrade ? string.Empty : Strings.GetImageURL(type);
+            Builder.ThumbnailUrl = AltTrade ? type == PokeTradeType.ItemTrade ? Strings.GetImageURL(type) : string.Empty : Strings.GetImageURL(type);
         }
 
         // Build field value based on EmbedDisplayedInfo setting
@@ -116,6 +115,8 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
             DisplayedInfo.GVs when PKM is IGanbaru ganbaru => GetGanbaruValuesString(ganbaru),
 
             DisplayedInfo.Height when PKM is IScaledSize scaled => $"**Height:** {scaled.HeightScalar}",
+
+            DisplayedInfo.HeldItem when Strings.HasItem => $"**Held Item:** {Strings.HeldItem}",
 
             DisplayedInfo.IVs => GetIVString(),
 
@@ -251,7 +252,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
-        Name = $"{trader.Username}'s {(MysteryEgg ? "Mystery Egg" : PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+        Name = Strings.GetAuthorText(trader.Username, type),
         IconUrl = Strings.GetBallImageURL(),
     };
 
