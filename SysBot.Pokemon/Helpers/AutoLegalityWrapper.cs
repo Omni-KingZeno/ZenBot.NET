@@ -7,15 +7,15 @@ public static class AutoLegalityWrapper
 {
     private static bool Initialized;
 
-    public static void EnsureInitialized(LegalitySettings cfg, bool forced = false)
+    public static void EnsureInitialized(LegalitySettings cfg)
     {
-        if (Initialized && !forced)
+        if (Initialized)
             return;
         Initialized = true;
         InitializeAutoLegality(cfg);
     }
 
-    private static void InitializeAutoLegality(LegalitySettings cfg)
+    public static void InitializeAutoLegality(LegalitySettings cfg)
     {
         EncounterEvent.RefreshMGDB(cfg.MGDBPath);
         InitializeTrainerDatabase(cfg);

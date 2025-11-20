@@ -93,7 +93,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     public async Task ReintializeLegality()
     {
         var message = await ReplyAsync("Re-Initializing Legality Settings...").ConfigureAwait(false);
-        AutoLegalityWrapper.EnsureInitialized(SysCord<T>.Runner.Hub.Config.Legality, true);
+        AutoLegalityWrapper.InitializeAutoLegality(SysCord<T>.Runner.Hub.Config.Legality);
         await message.ModifyAsync(msg => msg.Content = "Done").ConfigureAwait(false);
     }
 
