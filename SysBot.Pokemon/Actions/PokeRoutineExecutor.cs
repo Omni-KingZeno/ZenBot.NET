@@ -82,12 +82,12 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
     public async Task VerifyBotbaseVersion(CancellationToken token)
     {
         var data = await SwitchConnection.GetBotbaseVersion(token).ConfigureAwait(false);
-        var version = decimal.TryParse(data, CultureInfo.InvariantCulture, out var v) ? v : 0;
-        if (version < BotbaseVersion)
+        var version = System.Version.TryParse(data, out var v) ? v : null;
+        if (version < BotbaseVersion || version is null)
         {
             var protocol = Config.Connection.Protocol;
             var msg = protocol is SwitchProtocol.WiFi ? "sys-botbase" : "usb-botbase";
-            msg += $" version is not supported. Expected version {BotbaseVersion} or greater, and current version is {version}. Please download the latest version from: ";
+            msg += $" version is not supported. Expected version {BotbaseVersion} or greater and your current version is {data}. Please download the latest version from: ";
             if (protocol is SwitchProtocol.WiFi)
                 msg += "https://github.com/olliz0r/sys-botbase/releases/latest";
             else

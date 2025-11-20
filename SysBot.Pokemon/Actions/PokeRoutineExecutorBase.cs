@@ -6,7 +6,7 @@ namespace SysBot.Pokemon;
 public abstract class PokeRoutineExecutorBase(IConsoleBotManaged<IConsoleConnection, IConsoleConnectionAsync> Config)
     : SwitchRoutineExecutor<PokeBotState>(Config)
 {
-    public const decimal BotbaseVersion = 2.4m;
+    public static readonly Version BotbaseVersion = new(2, 4);
 
     public LanguageID GameLang { get; private set; }
     public GameVersion Version { get; private set; }
@@ -53,6 +53,15 @@ public abstract class PokeRoutineExecutorBase(IConsoleBotManaged<IConsoleConnect
             EntityContext.Gen9a => LanguageID.SpanishL,
             _ => LanguageID.ChineseT,
         });
+    }
+
+    public string GetSpeciesName(ushort species)
+    {
+        var strings = GameInfo.GetStrings("en");
+        var speciesName = strings.Species;
+        if (species == 0 || species >= speciesName.Count)
+            return "Unknown";
+        return strings.Species[species];
     }
 
     public override void SoftStop() => Config.Pause();
