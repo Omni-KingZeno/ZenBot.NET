@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Discord;
 using PKHeX.Core;
 using SysBot.Pokemon.Discord.Helpers;
@@ -186,20 +187,38 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     private string GetIVString()
     {
-        bool allImperfect = PKM.IV_HP < 31 && PKM.IV_ATK < 31 && PKM.IV_DEF < 31 &&
-                            PKM.IV_SPA < 31 && PKM.IV_SPD < 31 && PKM.IV_SPE < 31;
+        int[] ivs = [PKM.IV_HP, PKM.IV_ATK, PKM.IV_DEF, PKM.IV_SPE, PKM.IV_SPA, PKM.IV_SPD];
+        string[] statNames = ["HP", "ATK", "DEF", "SPE", "SpA", "SpD"];
+        bool ivsHyperTrained = false;
+        List<string> ivList = [];
 
-        List<string> ivList =
-        [
-            PKM.IV_HP  < 31 ? (allImperfect ? $"{PKM.IV_HP}" : $"{PKM.IV_HP} HP") : "",
-            PKM.IV_ATK < 31 ? (allImperfect ? $"{PKM.IV_ATK}" : $"{PKM.IV_ATK} Atk") : "",
-            PKM.IV_DEF < 31 ? (allImperfect ? $"{PKM.IV_DEF}" : $"{PKM.IV_DEF} Def") : "",
-            PKM.IV_SPA < 31 ? (allImperfect ? $"{PKM.IV_SPA}" : $"{PKM.IV_SPA} SpA") : "",
-            PKM.IV_SPD < 31 ? (allImperfect ? $"{PKM.IV_SPD}" : $"{PKM.IV_SPD} SpD") : "",
-            PKM.IV_SPE < 31 ? (allImperfect ? $"{PKM.IV_SPE}" : $"{PKM.IV_SPE} Spe") : "",
-        ];
-        ivList = [.. ivList.Where(s => !string.IsNullOrEmpty(s))];
-        return "**IVs:** " + (PKM.IVTotal == 186 ? "6IV" : string.Join(allImperfect ? "/" : " / ", ivList));
+        for (int i = 0; i < 6; i++)
+        {
+            if (ivs[i] < 31)
+            {
+                bool isHT = PKM is IHyperTrain ht && ht.IsHyperTrained(i);
+                if (isHT)
+                {
+                    ivsHyperTrained = true;
+                }
+                else
+                {
+                    ivList.Add($"{ivs[i]} {statNames[i]}");
+                }
+            }
+        }
+
+        if (ivList.Count == 0 && !ivsHyperTrained)
+            return "**IVs:** 6IV";
+
+        if (ivList.Count == 0 && ivsHyperTrained)
+            return "**IVs:** 6IV (HyperTrained)";
+
+        string ivString = string.Join(" / ", ivList);
+        if (ivsHyperTrained)
+            ivString += " (HyperTrained)";
+
+        return "**IVs:** " + ivString;
     }
 
     private string GetEVString()
