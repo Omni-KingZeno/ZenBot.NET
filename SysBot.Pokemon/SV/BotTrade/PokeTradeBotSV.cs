@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using PKHeX.Core;
 using PKHeX.Core.Searching;
 using SysBot.Base;
@@ -348,7 +349,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
             return PokeTradeResult.TrainerTooSlow;
         }
 
-        poke.SendNotification(this, $"Found Link Trade partner: {tradePartner.TrainerName}. Waiting for a Pokémon...");
+        poke.SendNotification(this, $"Found Link Trade Partner: **{tradePartner.TrainerName}** (TID: **{tradePartner.TID7}** | SID: **{tradePartner.SID7}**). Waiting for a Pokémon...");
 
         if (poke.Type == PokeTradeType.Dump)
         {

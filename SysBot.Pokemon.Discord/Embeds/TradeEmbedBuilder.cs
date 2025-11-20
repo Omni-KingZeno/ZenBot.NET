@@ -124,7 +124,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
             DisplayedInfo.Level => $"**Level:** {PKM.CurrentLevel}",
 
-            DisplayedInfo.Mark when Strings.Mark.HasMark => $"**Mark:** {Strings.Mark.Name}{Environment.NewLine}",
+            DisplayedInfo.Mark when Strings.Mark.HasMark => $"**Mark:** {Strings.Mark.Name}",
 
             DisplayedInfo.Moves => string.Join(Environment.NewLine, Strings.Moves),
 

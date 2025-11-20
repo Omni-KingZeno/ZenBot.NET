@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using PKHeX.Core;
 using PKHeX.Core.Searching;
 using SysBot.Base;
@@ -334,7 +335,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState Config) : Poke
                 await Click(A, 0_500, token).ConfigureAwait(false);
         }
 
-        poke.SendNotification(this, $"Found Link Trade partner: {trainerName}. Waiting for a Pokémon...");
+        poke.SendNotification(this, $"Found Link Trade Partner: **{trainerName}** (TID: **{trainerID.TID7:000000}** | SID: **{trainerID.SID7}**). Waiting for a Pokémon...");
 
         if (poke.Type == PokeTradeType.Dump)
             return await ProcessDumpTradeAsync(poke, token).ConfigureAwait(false);
