@@ -10,7 +10,8 @@ public class TradeEmbedSettings
     private const string Text = nameof(Text);
     public override string ToString() => "Discord Embed Settings";
 
-    [Category(Text), Description("Informaiton to be displayed in Trade Embeds")]
+    [Category(Text), Description("Information to be displayed in Trade Embeds")]
+    [TypeConverter(typeof(DisplayedInfoArrayConverter))]
     public DisplayedInfo[] EmbedDisplayedInfo { get; set; } = [DisplayedInfo.SpeciesFormHeldItem, DisplayedInfo.Ability, DisplayedInfo.Nature, DisplayedInfo.Ball, DisplayedInfo.Shiny, DisplayedInfo.Alpha, DisplayedInfo.Level, DisplayedInfo.IVs, DisplayedInfo.Moves];
 
     [Category(Text), Description("If true, will use Koi's TradeCord style embed layout")]
@@ -39,40 +40,4 @@ public class TradeEmbedSettings
 
     [Category(Emoji), Description("List of emoji codes for Types emojis.")]
     public TeraTypesEmojiSettings TeraTypesEmojiCodes { get; set; } = new();
-
-    public enum DisplayedInfo
-    {
-        Ability,
-        Alpha,
-        AVs,
-        Ball,
-        EVs,
-        Form,
-        Friendship,
-        Gigantamax,
-        GVs,
-        Height,
-        IVs,
-        Language,
-        Level,
-        Mark,
-        Moves,
-        Nature,
-        Nickname,
-        Scale,
-        Shiny,
-        Species,
-        SpeciesForm,
-        SpeciesHeldItem,
-        SpeciesFormHeldItem,
-        SpeciesMark,
-        SpeciesFormMark,
-        SpeciesMarkHeldItem,
-        SpeciesFormMarkHeldItem,
-        StatNature,
-        TeraType,
-        TeraTypeOverride,
-        Weight,
-        HeldItem
-    }
 }

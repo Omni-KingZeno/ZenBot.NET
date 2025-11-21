@@ -1,5 +1,48 @@
 namespace SysBot.Pokemon;
 
+
+public enum ImageLocation
+{
+    Thumbnail,
+    MainBody
+}
+
+public enum DisplayedInfo
+{
+    Ability,
+    Alpha,
+    AVs,
+    Ball,
+    EVs,
+    Form,
+    Friendship,
+    Gigantamax,
+    GVs,
+    Height,
+    IVs,
+    Language,
+    Level,
+    Mark,
+    Moves,
+    Nature,
+    Nickname,
+    Scale,
+    Shiny,
+    Species,
+    SpeciesForm,
+    SpeciesHeldItem,
+    SpeciesFormHeldItem,
+    SpeciesMark,
+    SpeciesFormMark,
+    SpeciesMarkHeldItem,
+    SpeciesFormMarkHeldItem,
+    StatNature,
+    TeraType,
+    TeraTypeOverride,
+    Weight,
+    HeldItem
+}
+
 public enum GenderDependent : ushort
 {
     Venusaur = 3,

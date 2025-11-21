@@ -33,9 +33,3 @@ public class AnnouncementEmbedSettings
         set => EmbedColorHex = $"#{value.R:X2}{value.G:X2}{value.B:X2}";
     }
 }
-
-public enum ImageLocation
-{
-    Thumbnail,
-    MainBody
-}
