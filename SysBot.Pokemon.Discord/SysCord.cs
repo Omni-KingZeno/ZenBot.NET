@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
@@ -19,7 +20,7 @@ public static class SysCordSettings
     public static readonly List<ulong> Developers = [];
 }
 
-public sealed class SysCord<T> where T : PKM, new()
+public sealed partial class SysCord<T> where T : PKM, new()
 {
     public static PokeBotRunner<T> Runner { get; private set; } = null!;
     public static RestApplication App { get; private set; } = null!;
@@ -32,6 +33,9 @@ public sealed class SysCord<T> where T : PKM, new()
     // These two types require you install the Discord.Net.Commands package.
     private readonly CommandService _commands;
     private readonly IServiceProvider _services;
+
+    [GeneratedRegex(@"^[^\p{L}0-9]")]
+    private static partial Regex PrefixRegex();
 
     // Track loading of Echo/Logging channels, so they aren't loaded multiple times.
     private bool MessageChannelsLoaded { get; set; }
@@ -194,11 +198,16 @@ public sealed class SysCord<T> where T : PKM, new()
 
         // Create a number to track where the prefix ends and the command begins
         int pos = 0;
-        if (msg.HasStringPrefix(Hub.Config.Discord.CommandPrefix, ref pos))
+        if (Hub.Config.Discord.AllowAnyCommandPrefix && PrefixRegex().IsMatch(msg.Content))
         {
-            bool handled = await TryHandleCommandAsync(msg, pos).ConfigureAwait(false);
-            if (handled)
+            if (await TryHandleCommandAsync(msg, 1).ConfigureAwait(false))
                 return;
+        }
+
+        if (msg.HasStringPrefix(Hub.Config.Discord.CommandPrefix, ref pos) &&
+            await TryHandleCommandAsync(msg, pos).ConfigureAwait(false))
+        {
+            return;
         }
 
         await TryHandleMessageAsync(msg).ConfigureAwait(false);

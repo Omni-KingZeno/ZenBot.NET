@@ -20,6 +20,9 @@ public class DiscordSettings
     [Category(Startup), Description("Bot command prefix.")]
     public string CommandPrefix { get; set; } = "$";
 
+    [Category(Startup), Description("Toggle to allow the bot to accept any non-numerical and non-alphabetical command prefix.")]
+    public bool AllowAnyCommandPrefix { get; set; } = false;
+
     [Category(Startup), Description("List of modules that will not be loaded when the bot is started (comma separated).")]
     public string ModuleBlacklist { get; set; } = string.Empty;
 
