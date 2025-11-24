@@ -53,3 +53,16 @@ jobs:
       with:
         name: SysBot.Pokemon.WinForms
         path: SysBot.Pokemon.WinForms\bin\Release\net9.0-windows\publish\*.exe
+
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/ZenBot'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
+        files: SysBot.Pokemon.WinForms/bin/Release/net9.0-windows/publish/*.exe
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
