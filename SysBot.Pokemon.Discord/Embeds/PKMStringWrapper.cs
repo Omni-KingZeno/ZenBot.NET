@@ -40,7 +40,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     }
 
     private string GetShinyString() =>
-        PKM.ShinyXor == 0 ? "■ " : PKM.IsShiny ? "★ " : "";
+        PKM.ShinyXor == 0 && PKM is PK8 ? "■ " : PKM.IsShiny ? "★ " : "";
 
     private string GetGenderString() => Config.UseGenderEmoji switch
     {

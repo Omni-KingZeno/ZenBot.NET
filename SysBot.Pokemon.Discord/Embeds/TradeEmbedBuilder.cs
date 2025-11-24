@@ -135,8 +135,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
             DisplayedInfo.Scale => $"**Scale:** {Strings.Scale}",
 
-            DisplayedInfo.Shiny when PKM.IsShiny => $"**Shiny:** {(PKM.ShinyXor == 0 ? "Square" : "Star")}",
-            DisplayedInfo.Shiny => "**Shiny:** No",
+            DisplayedInfo.Shiny when PKM.IsShiny => $"**Shiny:** {(PKM is PK8 ? PKM.ShinyXor == 0 ? "Square" : "Star" : "Yes")}",
 
             DisplayedInfo.Species => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
 
