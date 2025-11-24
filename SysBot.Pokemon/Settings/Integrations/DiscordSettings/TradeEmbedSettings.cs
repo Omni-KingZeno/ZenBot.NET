@@ -29,6 +29,12 @@ public class TradeEmbedSettings
     [Category(Emoji), Description("List of emoji codes for Gender emojis.")]
     public GenderEmojiSettings GenderEmojiCodes { get; set; } = new();
 
+    [Category(Emoji), Description("If true, adds the Plus Move emoji to applicable Moves in the Discord embed.")]
+    public bool UsePlusMoveEmoji { get; set; } = false;
+
+    [Category(Emoji), Description("Emoji code for the Plus Move emoji.")]
+    public string PlusMoveEmojiCode { get; set; } = string.Empty;
+
     [Category(Emoji), Description("If true, use TypesEmojiCodes for the Move Type strings in the Discord embed.")]
     public bool UseMoveEmoji { get; set; } = false;
 

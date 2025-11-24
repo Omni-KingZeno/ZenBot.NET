@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using PKHeX.Core;
 
@@ -56,7 +57,17 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             {
                 var type = (MoveType)MoveInfo.GetType(move, PKM.Context);
                 var emoji = $"<:{type}TypeEmoji:{Config.MoveTypesEmojiCodes.GetEmojiCode(type)}>";
+                var plusEmoji = $" <:PlusMoveEmoji:{Config.PlusMoveEmojiCode}>";
                 var name = GameStrings.movelist[move];
+
+                if (PKM is PA9 pa9 && pa9.PersonalInfo is IPermitPlus plus)
+                {
+                    var index = plus.PlusMoveIndexes.IndexOf(move);
+
+                    if (pa9.GetMovePlusFlag(index))
+                        name += Config.UsePlusMoveEmoji ? plusEmoji : " ***+***";
+                }
+
                 var pp = Config.ShowMovePP ? i switch
                 {
                     0 => $"({PKM.Move1_PP} PP)",
