@@ -250,7 +250,7 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
             Log("Entering Link Play menu.");
             await Click(X, 0_800, token).ConfigureAwait(false);
             await Click(DUP, 0_300, token).ConfigureAwait(false);
-            await Click(A, 0_800, token).ConfigureAwait(false);
+            await Click(A, 0_800 + Hub.Config.Timings.ExtraTimeOpenLinkPlayMenu, token).ConfigureAwait(false);
         }
 
         Log("Selecting Link Trade.");

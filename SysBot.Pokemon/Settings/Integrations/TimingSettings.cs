@@ -65,6 +65,9 @@ public class TimingSettings
     [Category(Misc), Description("[SV] Extra time in milliseconds to wait for the Poké Portal to load.")]
     public int ExtraTimeLoadPortal { get; set; } = 1000;
 
+    [Category(Misc), Description("[LZA] Extra time in milliseconds to wait for the Link Play menu to load.")]
+    public int ExtraTimeOpenLinkPlayMenu { get; set; }
+
     [Category(Misc), Description("Extra time in milliseconds to wait for the box to load after finding a trade.")]
     public int ExtraTimeOpenBox { get; set; } = 1000;
 
