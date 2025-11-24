@@ -204,20 +204,40 @@ public class TradeExtensions<T> where T : PKM, new()
     {
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
         var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
-        var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID).Where(i => sav.Personal.IsSpeciesInGame((ushort)i)).Select(i => (ushort)i).ToList();
+        var availSpec = Enumerable.Range(0, sav.Personal.MaxSpeciesID)
+            .Append(sav.Personal.MaxSpeciesID)
+            .Where(i => sav.Personal.IsSpeciesInGame((ushort)i))
+            .Select(i => (ushort)i)
+            .ToList();
 
-        while (true)
+        int maxAttempts = 1000;
+        int attempts = 0;
+        while (attempts < maxAttempts)
         {
+            attempts++;
             var species = availSpec[Util.Rand.Next(availSpec.Count)];
+            var set = $"{(Species)species}";
             var shiny = Util.Rand.Next(0, odds) == 0;
-            var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
+            if (shiny)
+                set += "\nShiny: Yes";
+            var alpha = Util.Rand.Next(0, 10) == 0;
+            if (alpha && sav.Version is (GameVersion.PLA or GameVersion.ZA))
+                set += "\nAlpha: Yes";
+            var template = new RegenTemplate(new ShowdownSet(set));
             pkm = (T)sav.GetLegal(template, out _);
             pkm.OriginalTrainerTrash.Clear();
             pkm.OriginalTrainerName = "Surprise!";
             pkm.SetSuggestedMoves();
             pkm.SetNature((Nature)Util.Rand.Next(0, 24));
-            pkm.SetRandomIVs();
-            pkm.SetAbility(Util.Rand.Next(0, 2));
+            if (pkm.Version is not GameVersion.ZA)
+            {
+                pkm.SetRandomIVs();
+                pkm.SetAbility(Util.Rand.Next(0, 2));
+            }
+            else
+            {
+                pkm.SetPlusFlags(pkm.PersonalInfo, true, true);
+            }
             pkm.Ball = (byte)Util.Rand.Next(1, 26);
 
             if (pkm is IDynamaxLevel d)
@@ -225,9 +245,6 @@ public class TradeExtensions<T> where T : PKM, new()
 
             if (pkm is ITeraType t)
                 t.TeraTypeOverride = (MoveType)Util.Rand.Next(0, TeraTypeUtil.MaxType + 1);
-
-            if (shiny)
-                pkm.SetShiny();
 
             var la = new LegalityAnalysis(pkm);
             if (!la.Valid)
@@ -238,6 +255,7 @@ public class TradeExtensions<T> where T : PKM, new()
 
             return pkm;
         }
+        throw new InvalidOperationException($"Failed to generate valid Pokémon after {maxAttempts} attempts");
     }
 
     public static T GenerateMysteryEgg(int odds, out T pkm)
@@ -249,8 +267,11 @@ public class TradeExtensions<T> where T : PKM, new()
                 .Select(i => (ushort)i)
                 .ToList();
 
-        while (true)
+        int maxAttempts = 1000;
+        int attempts = 0;
+        while (attempts < maxAttempts)
         {
+            attempts++;
             var species = availSpec[Util.Rand.Next(availSpec.Count)];
             var shiny = Util.Rand.Next(0, odds) == 0;
             var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
@@ -273,6 +294,7 @@ public class TradeExtensions<T> where T : PKM, new()
 
             return pkm;
         }
+        throw new InvalidOperationException($"Failed to generate valid Pokémon Egg after {maxAttempts} attempts");
     }
 
     public static bool HasEggs(ProgramMode mode) => mode is not (ProgramMode.LGPE or ProgramMode.LA or ProgramMode.LZA);

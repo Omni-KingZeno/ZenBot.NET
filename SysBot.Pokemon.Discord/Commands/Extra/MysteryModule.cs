@@ -26,9 +26,16 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
     {
         if (TradeExtensions<T>.HasEggs(Info.Hub.Config.Mode))
         {
-            _ = TradeExtensions<T>.GenerateMysteryEgg(Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
             var sig = Context.User.GetFavor();
-            await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.MysteryEgg, Context.User).ConfigureAwait(false);
+            try
+            {
+                _ = TradeExtensions<T>.GenerateMysteryEgg(Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
+                await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.MysteryEgg, Context.User).ConfigureAwait(false);
+            }
+            catch (InvalidOperationException)
+            {
+                await ReplyAsync($"Oops! Failed to generate a mystery Egg. Please try again.").ConfigureAwait(false);
+            }
         }
         else
         {
@@ -54,7 +61,14 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
     public async Task MysteryMonTradeAsync([Summary("Trade Code")] int code)
     {
         var sig = Context.User.GetFavor();
-        _ = TradeExtensions<T>.GenerateMysteryMon(Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
-        await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
+        try
+        {
+            _ = TradeExtensions<T>.GenerateMysteryMon(Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
+            await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException)
+        {
+            await ReplyAsync($"Oops! Failed to generate a mystery Pokémon. Please try again.").ConfigureAwait(false);
+        }
     }
 }
