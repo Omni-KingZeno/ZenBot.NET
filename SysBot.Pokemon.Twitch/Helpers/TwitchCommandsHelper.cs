@@ -7,7 +7,7 @@ namespace SysBot.Pokemon.Twitch;
 public static class TwitchCommandsHelper<T> where T : PKM, new()
 {
     // Helper functions for commands
-    public static bool AddToWaitingList(string setstring, string display, string username, ulong mUserId, bool sub, out string msg, bool eggTrade = false)
+    public static bool AddToWaitingList(string setstring, string display, string username, ulong mUserId, bool sub, out string msg, bool eggTrade = false, bool mysteryEgg = false)
     {
         if (!TwitchBot<T>.Info.GetCanQueue())
         {
@@ -15,59 +15,94 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
             return false;
         }
 
-        var set = ShowdownUtil.ConvertToShowdown(setstring);
-        if (set == null)
+        var mode = TwitchBot<T>.Info.Hub.Config.Mode;
+        var hasEggs = TradeExtensions<T>.HasEggs(mode);
+        if (!mysteryEgg)
         {
-            msg = $"Skipping trade, @{username}: Empty nickname provided for the species.";
-            return false;
-        }
-        var template = AutoLegalityWrapper.GetTemplate(set);
-        if (template.Species == 0)
-        {
-            msg = $"Skipping trade, @{username}: Please read what you are supposed to type as the command argument.";
-            return false;
-        }
-
-        if (set.InvalidLines.Count != 0)
-        {
-            msg = $"Skipping trade, @{username}: Unable to parse Showdown Set:\n{string.Join("\n", set.InvalidLines)}";
-            return false;
-        }
-
-        try
-        {
-            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var pkm = eggTrade ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(set, out result);
-
-            var (canBeTraded, errorMessage) = pkm.CanBeTraded();
-            if (!canBeTraded)
+            var set = ShowdownUtil.ConvertToShowdown(setstring);
+            if (set == null)
             {
-                msg = $"Skipping trade, @{username}: {errorMessage}";
+                msg = $"Skipping trade, @{username}: Empty nickname provided for the species.";
+                return false;
+            }
+            var template = AutoLegalityWrapper.GetTemplate(set);
+            if (template.Species == 0)
+            {
+                msg = $"Skipping trade, @{username}: Please read what you are supposed to type as the command argument.";
                 return false;
             }
 
-            if (pkm is T pk)
+            if (set.InvalidLines.Count != 0)
             {
-                var valid = new LegalityAnalysis(pkm).Valid;
-                if (valid)
-                {
-                    var tq = new TwitchQueue<T>(pk, new PokeTradeTrainerInfo(display, mUserId), username, sub);
-                    TwitchBot<T>.QueuePool.RemoveAll(z => z.UserName == username); // remove old requests if any
-                    TwitchBot<T>.QueuePool.Add(tq);
-                    msg = $"@{username} - added to the waiting list. Please whisper your trade code to me! Your request from the waiting list will be removed if you are too slow!";
-                    return true;
-                }
+                msg = $"Skipping trade, @{username}: Unable to parse Showdown Set:\n{string.Join("\n", set.InvalidLines)}";
+                return false;
             }
 
-            var reason = result == LegalizationResult.Timeout ? "Set took too long to generate." : "Unable to legalize the Pokémon.";
-            msg = $"Skipping trade, @{username}: {reason}";
+            try
+            {
+                var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+                var pkm = eggTrade && hasEggs ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(set, out result);
+
+                var (canBeTraded, errorMessage) = pkm.CanBeTraded();
+                if (!canBeTraded)
+                {
+                    msg = $"Skipping trade, @{username}: {errorMessage}";
+                    return false;
+                }
+
+                if (pkm is T pk)
+                {
+                    var valid = new LegalityAnalysis(pkm).Valid;
+                    if (valid)
+                    {
+                        var tq = new TwitchQueue<T>(pk, new PokeTradeTrainerInfo(display, mUserId), username, sub);
+                        TwitchBot<T>.QueuePool.RemoveAll(z => z.UserName == username); // remove old requests if any
+                        TwitchBot<T>.QueuePool.Add(tq);
+                        msg = $"@{username} - added to the waiting list. Please whisper your trade code to me! Your request from the waiting list will be removed if you are too slow!";
+                        return true;
+                    }
+                }
+
+                var reason = result == LegalizationResult.Timeout ? "Set took too long to generate." : "Unable to legalize the Pokémon.";
+                msg = $"Skipping trade, @{username}: {reason}";
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogSafe(ex, nameof(TwitchCommandsHelper<T>));
+                msg = $"Skipping trade, @{username}: An unexpected problem occurred.";
+            }
+            return false;
         }
-        catch (Exception ex)
+        else
         {
-            LogUtil.LogSafe(ex, nameof(TwitchCommandsHelper<T>));
-            msg = $"Skipping trade, @{username}: An unexpected problem occurred.";
+            try
+            {
+                if (hasEggs)
+                {
+                    _ = TradeExtensions<T>.GenerateMysteryMon(TwitchBot<T>.Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
+
+                    var valid = new LegalityAnalysis(pkm).Valid;
+                    if (valid)
+                    {
+                        var tq = new TwitchQueue<T>(pkm, new PokeTradeTrainerInfo(display, mUserId), username, sub);
+                        TwitchBot<T>.QueuePool.RemoveAll(z => z.UserName == username); // remove old requests if any
+                        TwitchBot<T>.QueuePool.Add(tq);
+                        msg = $"@{username} - added to the waiting list. Please whisper your trade code to me! Your request from the waiting list will be removed if you are too slow!";
+                        return true;
+                    }
+
+                    var reason = "Failed to generate a mystery egg.";
+                    msg = $"Skipping trade, @{username}: {reason}";
+                }
+                msg = $"Skipping trade, @{username}: {mode} does not have eggs!";
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogSafe(ex, nameof(TwitchCommandsHelper<T>));
+                msg = $"Skipping trade, @{username}: An unexpected problem occurred.";
+            }
+            return false;
         }
-        return false;
     }
 
     public static string ClearTrade(string user)

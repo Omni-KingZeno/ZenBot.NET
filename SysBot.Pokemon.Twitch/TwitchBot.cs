@@ -1,3 +1,4 @@
+using NLog.Filters;
 using PKHeX.Core;
 using SysBot.Base;
 using TwitchLib.Client;
@@ -192,67 +193,54 @@ public class TwitchBot<T> where T : PKM, new()
 
     private string HandleCommand(TwitchLibMessage m, string c, string args, bool whisper)
     {
-        bool sudo() => m is ChatMessage ch && (ch.IsBroadcaster || Settings.IsSudo(m.Username));
-        bool subscriber() => m is ChatMessage { IsSubscriber: true };
+        bool sudo = m is ChatMessage ch && (ch.IsBroadcaster || Settings.IsSudo(m.Username));
+        bool subscriber = m is ChatMessage { IsSubscriber: true };
 
-        switch (c)
+        return c switch
         {
             // User Usable Commands
-            case "donate":
-                return !string.IsNullOrWhiteSpace(Settings.DonationLink) ?
-                    $"Here's the donation link! Thank you for your support :3 {Settings.DonationLink}" : string.Empty;
-            case "discord":
-                return !string.IsNullOrWhiteSpace(Settings.DonationLink) ?
-                    $"Here's the Discord Server Link, have a nice stay :3 {Settings.DiscordLink}" : string.Empty;
-            case "tutorial":
-            case "help":
-                return $"{Settings.TutorialText} {Settings.TutorialLink}";
-            case "trade":
-            case "t":
-                var _ = TwitchCommandsHelper<T>.AddToWaitingList(args, m.DisplayName, m.Username, ulong.Parse(m.UserId), subscriber(), out string msg);
-                return msg;
-            case "egg":
-                var __ = TwitchCommandsHelper<T>.AddToWaitingList(args, m.DisplayName, m.Username, ulong.Parse(m.UserId), subscriber(), out msg, true);
-                return msg;
-            case "ts":
-            case "queue":
-            case "position":
-                return $"@{m.Username}: {Info.GetPositionString(ulong.Parse(m.UserId))}";
-            case "tc":
-            case "cancel":
-            case "remove":
-                return $"@{m.Username}: {TwitchCommandsHelper<T>.ClearTrade(ulong.Parse(m.UserId))}";
+            "donate" when !string.IsNullOrWhiteSpace(Settings.DonationLink) => $"Here's the donation link! Thank you for your support :3 {Settings.DonationLink}",
 
-            case "code" when whisper:
-                return TwitchCommandsHelper<T>.GetCode(ulong.Parse(m.UserId));
+            "discord" when !string.IsNullOrWhiteSpace(Settings.DiscordLink) => $"Here's the Discord Server Link, have a nice stay :3 {Settings.DiscordLink}",
+
+            "tutorial" or "help" => $"{Settings.TutorialText} {Settings.TutorialLink}",
+
+            "trade" or "t" => Trade(args, m, subscriber),
+
+            "egg" => Trade(args, m, subscriber, true),
+
+            "mysteryegg" or "me" => Trade(args, m, subscriber, false, true),
+
+            "ts" or "queue" or "position" => $"@{m.Username}: {Info.GetPositionString(ulong.Parse(m.UserId))}",
+
+            "tc" or "cancel" or "remove" => $"@{m.Username}: {TwitchCommandsHelper<T>.ClearTrade(ulong.Parse(m.UserId))}",
+
+            "code" when whisper => TwitchCommandsHelper<T>.GetCode(ulong.Parse(m.UserId)),
 
             // Sudo Only Commands
-            case "tca" when !sudo():
-            case "pr" when !sudo():
-            case "pc" when !sudo():
-            case "tt" when !sudo():
-            case "tcu" when !sudo():
-                return "This command is locked for sudo users only!";
+            "tca" or "pr" or "pc" or "tt" or "tcu" when !sudo => "This command is locked for sudo users only!",
+            "tca" => ClearAllQueuesCommand(),
 
-            case "tca":
-                Info.ClearAllQueues();
-                return "Cleared all queues!";
+            "pr" => Info.Hub.Ledy.Pool.Reload(Hub.Config.Folder.DistributeFolder) ? $"Reloaded from folder. Pool count: {Info.Hub.Ledy.Pool.Count}" : "Failed to reload from folder.",
 
-            case "pr":
-                return Info.Hub.Ledy.Pool.Reload(Hub.Config.Folder.DistributeFolder) ? $"Reloaded from folder. Pool count: {Info.Hub.Ledy.Pool.Count}" : "Failed to reload from folder.";
+            "pc" => $"The pool count is: {Info.Hub.Ledy.Pool.Count}",
 
-            case "pc":
-                return $"The pool count is: {Info.Hub.Ledy.Pool.Count}";
+            "tt" => Info.Hub.Queues.Info.ToggleQueue() ? "Users are now able to join the trade queue." : "Changed queue settings: **Users CANNOT join the queue until it is turned back on.**",
 
-            case "tt":
-                return Info.Hub.Queues.Info.ToggleQueue()
-                    ? "Users are now able to join the trade queue."
-                    : "Changed queue settings: **Users CANNOT join the queue until it is turned back on.**";
+            "tcu" => TwitchCommandsHelper<T>.ClearTrade(args),
 
-            case "tcu":
-                return TwitchCommandsHelper<T>.ClearTrade(args);
+            _ => string.Empty
+        };
 
-            default: return string.Empty;
+        string Trade(string args, TwitchLibMessage m, bool subscriber, bool eggTrade = false, bool mysteryEgg = false)
+        {
+            _ = TwitchCommandsHelper<T>.AddToWaitingList(args, m.DisplayName, m.Username, ulong.Parse(m.UserId), subscriber, out var msg, eggTrade, mysteryEgg);
+            return msg;
+        }
+        string ClearAllQueuesCommand()
+        {
+            Info.ClearAllQueues();
+            return "Cleared all queues!";
         }
     }
 
