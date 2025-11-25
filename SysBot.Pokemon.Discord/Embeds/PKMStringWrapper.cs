@@ -68,7 +68,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
                         name += Config.UsePlusMoveEmoji ? plusEmoji : " ***+***";
                 }
 
-                var pp = Config.ShowMovePP ? i switch
+                var pp = Config.ShowMovePP && PKM is not PA9 ? i switch
                 {
                     0 => $"({PKM.Move1_PP} PP)",
                     1 => $"({PKM.Move2_PP} PP)",
@@ -142,7 +142,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     }
 
     internal string GetPokemonImageURL(bool isEgg) =>
-        TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, fullSize: false, isEgg);
+        TradeExtensions<T>.GetPokemonImageURL(PKM, PKM is IGigantamax { } g && g.CanGigantamax, Config.UseFullSizeImages, isEgg);
 
     internal string GetBallImageURL() =>
         "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();

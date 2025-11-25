@@ -8,6 +8,7 @@ public class TradeEmbedSettings
 {
     private const string Emoji = nameof(Emoji);
     private const string Text = nameof(Text);
+    private const string Image = nameof(Image);
     public override string ToString() => "Discord Embed Settings";
 
     [Category(Text), Description("Information to be displayed in Trade Embeds")]
@@ -16,6 +17,9 @@ public class TradeEmbedSettings
 
     [Category(Text), Description("If true, will use Koi's TradeCord style embed layout")]
     public bool UseAlternateLayout { get; set; } = false;
+
+    [Category(Image), Description("If true, will use 256x256 images instead of 128x128")]
+    public bool UseFullSizeImages { get; set; } = false;
 
     [Category(Text), Description("If true, show the move PP amount in the Discord embed.")]
     public bool ShowMovePP { get; set; } = false;

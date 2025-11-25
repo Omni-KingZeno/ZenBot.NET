@@ -149,7 +149,7 @@ public class TradeExtensions<T> where T : PKM, new()
         var eggURL = $"https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/Egg_{(MoveType)pkm.PersonalInfo.Type1}.png";
         string[] baseLink;
         if (fullSize)
-            baseLink = "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/512x512/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_');
+            baseLink = "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/256x256/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_');
         else baseLink = "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_');
 
         if (Enum.IsDefined(typeof(GenderDependent), pkm.Species) && !canGmax && pkm.Form is 0)
@@ -195,7 +195,7 @@ public class TradeExtensions<T> where T : PKM, new()
         baseLink[3] = pkm.Form < 10 ? $"00{form}" : $"0{form}";
         baseLink[4] = pkm.PersonalInfo.OnlyFemale ? "fo" : pkm.PersonalInfo.OnlyMale ? "mo" : pkm.PersonalInfo.Genderless ? "uk" : fd ? "fd" : md ? "md" : "mf";
         baseLink[5] = canGmax ? "g" : "n";
-        baseLink[6] = "0000000" + (pkm.Species == (int)Species.Alcremie && !canGmax ? pkm.Data[0xD0] : 0);
+        baseLink[6] = "0000000" + (pkm.Species == (int)Species.Alcremie && !canGmax && pkm is IFormArgument pkarg ? pkarg.FormArgument : 0);
         baseLink[8] = pkm.IsShiny ? "r.png" : "n.png";
         return egg ? eggURL : string.Join("_", baseLink);
     }
