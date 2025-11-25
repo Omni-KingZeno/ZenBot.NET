@@ -22,8 +22,15 @@ public sealed record QueueCheckResult<T>(
         var position = $"{Position}/{QueueCount}";
         var msg = $"You are in the {Detail.Type} queue! Position: {position} (ID {Detail.Trade.ID})";
         var pk = Detail.Trade.TradeData;
+        var strings = GameInfo.GetStrings("en");
+        var receiving = Detail.Trade.Type switch
+        {
+            PokeTradeType.MysteryEgg => "Mystery Egg",
+            PokeTradeType.ItemTrade => strings.itemlist[pk.HeldItem],
+            _ => strings.Species[pk.Species]
+        };
         if (pk.Species != 0)
-            msg += $", Receiving: {GameInfo.GetStrings("en").Species[pk.Species]}";
+            msg += $", Receiving: {receiving}";
         return msg;
     }
 }

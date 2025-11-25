@@ -32,7 +32,7 @@ public static class QueueHelper<T> where T : PKM, new()
             IUserMessage test = await trader.SendMessageAsync(helper).ConfigureAwait(false);
 
             // Try adding
-            var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var embed);
+            var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var receiving, out var embed);
 
             // Notify in channel
             if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && TradeEmbedBuilder<T>.TypeSupportsEmbed(type))
@@ -43,7 +43,7 @@ public static class QueueHelper<T> where T : PKM, new()
             }
             else
             {
-                await context.Channel.SendMessageAsync(msg).ConfigureAwait(false);
+                await context.Channel.SendMessageAsync(msg + receiving).ConfigureAwait(false);
             }
 
             // Notify in PM to mirror what was said in the channel.
@@ -58,7 +58,7 @@ public static class QueueHelper<T> where T : PKM, new()
             }
             else
             {
-                await trader.SendMessageAsync($"{msg}").ConfigureAwait(false);
+                await trader.SendMessageAsync($"{msg + receiving}").ConfigureAwait(false);
             }
 
             // Clean Up
@@ -85,7 +85,7 @@ public static class QueueHelper<T> where T : PKM, new()
         return AddToQueueAsync(context, code, trainer, sig, trade, routine, type, context.User);
     }
 
-    private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, out TradeEmbedBuilder<T>? embed)
+    private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, out string receiving, out TradeEmbedBuilder<T>? embed)
     {
         var user = trader;
         var userID = user.Id;
@@ -111,20 +111,26 @@ public static class QueueHelper<T> where T : PKM, new()
         if (added == QueueResultAdd.AlreadyInQueue)
         {
             msg = "Sorry, you are already in the queue.";
+            receiving = string.Empty;
             embed = null;
             return false;
         }
 
         var position = Info.CheckPosition(userID, type);
 
-        var ticketID = "";
+        var ticketID = string.Empty;
         if (TradeStartModule<T>.IsStartChannel(context.Channel.Id))
             ticketID = $", unique ID: {detail.ID}";
 
-        var pokeName = "";
-        if (hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.None && t == PokeTradeType.Specific && pk.Species != 0)
-            pokeName = $" Receiving: {GameInfo.GetStrings("en").Species[pk.Species]}.";
-        msg = $"{user.Mention} - Added to the {type} queue{ticketID}. {pokeName} ";
+        var strings = GameInfo.GetStrings("en");
+        receiving = t switch
+        {
+            PokeTradeType.MysteryEgg => " Receiving: Mystery Egg.",
+            PokeTradeType.ItemTrade => $" Receiving: {strings.itemlist[pk.HeldItem]}.",
+            PokeTradeType.Specific or PokeTradeType.Giveaway => $" Receiving: {strings.Species[pk.Species]}.",
+            _ => string.Empty
+        };
+        msg = $"{user.Mention} - Added to the {type} queue{ticketID}. ";
 
         embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), type, t);
 
