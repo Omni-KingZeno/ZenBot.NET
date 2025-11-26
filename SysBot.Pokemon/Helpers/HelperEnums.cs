@@ -1,5 +1,13 @@
+using System.ComponentModel;
+
 namespace SysBot.Pokemon;
 
+public enum TradeEmbedDisplay
+{
+    None,
+    TradeInitialize,
+    TradeComplete,
+}
 
 public enum ImageLocation
 {
@@ -7,6 +15,7 @@ public enum ImageLocation
     MainBody
 }
 
+[TypeConverter(typeof(SortedDisplayedInfoConverter))]
 public enum DisplayedInfo
 {
     Ability,

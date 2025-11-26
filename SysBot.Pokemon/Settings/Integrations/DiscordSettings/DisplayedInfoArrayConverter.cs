@@ -35,7 +35,7 @@ public class ArrayElementPropertyDescriptor(Array array, int index) : PropertyDe
     public override Type ComponentType => array.GetType();
     public override bool IsReadOnly => false;
     public override Type PropertyType => array.GetType().GetElementType()!;
-    public override TypeConverter Converter => new SortedEnumConverter(array.GetType().GetElementType()!);
+    public override TypeConverter Converter => TypeDescriptor.GetConverter(PropertyType);
 
     public override object? GetValue(object? component) => array.GetValue(index);
     public override void SetValue(object? component, object? value) => array.SetValue(value, index);
@@ -44,11 +44,13 @@ public class ArrayElementPropertyDescriptor(Array array, int index) : PropertyDe
     public override bool ShouldSerializeValue(object component) => true;
 }
 
-public class SortedEnumConverter(Type type) : EnumConverter(type)
+public class SortedDisplayedInfoConverter : EnumConverter
 {
+    public SortedDisplayedInfoConverter() : base(typeof(DisplayedInfo)) { }
+
     public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext? context)
     {
-        var values = Enum.GetValues(EnumType).Cast<object>().OrderBy(v => v.ToString()).ToArray();
+        var values = Enum.GetValues<DisplayedInfo>().Cast<object>().OrderBy(v => v.ToString()).ToArray();
         return new StandardValuesCollection(values);
     }
 }
