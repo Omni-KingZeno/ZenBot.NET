@@ -1,4 +1,3 @@
-using NLog.Filters;
 using PKHeX.Core;
 using SysBot.Base;
 using TwitchLib.Client;

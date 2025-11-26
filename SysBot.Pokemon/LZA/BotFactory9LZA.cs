@@ -1,5 +1,4 @@
 using PKHeX.Core;
-using System;
 
 namespace SysBot.Pokemon;
 

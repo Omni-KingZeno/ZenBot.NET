@@ -1,5 +1,4 @@
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using PKHeX.Core;
 using PKHeX.Core.Searching;
 using SysBot.Base;

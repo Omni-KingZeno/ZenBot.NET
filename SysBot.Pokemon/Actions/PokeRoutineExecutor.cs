@@ -1,4 +1,3 @@
-using System.Globalization;
 using PKHeX.Core;
 using SysBot.Base;
 using static SysBot.Base.SwitchButton;

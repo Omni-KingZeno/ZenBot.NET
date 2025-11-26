@@ -3,9 +3,6 @@ using System.Text.Json;
 using Microsoft.Win32;
 using SysBot.Base;
 
-using PKHeX.Core;
-using SysBot.Pokemon.Z3;
-
 namespace SysBot.Pokemon.WinForms;
 
 internal static class Program
