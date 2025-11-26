@@ -15,6 +15,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     internal string Gender => GetGenderString();
     internal string Scale => GetScaleString();
     internal string TeraType => GetTeraTypeString();
+    internal string FormArgument => GetFormArgumentString();
 
     internal string Ability => mysteryEgg ? "Unknown" : GameStrings.Ability[PKM.Ability];
     internal string Nature => GameStrings.Natures[(byte)PKM.StatNature];
@@ -37,6 +38,25 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         var forms = FormConverter.GetFormList(PKM.Species, GameStrings.types, GameStrings.forms, GameInfo.GenderSymbolASCII, PKM.Context);
         var form = forms[PKM.Form];
         return form;
+    }
+
+    private string GetFormArgumentString()
+    {
+        if (PKM is IFormArgument pkarg)
+        {
+            return pkarg.FormArgument switch
+            {
+                0 => "Strawberry",
+                1 => "Berry",
+                2 => "Love",
+                3 => "Star",
+                4 => "Clover",
+                5 => "Flower",
+                6 => "Ribbon",
+                _ => ""
+            };
+        }
+        return "";
     }
 
     private string GetShinyString() =>
@@ -146,6 +166,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
 
     internal string GetBallImageURL() =>
         "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Ballimg/50x50/" + $"{(Ball)PKM.Ball}ball.png".ToLower();
+
     internal string GetMarkImageURL() =>
        PKM is PA9 { IsAlpha: true } or PA8 { IsAlpha: true } ? "https://www.serebii.net/pokearth/hisui/icons/alphaza.png" : Mark.HasMark ? $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png" : string.Empty;
 

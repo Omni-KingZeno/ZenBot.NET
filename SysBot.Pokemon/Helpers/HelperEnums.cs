@@ -40,7 +40,8 @@ public enum DisplayedInfo
     TeraType,
     TeraTypeOverride,
     Weight,
-    HeldItem
+    HeldItem,
+    Sweet
 }
 
 public enum GenderDependent : ushort

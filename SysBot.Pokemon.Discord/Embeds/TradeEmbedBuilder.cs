@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using Discord;
 using PKHeX.Core;
 using SysBot.Pokemon.Discord.Helpers;
-using static SysBot.Pokemon.TradeEmbedSettings;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -173,6 +171,8 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
             DisplayedInfo.SpeciesFormMarkHeldItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
 
             DisplayedInfo.StatNature when PKM.StatNature != PKM.Nature => $"**Stat Nature:** {PKM.StatNature}",
+
+            DisplayedInfo.Sweet when PKM.Species is (ushort)Species.Alcremie => $"**Sweet:** {Strings.FormArgument}",
 
             DisplayedInfo.TeraType when Strings.HasTeraType => $"**Tera Type:** {Strings.TeraType}",
 
