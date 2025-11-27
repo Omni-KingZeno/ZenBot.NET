@@ -103,9 +103,10 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
 
     private string GetScaleString() => PKM switch
     {
-        var pk when pk is IScaledSize3 { } s => $"{PokeSizeDetailedUtil.GetSizeRating(s.Scale)} ({s.Scale})",
-        var pk when pk is IScaledSize { } hw => $"{PokeSizeDetailedUtil.GetSizeRating(hw.HeightScalar)} ({hw.HeightScalar})",
-        _ => throw new NotSupportedException("Unsupported PKM type for scale string.")
+        PK9 s => $"{PokeSizeDetailedUtil.GetSizeRating(s.Scale)} ({s.Scale})",
+        PA8 a => $"{PokeSizeUtil.GetSizeRating(a.Scale)} ({a.Scale})",
+        PA9 a => $"{PokeSizeUtil.GetSizeRating(a.Scale)} ({a.Scale})",
+        _ => string.Empty
     };
 
     private string GetTeraTypeString()

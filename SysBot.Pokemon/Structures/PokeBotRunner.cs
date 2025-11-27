@@ -63,7 +63,7 @@ public abstract class PokeBotRunner<T>(PokeTradeHub<T> hub, BotFactory<T> Factor
         if (RunOnce)
             return;
 
-        AutoLegalityWrapper.EnsureInitialized(Hub.Config.Legality);
+        AutoLegalityWrapper.EnsureInitialized(Hub.Config.Legality, Hub.Config.Mode);
 
         AddIntegrations();
         AddTradeBotMonitors();

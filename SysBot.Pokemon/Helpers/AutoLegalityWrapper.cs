@@ -7,25 +7,25 @@ public static class AutoLegalityWrapper
 {
     private static bool Initialized;
 
-    public static void EnsureInitialized(LegalitySettings cfg)
+    public static void EnsureInitialized(LegalitySettings cfg, ProgramMode mode = ProgramMode.LZA)
     {
         if (Initialized)
             return;
         Initialized = true;
-        InitializeAutoLegality(cfg);
+        InitializeAutoLegality(cfg, mode);
     }
 
-    public static void InitializeAutoLegality(LegalitySettings cfg)
+    public static void InitializeAutoLegality(LegalitySettings cfg, ProgramMode mode)
     {
         EncounterEvent.RefreshMGDB(cfg.MGDBPath);
         InitializeTrainerDatabase(cfg);
-        InitializeSettings(cfg);
+        InitializeSettings(cfg, mode);
     }
 
     // The list of encounter types in the priority we prefer if no order is specified.
     private static readonly EncounterTypeGroup[] EncounterPriority = [EncounterTypeGroup.Egg, EncounterTypeGroup.Slot, EncounterTypeGroup.Static, EncounterTypeGroup.Mystery, EncounterTypeGroup.Trade];
 
-    private static void InitializeSettings(LegalitySettings cfg)
+    private static void InitializeSettings(LegalitySettings cfg, ProgramMode mode)
     {
         APILegality.SetAllLegalRibbons = cfg.SetAllLegalRibbons;
         APILegality.SetMatchingBalls = cfg.SetMatchingBalls;
@@ -38,6 +38,15 @@ public static class AutoLegalityWrapper
         cfg.PriorityOrder = APILegality.PriorityOrder = SanitizePriorityOrder(cfg.PriorityOrder); // Clean this up because user can add duplicate or invalid entries.
         APILegality.SetBattleVersion = cfg.SetBattleVersion;
         APILegality.Timeout = cfg.Timeout;
+        APILegality.Version = mode switch
+        {
+            ProgramMode.LGPE => GameVersion.GG,
+            ProgramMode.SWSH => GameVersion.SWSH,
+            ProgramMode.BDSP => GameVersion.BDSP,
+            ProgramMode.LA => GameVersion.PLA,
+            ProgramMode.SV => GameVersion.SV,
+            _ => GameVersion.ZA
+        };
 
         var settings = ParseSettings.Settings;
 
