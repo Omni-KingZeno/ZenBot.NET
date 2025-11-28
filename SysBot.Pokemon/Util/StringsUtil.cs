@@ -8,6 +8,7 @@ public static class StringsUtil
 
     private static readonly string[] TLD = ["tv", "gg", "yt"];
     private static readonly string[] TLD2 = ["com", "org", "net"];
+    private static readonly string[] Exceptions = ["A. Z.", "A.Z."]; // Floette-Eternal OT Language Variants
 
     /// <summary>
     /// Remove all non-alphanumeric characters, convert wide chars to narrow, and converts the final string to lowercase.
@@ -46,6 +47,12 @@ public static class StringsUtil
     /// <returns>True if spam, false if natural.</returns>
     public static bool IsSpammyString(ReadOnlySpan<char> text)
     {
+        foreach (var exception in Exceptions)
+        {
+            if (text.Equals(exception, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
         if (text.IndexOfAny(adBadList) >= 0)
             return true;
 
