@@ -106,7 +106,9 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
     {
         List<dynamic> events;
 
-        if (typeof(T) == typeof(PK9))
+        if (typeof(T) == typeof(PA9))
+            events = [.. EncounterEvent.MGDB_G9A.Where(e => e.CardType is WA9.GiftType.Pokemon)];
+        else if (typeof(T) == typeof(PK9))
             events = [.. EncounterEvent.MGDB_G9.Where(e => e.CardType is WC9.GiftType.Pokemon)];
         else if (typeof(T) == typeof(PK8))
             events = [.. EncounterEvent.MGDB_G8.Where(e => e.CardType is WC8.GiftType.Pokemon)];
@@ -114,11 +116,13 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
             events = [.. EncounterEvent.MGDB_G8A.Where(e => e.CardType is WA8.GiftType.Pokemon)];
         else if (typeof(T) == typeof(PB8))
             events = [.. EncounterEvent.MGDB_G8B.Where(e => e.CardType is WB8.GiftType.Pokemon)];
-        else
+        else if (typeof(T) == typeof(PB7))
             events = [.. EncounterEvent.MGDB_G7GG.Where(e => e.CardType is 0)];
+        else
+            events = [];
 
-        // Collapse duplicates by species
-        return [.. events
+            // Collapse duplicates by species
+            return [.. events
             .GroupBy(e => e.Species)
             .Select(g => g.First()).Reverse()];
     }
