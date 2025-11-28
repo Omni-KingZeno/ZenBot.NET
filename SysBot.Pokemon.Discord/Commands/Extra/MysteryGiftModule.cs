@@ -72,7 +72,7 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
     [Command("getEvent")]
     [Summary("Generates an event Pokemon by its Mystery Gift list number for another player.")]
     [RequireSudo]
-    public async Task GetEvent([Summary("Mentioned User")]SocketUser user, [Remainder][Summary("Selection from Event List")]int number)
+    public async Task GetEvent([Summary("Mentioned User")] SocketUser user, [Remainder][Summary("Selection from Event List")] int number)
     {
         var availablePokemon = GetAvailablePokemon();
 
@@ -99,6 +99,8 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
     {
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
         var pkm = mg.ConvertToPKM(trainer);
+        if (TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem))
+            pkm.HeldItem = 0;
         return EntityConverter.ConvertToType(pkm, typeof(T), out _) as T;
     }
 
@@ -106,7 +108,9 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
     {
         List<dynamic> events;
 
-        if (typeof(T) == typeof(PK9))
+        if (typeof(T) == typeof(PA9))
+            events = [.. EncounterEvent.MGDB_G9A.Where(e => e.CardType is WA9.GiftType.Pokemon)];
+        else if (typeof(T) == typeof(PK9))
             events = [.. EncounterEvent.MGDB_G9.Where(e => e.CardType is WC9.GiftType.Pokemon)];
         else if (typeof(T) == typeof(PK8))
             events = [.. EncounterEvent.MGDB_G8.Where(e => e.CardType is WC8.GiftType.Pokemon)];
@@ -114,8 +118,10 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
             events = [.. EncounterEvent.MGDB_G8A.Where(e => e.CardType is WA8.GiftType.Pokemon)];
         else if (typeof(T) == typeof(PB8))
             events = [.. EncounterEvent.MGDB_G8B.Where(e => e.CardType is WB8.GiftType.Pokemon)];
-        else
+        else if (typeof(T) == typeof(PB7))
             events = [.. EncounterEvent.MGDB_G7GG.Where(e => e.CardType is 0)];
+        else
+            events = [];
 
         // Collapse duplicates by species
         return [.. events
