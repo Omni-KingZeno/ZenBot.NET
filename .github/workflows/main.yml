@@ -54,15 +54,25 @@ jobs:
         name: SysBot.Pokemon.WinForms
         path: SysBot.Pokemon.WinForms\bin\Release\net9.0-windows\publish\*.exe
 
+    - name: Format version number
+      id: version
+      run: |
+        $runNumber = "${{ github.run_number }}"
+        $lastDigit = $runNumber.Substring($runNumber.Length - 1)
+        $firstDigits = $runNumber.Substring(0, $runNumber.Length - 1)
+        $formattedVersion = "$firstDigits.$lastDigit"
+        echo "number=$formattedVersion" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/ZenBot'
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ github.run_number }}
-        name: Release v${{ github.run_number }}
+        tag_name: v${{ steps.version.outputs.number }}
+        name: Release v${{ steps.version.outputs.number }}
         draft: false
         prerelease: false
         files: SysBot.Pokemon.WinForms/bin/Release/net9.0-windows/publish/*.exe
         generate_release_notes: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}         
