@@ -23,7 +23,7 @@ public class InfoModule : ModuleBase<SocketCommandContext>
     public async Task InfoAsync()
     {
         var app = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
-        var owner = app.Team.TeamMembers.FirstOrDefault(member => member.Role == TeamRole.Owner)?.User ?? app.Owner;
+        var owner = app.Team?.TeamMembers.FirstOrDefault(member => member.Role == TeamRole.Owner)?.User ?? app.Owner;
 
         var builder = new EmbedBuilder
         {
