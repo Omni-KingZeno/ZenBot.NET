@@ -126,9 +126,9 @@ public static class AutoLegalityWrapper
             TrainerSettings.Register(fallback);
     }
 
-    public static (bool, string) CanBeTraded(this PKM pk)
+    public static (bool, string) CanBeTraded(this PKM pk, IEncounterTemplate enc)
     {
-        if (pk.IsNicknamed)
+        if (pk.IsNicknamed && enc is not IFixedNickname { IsFixedNickname: true })
         {
             Span<char> nick = stackalloc char[pk.TrashCharCountNickname];
             int len = pk.LoadString(pk.NicknameTrash, nick);
@@ -140,7 +140,7 @@ public static class AutoLegalityWrapper
             Span<char> ot = stackalloc char[pk.TrashCharCountTrainer];
             int len = pk.LoadString(pk.OriginalTrainerTrash, ot);
             ot = ot[..len];
-            if (StringsUtil.IsSpammyString(ot) && !IsFixedOT(new LegalityAnalysis(pk).EncounterOriginal, pk))
+            if (StringsUtil.IsSpammyString(ot) && !IsFixedOT(enc, pk))
                 return (false, "OT contains illegal characters");
         }
 
@@ -156,6 +156,7 @@ public static class AutoLegalityWrapper
     public static bool IsFixedOT(IEncounterTemplate t, PKM pkm) => t switch
     {
         IFixedTrainer { IsFixedTrainer: true } => true,
+        EncounterGift9a { Trainer: not 0 } => true, // todo ZA DLC: remove me, implicitly covered by IFixedTrainer
         MysteryGift g => !g.IsEgg && g switch
         {
             WA9 wa9 => wa9.GetHasOT(pkm.Language),

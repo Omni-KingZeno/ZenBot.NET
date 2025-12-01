@@ -265,14 +265,6 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task AddTradeToQueueAsync(int code, string trainerName, T pk, RequestSignificance sig, SocketUser usr)
     {
-        var (canBeTraded, errorMessage) = pk.CanBeTraded();
-        if (!canBeTraded)
-        {
-            // Disallow anything that cannot be traded from the game (e.g. Fusions).
-            await ReplyAsync($"{Context.User.Mention}, {errorMessage}").ConfigureAwait(false);
-            return;
-        }
-
         // Old generation entities are converted with no Handling trainer, resulting in a broken legality analysis.
         var la = new LegalityAnalysis(pk);
         if (la.Results.Any(memory => memory.Identifier is CheckIdentifier.Memory && !memory.Valid) && pk is IHandlerUpdate h)
@@ -288,6 +280,14 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             return;
         }
 
+        var enc = la.EncounterOriginal;
+        var (canBeTraded, errorMessage) = pk.CanBeTraded(enc);
+        if (!canBeTraded)
+        {
+            // Disallow anything that cannot be traded from the game (e.g. Fusions).
+            await ReplyAsync($"{Context.User.Mention}, {errorMessage}").ConfigureAwait(false);
+            return;
+        }
         var cfg = Info.Hub.Config.Trade;
         if (cfg.DisallowNonNatives && (la.EncounterOriginal.Context != pk.Context || pk.GO))
         {

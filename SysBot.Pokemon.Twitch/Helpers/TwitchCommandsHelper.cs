@@ -43,7 +43,9 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
                 var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
                 var pkm = eggTrade && hasEggs ? sav.GenerateEgg((RegenTemplate)template, out LegalizationResult result) : sav.GetLegal(set, out result);
 
-                var (canBeTraded, errorMessage) = pkm.CanBeTraded();
+                var la = new LegalityAnalysis(pkm);
+                var enc = la.EncounterOriginal;
+                var (canBeTraded, errorMessage) = pkm.CanBeTraded(enc);
                 if (!canBeTraded)
                 {
                     msg = $"Skipping trade, @{username}: {errorMessage}";
@@ -52,8 +54,7 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
 
                 if (pkm is T pk)
                 {
-                    var valid = new LegalityAnalysis(pkm).Valid;
-                    if (valid)
+                    if (la.Valid)
                     {
                         var tq = new TwitchQueue<T>(pk, new PokeTradeTrainerInfo(display, mUserId), username, sub);
                         TwitchBot<T>.QueuePool.RemoveAll(z => z.UserName == username); // remove old requests if any
