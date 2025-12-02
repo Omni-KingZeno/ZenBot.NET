@@ -2,6 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using PKHeX.Core;
 using SysBot.Base;
+using SysBot.Pokemon.Discord.Helpers;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -59,13 +60,51 @@ public static class ReusableActions
     public static async Task SendPKMAsShowdownSetAsync(this ISocketMessageChannel channel, PKM pkm)
     {
         var txt = GetFormattedShowdownText(pkm);
-        await channel.SendMessageAsync(txt).ConfigureAwait(false);
+        var color = EmbedColorHelper.GetDiscordColor(pkm.IsShiny ? EmbedColorHelper.ShinyMap[((Species)pkm.Species, pkm.Form)] : (PersonalColor)pkm.PersonalInfo.Color);
+        var pkmType = pkm.GetType();
+        var tradeExtensionsType = typeof(TradeExtensions<>).MakeGenericType(pkmType);
+        var method = tradeExtensionsType.GetMethod("GetPokemonImageURL", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        var url = (string)method!.Invoke(null, [pkm, pkm is IGigantamax g && g.CanGigantamax, false, false])!;
+        var la = new LegalityAnalysis(pkm);
+        var embed = new EmbedBuilder()
+            .WithTitle("Here's what you showed me!")
+            .WithDescription(txt)
+            .WithColor(color)
+            .WithThumbnailUrl(url)
+            .WithFooter(la.Valid ? "This Pokémon is legal" : "This Pokémon is not legal", la.Valid ? "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/check.png" : "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/x.png");
+
+        await channel.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);
     }
 
     public static string GetFormattedShowdownText(PKM pkm)
     {
         var showdown = ShowdownParsing.GetShowdownText(pkm);
-        return Format.Code(showdown);
+        var lines = showdown.Split('\n').ToList();
+
+        int natureIndex = lines.FindIndex(z => z.Contains("Nature"));
+        if (pkm.Ball > (int)Ball.None && natureIndex != -1)
+            lines.Insert(natureIndex, $"Ball: {(Ball)pkm.Ball} Ball");
+
+        int abilityIndex = lines.FindIndex(z => z.Contains("Ability:"));
+        if (pkm is IAlpha alpha && alpha.IsAlpha && abilityIndex != -1)
+            lines.Insert(abilityIndex + 1, "Alpha: Yes");
+
+        int shinyIndex = lines.FindIndex(x => x.Contains("Shiny: Yes"));
+        if (pkm is PK8 && pkm.IsShiny && shinyIndex != -1)
+            lines[shinyIndex] = pkm.ShinyXor == 0 || pkm.FatefulEncounter ? "Shiny: Square" : "Shiny: Star";
+
+        var trainerInfo = new List<string>
+        {
+            $"OT: {pkm.OriginalTrainerName}",
+            $"TID: {pkm.GetDisplayTID()}",
+            $"SID: {pkm.GetDisplaySID()}"
+        };
+        if (pkm.IsEgg)
+            trainerInfo.Add("IsEgg: Yes");
+
+        lines.InsertRange(1, trainerInfo);
+
+        return Format.Code(string.Join("\n", lines));
     }
 
     private static readonly string[] separator = [",", ", ", " "];

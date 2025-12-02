@@ -210,7 +210,7 @@ internal class EmbedColorHelper
             { (Cyndaquil, 0), PersonalColor.Brown },
             { (Quilava, 0), PersonalColor.Brown },
             { (Typhlosion, 0), PersonalColor.Brown },
-            { (Typhlosion, 1), PersonalColor.Blue },
+            { (Typhlosion, 1), PersonalColor.Purple },
             { (Totodile, 0), PersonalColor.Blue },
             { (Croconaw, 0), PersonalColor.Blue },
             { (Feraligatr, 0), PersonalColor.Blue },
