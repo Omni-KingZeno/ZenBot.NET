@@ -236,7 +236,7 @@ public class TradeExtensions<T> where T : PKM, new()
             }
             else
             {
-                pkm.SetPlusFlags(pkm.PersonalInfo, true, true);
+                pkm.SetPlusFlags(true, true);
             }
             pkm.Ball = (byte)Util.Rand.Next(1, 26);
 

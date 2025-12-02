@@ -35,7 +35,7 @@ public static class QueueHelper<T> where T : PKM, new()
             var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var receiving, out var embed);
 
             // Notify in channel
-            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && TradeEmbedBuilder<T>.TypeSupportsEmbed(type))
+            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && TradeEmbedBuilder<T>.TypeSupportsEmbed(type) && result)
             {
                 _ = embed?.Build();
                 embed?.Builder.AddField("** **", msg, inline: false);
@@ -48,17 +48,19 @@ public static class QueueHelper<T> where T : PKM, new()
 
             // Notify in PM to mirror what was said in the channel.
             if (result)
+            {
                 msg += $"\nYour trade code will be {(typeof(T) == typeof(PB7) ? "" : $"**{code:0000 0000}**.")}";
 
-            if (typeof(T) == typeof(PB7))
-            {
-                var codes = PictoCodesExtensions.GetPictoCodesFromLinkCode(code);
-                var (attachment, embedPicto) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);
-                await trader.SendFileAsync(attachment, $"{msg}\nYour trade code will be ", false, embedPicto.Build()).ConfigureAwait(false);
-            }
-            else
-            {
-                await trader.SendMessageAsync($"{msg + receiving}").ConfigureAwait(false);
+                if (typeof(T) == typeof(PB7))
+                {
+                    var codes = PictoCodesExtensions.GetPictoCodesFromLinkCode(code);
+                    var (attachment, embedPicto) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);
+                    await trader.SendFileAsync(attachment, $"{msg}\nYour trade code will be ", false, embedPicto.Build()).ConfigureAwait(false);
+                }
+                else
+                {
+                    await trader.SendMessageAsync($"{msg + receiving}").ConfigureAwait(false);
+                }
             }
 
             // Clean Up
