@@ -7,9 +7,9 @@ namespace SysBot.Pokemon.Discord;
 public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, PokeRoutineType rType, PokeTradeType type) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
-    private bool AltTrade => type is (PokeTradeType.ItemTrade or PokeTradeType.Clone or PokeTradeType.Dump);
+    private bool AltTrade => type is (PokeTradeType.ItemTrade or PokeTradeType.Clone or PokeTradeType.Dump or PokeTradeType.Seed);
     public EmbedBuilder Builder { get; init; } = new();
-    private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, type == PokeTradeType.MysteryEgg);
+    private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, type);
 
     public Embed Build()
     {
@@ -28,13 +28,13 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         Builder.Footer = InitializeFooter();
         if (altStyle)
         {
-            Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL(type) : Strings.GetImageURL(type);
-            Builder.ThumbnailUrl = AltTrade ? type == PokeTradeType.ItemTrade ? Strings.GetImageURL(type) : string.Empty : Strings.GetThumbnailURL(type);
+            Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL() : Strings.GetImageURL();
+            Builder.ThumbnailUrl = AltTrade ? type == PokeTradeType.ItemTrade ? Strings.GetImageURL() : string.Empty : Strings.GetThumbnailURL();
         }
         else
         {
-            Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL(type) : string.Empty;
-            Builder.ThumbnailUrl = AltTrade ? type == PokeTradeType.ItemTrade ? Strings.GetImageURL(type) : string.Empty : Strings.GetImageURL(type);
+            Builder.ImageUrl = AltTrade ? Strings.GetThumbnailURL() : string.Empty;
+            Builder.ThumbnailUrl = AltTrade ? type == PokeTradeType.ItemTrade ? Strings.GetImageURL() : string.Empty : Strings.GetImageURL();
         }
 
         // Build field value based on EmbedDisplayedInfo setting
@@ -270,7 +270,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
-        Name = Strings.GetAuthorText(trader.Username, type),
+        Name = Strings.GetAuthorText(trader.Username),
         IconUrl = Strings.GetBallImageURL(),
     };
 
@@ -299,19 +299,6 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
         }
         var imgURL = Strings.GetMarkImageURL();
         return new EmbedFooterBuilder { Text = footerText, IconUrl = imgURL };
-    }
-
-    public static bool TypeSupportsEmbed(PokeTradeType type)
-    {
-        return type switch
-        {
-            PokeTradeType.Specific or
-            PokeTradeType.MysteryEgg or
-            PokeTradeType.ItemTrade or
-            PokeTradeType.Clone or
-            PokeTradeType.Dump => true,
-            _ => false,
-        };
     }
 }
 

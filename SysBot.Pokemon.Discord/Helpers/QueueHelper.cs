@@ -35,8 +35,9 @@ public static class QueueHelper<T> where T : PKM, new()
             var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var receiving, out var embed);
 
             // Notify in channel
-            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && TradeEmbedBuilder<T>.TypeSupportsEmbed(type) && result)
+            if (Hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && result)
             {
+                //var embedMsg = msg.Replace(" - ", ".\n").Replace(", u", "\nU");
                 _ = embed?.Build();
                 embed?.Builder.AddField("** **", msg, inline: false);
                 await context.Channel.SendMessageAsync(embed: embed?.Build()).ConfigureAwait(false);
@@ -136,7 +137,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
         embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), type, t);
 
-        if (!(hub.Config.Discord.UseTradeEmbeds is TradeEmbedDisplay.TradeInitialize && t is not (PokeTradeType.Seed or PokeTradeType.Random)))
+        if (hub.Config.Discord.UseTradeEmbeds is not TradeEmbedDisplay.TradeInitialize)
         {
             msg += $"Current Position: {position.Position}.";
             var botct = Info.Hub.Bots.Count;

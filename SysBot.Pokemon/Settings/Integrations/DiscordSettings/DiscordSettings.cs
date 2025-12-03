@@ -107,6 +107,9 @@ public class DiscordSettings
 
     // Embeds
 
+    [Category(Embeds), Description("Use embeds for trade start messages.")]
+    public bool UseTradeStartEmbeds { get; set; } = false;
+
     [Category(Embeds), Description("Select the display method for trade embeds. Leave as 'None' to disable embed display.")]
     public TradeEmbedDisplay UseTradeEmbeds { get; set; } = TradeEmbedDisplay.None;
 

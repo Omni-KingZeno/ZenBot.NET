@@ -2,7 +2,7 @@ using PKHeX.Core;
 
 namespace SysBot.Pokemon;
 
-public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Trainer, IPokeTradeNotifier<TPoke> Notifier, PokeTradeType Type, int Code, bool IsFavored = false, PictoCode[]? Code7b = null)
+public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Trainer, IPokeTradeNotifier<TPoke> Notifier, PokeTradeType Type, int Code, bool IsFavored = false, PictoCode[]? Code7b = null, bool twitchTrade = false)
     : IEquatable<PokeTradeDetail<TPoke>>, IFavoredEntry where TPoke : PKM, new()
 {
     // ReSharper disable once StaticMemberInGenericType
@@ -10,6 +10,8 @@ public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Traine
     private static int CreatedCount;
     /// <summary> Indicates if this trade data should be given priority for queue insertion. </summary>
     public bool IsFavored { get; } = IsFavored;
+    /// <summary> Indicates if the trade is coming from Twitch. </summary>
+    public bool IsTwitchTrade { get; } = twitchTrade;
 
     /// <summary>
     /// Trade Code

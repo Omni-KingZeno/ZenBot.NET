@@ -3,6 +3,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
 using SysBot.Base;
+using SysBot.Pokemon.Discord.Helpers;
+using static System.Net.WebRequestMethods;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -12,6 +14,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
         : ChannelAction<PokeRoutineExecutorBase, PokeTradeDetail<T>>(ChannelId, messager, channel);
 
     private static readonly Dictionary<ulong, TradeStartAction> Channels = [];
+    private static DiscordSocketClient Client = new();
 
     private static void Remove(TradeStartAction entry)
     {
@@ -28,6 +31,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
                 AddLogChannel(c, ch.ID);
         }
 
+        Client = discord;
         LogUtil.LogInfo("Added Trade Start Notification to Discord channel(s) on Bot startup.", "Discord");
     }
 
@@ -62,7 +66,10 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
         {
             if (detail.Type == PokeTradeType.Random)
                 return;
-            c.SendMessageAsync(GetMessage(bot, detail));
+            if (SysCordSettings.Settings.UseTradeStartEmbeds)
+                c.SendMessageAsync(embed: BuildTradeStartEmbed(detail));
+            else
+                c.SendMessageAsync(GetMessage(bot, detail));
         }
 
         Action<PokeRoutineExecutorBase, PokeTradeDetail<T>> l = Logger;
@@ -71,6 +78,42 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
 
         var entry = new TradeStartAction(cid, l, c.Name);
         Channels.Add(cid, entry);
+    }
+
+    private static Embed BuildTradeStartEmbed(PokeTradeDetail<T> detail)
+    {
+        PKMStringWrapper<T> Strings = new(detail.TradeData, SysCord<T>.Runner.Hub.Config.Discord.TradeEmbedSettings, detail.Type);
+
+        var pokemonName = detail.Type switch
+        {
+            PokeTradeType.ItemTrade  => $"**Sending:** {Strings.HeldItem}",
+            PokeTradeType.MysteryEgg => "**Sending:** Mystery Egg",
+            PokeTradeType.Clone      => "**Activating:** Cloning Pod",
+            PokeTradeType.Dump       => "**Activating:** Pokémon Scanner",
+            PokeTradeType.Seed       => "**Activating:** Seed Checker",
+            _                        => $"**Sending:** {Strings.Species}{(Strings.HasForm ? $"-{Strings.Form}" : "")}"
+        };
+
+        var color = detail.TradeData.Species == 0 ? Color.Purple
+            : EmbedColorHelper.GetDiscordColor(detail.TradeData.IsShiny
+            ? EmbedColorHelper.ShinyMap[((Species)detail.TradeData.Species, detail.TradeData.Form)]
+            : (PersonalColor)detail.TradeData.PersonalInfo.Color);
+
+        var avatarUrl = detail.IsTwitchTrade
+            ? "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Twitch.png"
+            : detail.Trainer.ID == 0 ? "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Discord.png"
+            : Client.GetUser(detail.Trainer.ID).GetAvatarUrl();
+
+        var thumbnailUrl = detail.Type == PokeTradeType.ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : Strings.GetImageURL();
+        var footerURL = detail.Type == PokeTradeType.ItemTrade ? Strings.GetImageURL() : detail.TradeData.Species == 0 ? null : Strings.GetBallImageURL();
+
+        return new EmbedBuilder()
+            .WithAuthor("Trade Started", iconUrl: avatarUrl)
+            .WithDescription($"{pokemonName}\n**Trader:** {detail.Trainer.TrainerName}")
+            .WithColor(color)
+            .WithFooter($"Trade ID: {detail.ID}", footerURL)
+            .WithThumbnailUrl(thumbnailUrl)
+            .Build();
     }
 
     [Command("startInfo")]

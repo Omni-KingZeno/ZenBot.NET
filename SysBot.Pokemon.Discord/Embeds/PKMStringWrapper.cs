@@ -2,7 +2,7 @@ using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
 
-internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool mysteryEgg) where T : PKM, new()
+internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeType type) where T : PKM, new()
 {
     protected GameStrings GameStrings =>
         GameInfo.GetStrings(Language.GetLanguageCode(Config.ForceEmbedLanguage is LanguageID.None ? (LanguageID)PKM.Language : Config.ForceEmbedLanguage));
@@ -15,7 +15,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     internal string TeraType => GetTeraTypeString();
     internal string FormArgument => GetFormArgumentString();
 
-    internal string Ability => mysteryEgg ? "Unknown" : GameStrings.Ability[PKM.Ability];
+    internal string Ability => type == PokeTradeType.MysteryEgg ? "Unknown" : GameStrings.Ability[PKM.Ability];
     internal string Nature => GameStrings.Natures[(byte)PKM.StatNature];
     internal string HeldItem => GameStrings.Item[PKM.HeldItem];
 
@@ -28,7 +28,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
     private string GetSpeciesString()
     {
         var species = $"{SpeciesName.GetSpeciesName(PKM.Species, PKM.Language)}";
-        return mysteryEgg ? "Unknown" : $"{species}";
+        return type == PokeTradeType.MysteryEgg ? "Unknown" : $"{species}";
     }
 
     private string GetFormString()
@@ -121,7 +121,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
         return "";
     }
 
-    internal string GetAuthorText(string trader, PokeTradeType type)
+    internal string GetAuthorText(string trader)
     {
         return type switch
         {
@@ -129,12 +129,13 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             PokeTradeType.Dump => "Pokémon Scanner Activated",
             PokeTradeType.ItemTrade => $"{trader}'s {HeldItem}",
             PokeTradeType.MysteryEgg => $"{trader}'s Mystery Egg",
+            PokeTradeType.Seed => $"Seed Checker Activated",
             PokeTradeType.Specific or PokeTradeType.Giveaway => $"{trader}'s {(PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
             _ => string.Empty
         };
     }
 
-    internal string GetImageURL(PokeTradeType type)
+    internal string GetImageURL()
     {
         return type switch
         {
@@ -143,11 +144,12 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
             PokeTradeType.ItemTrade => GetPokemonImageURL(PKM.IsEgg),
+            PokeTradeType.Seed => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
             _ => string.Empty,
         };
     }
 
-    internal string GetThumbnailURL(PokeTradeType type)
+    internal string GetThumbnailURL()
     {
         return type switch
         {
@@ -156,6 +158,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, bool myster
             PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
             PokeTradeType.ItemTrade => GetItemImgURL(HeldItem, false),
+            PokeTradeType.Seed => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
             _ => string.Empty,
         };
     }
