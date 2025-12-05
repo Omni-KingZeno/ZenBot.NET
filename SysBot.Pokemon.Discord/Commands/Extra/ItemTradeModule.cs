@@ -30,7 +30,7 @@ public class ItemTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM
         var spec = Info.Hub.Config.Trade.ItemTradeSpecies;
         if (mode is ProgramMode.LGPE or ProgramMode.LA)
         {
-            await ReplyAsync($"{Context.User.Username}, Item Trades are not supported in {mode}.").ConfigureAwait(false);
+            await ReplyAsync($"{Context.User.Mention}, Item Trades are not supported in {mode}.").ConfigureAwait(false);
             return;
         }
 
@@ -41,11 +41,12 @@ public class ItemTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM
             ProgramMode.SV   => Species.Greavard,
             _ => Species.Delibird,
         };
-        var tradeSpec = spec is Species.None ? defaultSpecies : spec;
+        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+        var personal = GameData.GetPersonal(sav.Version);
+        var tradeSpec = spec is Species.None || !personal.IsSpeciesInGame((ushort)spec) ? defaultSpecies : spec;
         item = SpellCheckItem(item);
         var set = new ShowdownSet($"{SpeciesName.GetSpeciesName((ushort)tradeSpec, 2)} @ {item.Trim()}\nShiny: Yes");
         var template = AutoLegalityWrapper.GetTemplate(set);
-        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
         var pkm = sav.GetLegal(template, out var result);
         pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
 
