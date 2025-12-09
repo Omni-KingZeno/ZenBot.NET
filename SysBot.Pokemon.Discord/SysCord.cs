@@ -196,6 +196,27 @@ public sealed partial class SysCord<T> where T : PKM, new()
         if (msg.Author.Id == _client.CurrentUser.Id || msg.Author.IsBot)
             return;
 
+        // Log if the message is a user DM
+        if (msg.Channel is SocketDMChannel)
+        {
+            if (!SysCordSettings.Admins.Contains(msg.Author.Id) || !SysCordSettings.Developers.Contains(msg.Author.Id))
+            {
+                LogUtil.LogInfo($"{msg.Author.Username} ({msg.Author.Id}), {(msg.Content == "" ? "Attachment:" : $"Message: {msg.Content}")}", "DirectMessage");
+                if (msg.Attachments.Count > 0)
+                {
+                    foreach (var channel in Hub.Config.Discord.LoggingChannels)
+                    {
+                        foreach (var att in msg.Attachments)
+                        {
+                            if (_client.GetChannel(channel.ID) is ISocketMessageChannel c)
+                                await c.SendMessageAsync(att.Url).ConfigureAwait(false);
+                        }
+                    }
+                }
+                return;
+            }
+        }
+
         // Create a number to track where the prefix ends and the command begins
         int pos = 0;
         if (Hub.Config.Discord.AllowAnyCommandPrefix && PrefixRegex().IsMatch(msg.Content))
