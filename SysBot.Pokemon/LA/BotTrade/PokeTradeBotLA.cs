@@ -323,7 +323,7 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
 
         if (Hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
         {
-            Log("Trade cancelled because trainer offered a Pokémon that would evolve upon trade.");
+            Log($"Trade cancelled because trainer offered a {GetSpeciesName(offered.Species)} that would evolve upon trade.");
             await ExitTrade(false, token).ConfigureAwait(false);
             return PokeTradeResult.TradeEvolveNotAllowed;
         }

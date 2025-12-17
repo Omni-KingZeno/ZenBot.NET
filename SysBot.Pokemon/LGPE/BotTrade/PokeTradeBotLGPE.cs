@@ -399,7 +399,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         var offered = new PB7(offeredData);
         if (hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, detail.TradeData.Species))
         {
-            Log("Trade cancelled because trainer offered a Pokémon that would evolve upon trade.");
+            Log($"Trade cancelled because trainer offered a {GetSpeciesName(offered.Species)} that would evolve upon trade.");
             return PokeTradeResult.TradeEvolveNotAllowed;
         }
         // We'll keep watching B1S1 for a change to indicate a trade started -> should try quitting at that point.

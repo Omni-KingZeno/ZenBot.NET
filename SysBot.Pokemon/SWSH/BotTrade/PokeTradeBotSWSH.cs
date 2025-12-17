@@ -364,7 +364,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState Config) : Poke
 
         if (hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
         {
-            Log("Trade cancelled because trainer offered a Pokémon that would evolve upon trade.");
+            Log($"Trade cancelled because trainer offered a {GetSpeciesName(offered.Species)} that would evolve upon trade.");
             return PokeTradeResult.TradeEvolveNotAllowed;
         }
 
