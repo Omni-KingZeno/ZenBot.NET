@@ -104,7 +104,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
             : detail.Trainer.ID == 0 ? "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Discord.png"
             : Client.GetUser(detail.Trainer.ID).GetAvatarUrl();
 
-        var thumbnailUrl = detail.Type == PokeTradeType.ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem, false) : Strings.GetImageURL();
+        var thumbnailUrl = detail.Type == PokeTradeType.ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem) : Strings.GetImageURL();
         var footerURL = detail.Type == PokeTradeType.ItemTrade ? Strings.GetImageURL() : detail.TradeData.Species == 0 ? null : Strings.GetBallImageURL();
 
         return new EmbedBuilder()

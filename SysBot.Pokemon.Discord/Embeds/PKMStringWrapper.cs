@@ -153,11 +153,11 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     {
         return type switch
         {
-            PokeTradeType.Specific => HasItem ? GetItemImgURL(HeldItem, false) : string.Empty,
+            PokeTradeType.Specific => HasItem ? GetItemImgURL(HeldItem) : string.Empty,
             PokeTradeType.Clone => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
             PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
-            PokeTradeType.ItemTrade => GetItemImgURL(HeldItem, false),
+            PokeTradeType.ItemTrade => GetItemImgURL(HeldItem),
             PokeTradeType.Seed => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
             _ => string.Empty,
         };
@@ -172,14 +172,14 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     internal string GetMarkImageURL() =>
        PKM is PA9 { IsAlpha: true } or PA8 { IsAlpha: true } ? "https://www.serebii.net/pokearth/hisui/icons/alphaza.png" : Mark.HasMark ? $"https://www.serebii.net/scarletviolet/ribbons/{(Mark.Name.ToLower())}mark.png" : string.Empty;
 
-    internal string GetItemImgURL(string item, bool smallsize)
+    internal string GetItemImgURL(string item)
     {
         item = item.Replace(" ", "").ToLower();
 
         string? baseLink;
-        if (smallsize)
+        if (PKM.HeldItem >= 2651)
         {
-            baseLink = $"https://www.serebii.net/itemdex/sprites/{item}.png";
+            baseLink = $"https://www.serebii.net/itemdex/sprites/za/{item}.png";
         }
         else
         {
