@@ -175,16 +175,6 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     internal string GetItemImgURL(string item)
     {
         item = item.Replace(" ", "").ToLower();
-
-        string? baseLink;
-        if (PKM.HeldItem >= 2651)
-        {
-            baseLink = $"https://www.serebii.net/itemdex/sprites/za/{item}.png";
-        }
-        else
-        {
-            baseLink = $"https://www.serebii.net/itemdex/sprites/sv/{item}.png";
-        }
-        return baseLink;
+        return $"https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Items/{item}.png";
     }
 }
