@@ -178,7 +178,7 @@ public class PokeTradeBotBS(PokeTradeHub<PB8> Hub, PokeBotState Config) : PokeRo
         {
             Log(socket.Message);
             result = PokeTradeResult.ExceptionConnection;
-            HandleAbortedTrade(detail, type, priority, result);
+            await HandleAbortedTrade(detail, type, priority, result, token);
             throw; // let this interrupt the trade loop. re-entering the trade loop will recheck the connection.
         }
         catch (Exception e)
@@ -187,10 +187,10 @@ public class PokeTradeBotBS(PokeTradeHub<PB8> Hub, PokeBotState Config) : PokeRo
             result = PokeTradeResult.ExceptionInternal;
         }
 
-        HandleAbortedTrade(detail, type, priority, result);
+        await HandleAbortedTrade(detail, type, priority, result, token);
     }
 
-    private void HandleAbortedTrade(PokeTradeDetail<PB8> detail, PokeRoutineType type, uint priority, PokeTradeResult result)
+    private async Task HandleAbortedTrade(PokeTradeDetail<PB8> detail, PokeRoutineType type, uint priority, PokeTradeResult result, CancellationToken token)
     {
         detail.IsProcessing = false;
         if (result.ShouldAttemptRetry() && detail.Type != PokeTradeType.Random && !detail.IsRetry)
@@ -203,6 +203,8 @@ public class PokeTradeBotBS(PokeTradeHub<PB8> Hub, PokeBotState Config) : PokeRo
         {
             detail.SendNotification(this, $"Oops! Something happened. Canceling the trade: {result}.");
             detail.TradeCanceled(this, result);
+            if (!Hub.Config.Distribution.DistributeWhileIdle)
+                await EnsureOutsideOfUnionRoom(token).ConfigureAwait(false);
         }
     }
 
@@ -239,6 +241,7 @@ public class PokeTradeBotBS(PokeTradeHub<PB8> Hub, PokeBotState Config) : PokeRo
 
         await RequestUnionRoomTrade(token).ConfigureAwait(false);
         poke.TradeSearching(this);
+        Log("Waiting for trainer...");
         var waitPartner = Hub.Config.Trade.TradeWaitTime;
 
         // Keep pressing A until we detect someone talking to us.
