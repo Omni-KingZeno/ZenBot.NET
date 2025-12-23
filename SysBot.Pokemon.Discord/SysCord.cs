@@ -199,7 +199,7 @@ public sealed partial class SysCord<T> where T : PKM, new()
         // Log if the message is a user DM
         if (msg.Channel is SocketDMChannel)
         {
-            if (!SysCordSettings.Admins.Contains(msg.Author.Id) || !SysCordSettings.Developers.Contains(msg.Author.Id))
+            if (!SysCordSettings.Admins.Contains(msg.Author.Id) && !SysCordSettings.Developers.Contains(msg.Author.Id) && !Hub.Config.Discord.GlobalSudoList.Contains(msg.Author.Id))
             {
                 LogUtil.LogInfo($"{msg.Author.Username} ({msg.Author.Id}), {(msg.Content == "" ? "Attachment:" : $"Message: {msg.Content}")}", "DirectMessage");
                 if (msg.Attachments.Count > 0)
