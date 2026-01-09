@@ -14,8 +14,8 @@ public sealed class PokeTradeHubConfig : BaseConfig
     [Category(BotConfig), Description("Program mode. Select which games the bot should run. Restart to apply changes.")]
     public ProgramMode Mode { get; set; } = ProgramMode.LZA;
 
-    [Category(BotConfig), Description("Program theme. 'Light' uses the white theme, 'System' follows your Windows default theme, and 'Dark' enables a dark theme. Restart to apply changes.")]
-    public SystemColorTheme ColorTheme { get; set; } = SystemColorTheme.System;
+    [Category(BotConfig), Description("Program Dark Mode theme. Restart to apply changes.")]
+    public bool DarkMode { get; set; } = false;
 
     [Browsable(false)]
     public override bool Shuffled => Distribution.Shuffled;

@@ -74,7 +74,7 @@ public class ItemTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM
         {
             await ReplyAsync("The requested Item cannot be traded.").ConfigureAwait(false);
             return;
-        }    
+        }
 
         pk.ResetPartyStats();
 

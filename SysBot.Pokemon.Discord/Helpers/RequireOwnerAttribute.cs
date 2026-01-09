@@ -2,6 +2,7 @@ using Discord;
 using Discord.Commands;
 
 namespace SysBot.Pokemon.Discord;
+
 public sealed class RequireOwnerAttribute : PreconditionAttribute
 {
     // Override the CheckPermissions method

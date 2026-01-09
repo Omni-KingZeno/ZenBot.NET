@@ -1,9 +1,10 @@
 <Project>
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>13</LangVersion>
-    <Nullable>enable</Nullable>
-    <NeutralLanguage>en</NeutralLanguage>
-    <SourceRevisionId>$([System.DateTime]::UtcNow.ToString("yyMMddHHmmss"))</SourceRevisionId>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>14</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <NeutralLanguage>en</NeutralLanguage>
+        <SourceRevisionId>$([System.DateTime]::UtcNow.ToString("yyMMddHHmmss"))</SourceRevisionId>
+    </PropertyGroup>
 </Project>

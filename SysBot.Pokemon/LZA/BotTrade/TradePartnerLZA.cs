@@ -1,5 +1,5 @@
-using PKHeX.Core;
 using System.Diagnostics;
+using PKHeX.Core;
 
 namespace SysBot.Pokemon;
 

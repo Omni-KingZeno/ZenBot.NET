@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace SysBot.Base;
 
 public static class EchoUtil

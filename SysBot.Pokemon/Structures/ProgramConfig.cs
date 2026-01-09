@@ -6,6 +6,8 @@ namespace SysBot.Pokemon;
 public class ProgramConfig : BotList<PokeBotState>
 {
     public PokeTradeHubConfig Hub { get; set; } = new();
+    public int Width { get; set; }
+    public int Height { get; set; }
 }
 
 [JsonSerializable(typeof(ProgramConfig))]

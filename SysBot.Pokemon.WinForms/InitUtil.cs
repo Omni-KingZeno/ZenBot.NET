@@ -17,9 +17,9 @@ public static class InitUtil
         ProgramMode.LGPE => new SAV7b(),
         ProgramMode.SWSH => new SAV8SWSH(),
         ProgramMode.BDSP => new SAV8BS(),
-        ProgramMode.LA => new SAV8LA(),
-        ProgramMode.SV => new SAV9SV(),
-        ProgramMode.LZA => new SAV9ZA(),
+        ProgramMode.LA   => new SAV8LA(),
+        ProgramMode.SV   => new SAV9SV(),
+        ProgramMode.LZA  => new SAV9ZA(),
         _ => throw new ArgumentOutOfRangeException(nameof(mode)),
     };
 
@@ -37,12 +37,12 @@ public static class InitUtil
     {
         ValidSpeciesConverter.Version = sav switch
         {
-            SAV7b => GameVersion.GG,
+            SAV7b    => GameVersion.GG,
             SAV8SWSH => GameVersion.SWSH,
-            SAV8BS => GameVersion.BDSP,
-            SAV8LA => GameVersion.PLA,
-            SAV9SV => GameVersion.SV,
-            _ => GameVersion.ZA,
+            SAV8BS   => GameVersion.BDSP,
+            SAV8LA   => GameVersion.PLA,
+            SAV9SV   => GameVersion.SV,
+            _        => GameVersion.ZA,
         };
     }
 }

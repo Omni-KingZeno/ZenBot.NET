@@ -38,15 +38,7 @@ public static class AutoLegalityWrapper
         cfg.PriorityOrder = APILegality.PriorityOrder = SanitizePriorityOrder(cfg.PriorityOrder); // Clean this up because user can add duplicate or invalid entries.
         APILegality.SetBattleVersion = cfg.SetBattleVersion;
         APILegality.Timeout = cfg.Timeout;
-        APILegality.Version = mode switch
-        {
-            ProgramMode.LGPE => GameVersion.GG,
-            ProgramMode.SWSH => GameVersion.SWSH,
-            ProgramMode.BDSP => GameVersion.BDSP,
-            ProgramMode.LA => GameVersion.PLA,
-            ProgramMode.SV => GameVersion.SV,
-            _ => GameVersion.ZA
-        };
+        APILegality.Version = ValidSpeciesConverter.Version;
 
         var settings = ParseSettings.Settings;
 

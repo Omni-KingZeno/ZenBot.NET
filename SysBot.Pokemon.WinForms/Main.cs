@@ -1,7 +1,5 @@
-using System.Text.Json;
 using PKHeX.Core;
 using SysBot.Base;
-using SysBot.Pokemon.Z3;
 
 namespace SysBot.Pokemon.WinForms;
 
@@ -9,22 +7,20 @@ public sealed partial class Main : Form
 {
     private readonly List<PokeBotState> Bots = [];
     private readonly IPokeBotRunner RunningEnvironment;
-    private readonly ProgramConfig Config;
+    private readonly ProgramConfig Config = Program.Config;
 
-    public Main(ProgramConfig config)
+    public Main()
     {
         InitializeComponent();
 
-        Config = config;
-        PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
         RunningEnvironment = GetRunner(Config);
-
-        foreach (var bot in Config.Bots)
         {
-            bot.Initialize();
-            AddBot(bot);
+            foreach (var bot in Config.Bots)
+            {
+                bot.Initialize();
+                AddBot(bot);
+            }
         }
-
         if (Program.IsDarkTheme)
         {
 
@@ -41,7 +37,29 @@ public sealed partial class Main : Form
         Task.Run(BotMonitor);
 
         InitUtil.InitializeStubs(Config.Hub.Mode);
+
+        if (Config.Hub.DarkMode)
+        {
+            foreach (TabPage tab in TC_Main.TabPages)
+                tab.UseVisualStyleBackColor = false;
+        }
+
+        if (Config is not { Width: 0, Height: 0 })
+        {
+            Width = Config.Width;
+            Height = Config.Height;
+        }
+
+        B_New.Height = CB_Protocol.Height;
+        FLP_BotCreator.Height = B_New.Height + B_New.Margin.Vertical;
     }
+
+    protected override void ScaleControl(SizeF factor, BoundsSpecified specified)
+    {
+        base.ScaleControl(factor, specified);
+        TC_Main.ItemSize = new((int)(TC_Main.ItemSize.Width * factor.Width), (int)(TC_Main.ItemSize.Height * factor.Height));
+    }
+
 
     private static IPokeBotRunner GetRunner(ProgramConfig cfg) => cfg.Hub.Mode switch
     {
@@ -75,7 +93,6 @@ public sealed partial class Main : Form
 
     private void LoadControls()
     {
-        MinimumSize = Size;
         PG_Hub.SelectedObject = RunningEnvironment.Config;
 
         var routines = Enum.GetValues<PokeRoutineType>().Where(z => RunningEnvironment.SupportsRoutine(z));
@@ -124,8 +141,9 @@ public sealed partial class Main : Form
     private void SaveCurrentConfig()
     {
         var cfg = GetCurrentConfiguration();
-        var lines = JsonSerializer.Serialize(cfg, ProgramConfigContext.Default.ProgramConfig);
-        File.WriteAllText(Program.ConfigPath, lines);
+        cfg.Width = Width;
+        cfg.Height = Height;
+        ConfigLoader.Save(cfg);
     }
 
     private void B_Start_Click(object sender, EventArgs e)
@@ -241,18 +259,18 @@ public sealed partial class Main : Form
 
     private void AddBotControl(PokeBotState cfg)
     {
-        var row = new BotController { Width = FLP_Bots.Width };
+        var row = new BotController { Width = FLP_Bots.Width, Anchor = AnchorStyles.Left | AnchorStyles.Right };
         row.Initialize(RunningEnvironment, cfg);
         FLP_Bots.Controls.Add(row);
         FLP_Bots.SetFlowBreak(row, true);
-        row.Click += (s, e) =>
+        row.AddClickHandler(() =>
         {
             var details = cfg.Connection;
             TB_IP.Text = details.IP;
             NUD_Port.Text = details.Port.ToString();
             CB_Protocol.SelectedIndex = (int)details.Protocol;
             CB_Routine.SelectedValue = (int)cfg.InitialRoutine;
-        };
+        });
 
         row.Remove += (s, e) =>
         {
@@ -285,79 +303,10 @@ public sealed partial class Main : Form
     {
         var isWifi = CB_Protocol.SelectedIndex == 0;
         TB_IP.Visible = isWifi;
+        NUD_Port.ReadOnly = isWifi;
         NUD_Port.Visible = !isWifi;
-        //NUD_Port.ReadOnly = isWifi;
 
         if (isWifi)
             NUD_Port.Text = "6000";
-    }
-
-    protected override void OnLoad(EventArgs e)
-    {
-        base.OnLoad(e);
-        CenterTopButtons();
-        CenterAddButton();
-    }
-
-    protected override void OnResize(EventArgs e)
-    {
-        base.OnResize(e);
-        CenterAddButton();
-    }
-
-    private void CenterTopButtons()
-    {
-        int topLine = TC_Main.Top;
-        int tabHeaderHeight = TC_Main.DisplayRectangle.Top;
-        int bottomLine = topLine + tabHeaderHeight;
-        int availableHeight = bottomLine - topLine;
-
-        int minButtonHeight = 22;
-        float minFontSize = 6f;
-
-        void CenterResizeAndFontButton(Button btn)
-        {
-            if (btn.Tag is not Font originalFont)
-            {
-                originalFont = btn.Font;
-                btn.Tag = originalFont;
-            }
-
-            int targetHeight = Math.Min(originalFont.Height, availableHeight);
-            if (targetHeight < minButtonHeight)
-                targetHeight = minButtonHeight;
-
-            btn.Height = targetHeight;
-
-            float scale = (float)targetHeight / originalFont.Height;
-            float fontSize = Math.Max(minFontSize, Math.Min(originalFont.Size * scale, originalFont.Size));
-
-            if (Math.Abs(btn.Font.Size - fontSize) > 0.5f)
-                btn.Font = new Font(originalFont.FontFamily, fontSize, originalFont.Style);
-
-            btn.Top = topLine + (availableHeight - btn.Height) / 2;
-        }
-
-        CenterResizeAndFontButton(B_Start);
-        CenterResizeAndFontButton(B_Stop);
-        CenterResizeAndFontButton(B_RebootStop);
-    }
-
-    private void CenterAddButton()
-    {
-        B_New.Height = TB_IP.Height;
-        B_New.Top = TB_IP.Top;
-
-        if (B_New.Tag is not Font originalFont)
-        {
-            originalFont = B_New.Font;
-            B_New.Tag = originalFont;
-        }
-
-        float scale = (float)B_New.Height / originalFont.Height;
-        float fontSize = Math.Max(6f, Math.Min(originalFont.Size * scale, originalFont.Size));
-
-        if (Math.Abs(B_New.Font.Size - fontSize) > 0.5f)
-            B_New.Font = new Font(originalFont.FontFamily, fontSize, originalFont.Style);
     }
 }

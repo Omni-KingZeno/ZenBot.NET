@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using static SysBot.Base.SwitchProtocol;
 

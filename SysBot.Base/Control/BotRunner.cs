@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace SysBot.Base;
 
 public class BotRunner<T> where T : class, IConsoleBotConfig

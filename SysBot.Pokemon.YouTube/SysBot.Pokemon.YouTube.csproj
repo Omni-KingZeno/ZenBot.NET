@@ -1,16 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>13.0</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  
   <ItemGroup>
     <PackageReference Include="Google.Apis" Version="1.73.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
     <PackageReference Include="Google.Apis.Core" Version="1.73.0" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.70.0.3847" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.73.0.4022" />
     <PackageReference Include="Google.Apis.YouTubePartner.v1" Version="1.35.1.1334" />
   </ItemGroup>
 

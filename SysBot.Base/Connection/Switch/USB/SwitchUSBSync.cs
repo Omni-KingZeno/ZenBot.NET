@@ -1,4 +1,3 @@
-using System;
 using static SysBot.Base.SwitchOffsetTypeUtil;
 
 namespace SysBot.Base;

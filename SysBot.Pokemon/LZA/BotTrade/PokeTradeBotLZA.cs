@@ -1,7 +1,7 @@
+using System.Net.Sockets;
 using PKHeX.Core;
 using PKHeX.Core.Searching;
 using SysBot.Base;
-using System.Net.Sockets;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsLZA;
 
@@ -307,7 +307,7 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
                 await Click(B, 0_500, token).ConfigureAwait(false);
                 await Click(A, 0_300, token).ConfigureAwait(false);
             }
-            await ResetToLinkPlay( token).ConfigureAwait(false);
+            await ResetToLinkPlay(token).ConfigureAwait(false);
             return PokeTradeResult.NoTrainerFound;
         }
 

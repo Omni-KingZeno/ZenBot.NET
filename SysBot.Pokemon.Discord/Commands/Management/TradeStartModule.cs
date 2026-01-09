@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using PKHeX.Core;
 using SysBot.Base;
 using SysBot.Pokemon.Discord.Helpers;
-using static System.Net.WebRequestMethods;
 
 namespace SysBot.Pokemon.Discord;
 

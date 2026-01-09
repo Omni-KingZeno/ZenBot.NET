@@ -14,7 +14,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
         await ReadPokemon(offset, BoxFormatSlotSize, token).ConfigureAwait(false);
 
     public override async Task<PB7> ReadPokemon(ulong offset, int size, CancellationToken token) =>
-        new PB7(await Connection.ReadBytesAsync((uint)offset, size, token).ConfigureAwait(false));
+        new(await Connection.ReadBytesAsync((uint)offset, size, token).ConfigureAwait(false));
 
     public async Task SetBoxPokemon(PB7 pk, int box, int slot, CancellationToken token)
     {

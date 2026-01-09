@@ -97,7 +97,7 @@ public abstract class PokemonPoolBase<T, TRequest>
                 LogUtil.LogInfo($"SKIPPED: Provided file is not valid: {dest.FileName}", PoolName);
                 continue;
             }
-                       
+
             var la = new LegalityAnalysis(dest);
             if (!la.Valid)
             {

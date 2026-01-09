@@ -1,6 +1,6 @@
-using SysBot.Base;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using SysBot.Base;
 
 namespace SysBot.Pokemon.WinForms;
 

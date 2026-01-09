@@ -1,4 +1,3 @@
-using System;
 using FluentAssertions;
 using SysBot.Base;
 using Xunit;

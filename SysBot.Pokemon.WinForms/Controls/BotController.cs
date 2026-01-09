@@ -184,9 +184,7 @@ public partial class BotController : UserControl
         return bot;
     }
 
-#pragma warning disable WFO5001
     private void BotController_MouseEnter(object? sender, EventArgs e) => BackColor = Application.IsDarkModeEnabled ? Color.MidnightBlue : Color.LightSkyBlue;
-#pragma warning restore WFO5001
     private void BotController_MouseLeave(object? sender, EventArgs e) => BackColor = Color.Transparent;
 
     public void ReadState()
@@ -201,6 +199,13 @@ public partial class BotController : UserControl
         {
             ReloadStatus(bot);
         }
+    }
+
+    public void AddClickHandler(Action action)
+    {
+        Click += (_, _) => action();
+        foreach (Control control in Controls)
+            control.Click += (_, _) => action();
     }
 }
 

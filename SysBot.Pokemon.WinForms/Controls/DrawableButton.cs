@@ -16,7 +16,7 @@ public class DrawableButton : Button
     public static Color LightBorderColor { get; set; } = Color.FromArgb(180, 180, 180);
     public static Color LightForeColor { get; set; } = Color.Black;
 
-    public static int BorderRadius { get; set; } = 5;
+    public static int BorderRadius { get; set; } = 1;
     public static int BorderThickness { get; set; } = 1;
 
     public DrawableButton()

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using PKHeX.Core;
 using SysBot.Pokemon;
@@ -68,61 +65,61 @@ public class GenerateTests
 
     private const string Gengar =
         @"Gengar-Gmax @ Life Orb 
-Ability: Cursed Body 
-Shiny: Yes 
-EVs: 252 SpA / 4 SpD / 252 Spe 
-Timid Nature 
-- Dream Eater 
-- Fling 
-- Giga Impact 
-- Headbutt";
+          Ability: Cursed Body 
+          Shiny: Yes 
+          EVs: 252 SpA / 4 SpD / 252 Spe 
+          Timid Nature 
+          - Dream Eater 
+          - Fling 
+          - Giga Impact 
+          - Headbutt";
 
     private const string Braviary =
         @"Braviary (F) @ Master Ball
-Ability: Defiant
-EVs: 252 Atk / 4 SpD / 252 Spe
-Jolly Nature
-- Brave Bird
-- Close Combat
-- Tailwind
-- Iron Head";
+          Ability: Defiant
+          EVs: 252 Atk / 4 SpD / 252 Spe
+          Jolly Nature
+          - Brave Bird
+          - Close Combat
+          - Tailwind
+          - Iron Head";
 
     private const string Drednaw =
         @"Drednaw-Gmax @ Fossilized Drake 
-Ability: Shell Armor 
-Level: 60 
-EVs: 252 Atk / 4 SpD / 252 Spe 
-Adamant Nature 
-- Earthquake 
-- Liquidation 
-- Swords Dance 
-- Head Smash";
+          Ability: Shell Armor 
+          Level: 60 
+          EVs: 252 Atk / 4 SpD / 252 Spe 
+          Adamant Nature 
+          - Earthquake 
+          - Liquidation 
+          - Swords Dance 
+          - Head Smash";
 
     private const string Torkoal2 =
         @"Torkoal (M) @ Assault Vest
-IVs: 0 Atk
-EVs: 248 HP / 8 Atk / 252 SpA
-Ability: Drought
-Quiet Nature
-- Body Press
-- Earth Power
-- Eruption
-- Fire Blast";
+          IVs: 0 Atk
+          EVs: 248 HP / 8 Atk / 252 SpA
+          Ability: Drought
+          Quiet Nature
+          - Body Press
+          - Earth Power
+          - Eruption
+          - Fire Blast";
 
     private const string Charizard4 =
         @"Charizard @ Choice Scarf 
-Ability: Solar Power 
-Level: 50 
-Shiny: Yes 
-EVs: 252 SpA / 4 SpD / 252 Spe 
-Timid Nature 
-- Heat Wave 
-- Air Slash 
-- Solar Beam 
-- Beat Up";
+          Ability: Solar Power 
+          Level: 50 
+          Shiny: Yes 
+          EVs: 252 SpA / 4 SpD / 252 Spe 
+          Timid Nature 
+          - Heat Wave 
+          - Air Slash 
+          - Solar Beam 
+          - Beat Up";
 
     private const string InvalidSpec =
-        "(Pikachu)";
+         "(Pikachu)";
 }
 
 public class GenerateValidSpeciesTests
@@ -164,7 +161,7 @@ public class GenerateValidSpeciesTests
         if (string.IsNullOrWhiteSpace(speciesName))
             return null;
 
-        var formName = ShowdownParsing.GetStringFromForm(form, Strings, species, version.GetContext());
+        var formName = ShowdownParsing.GetStringFromForm(form, Strings, species, version.Context);
         var fullName = string.IsNullOrEmpty(formName) ? speciesName : $"{speciesName}-{formName}";
 
         try
@@ -186,12 +183,12 @@ public class GenerateValidSpeciesTests
     {
         return version switch
         {
-            GameVersion.GG => AutoLegalityWrapper.GetTrainerInfo<PB7>(),
+            GameVersion.GG   => AutoLegalityWrapper.GetTrainerInfo<PB7>(),
             GameVersion.SWSH => AutoLegalityWrapper.GetTrainerInfo<PK8>(),
             GameVersion.BDSP => AutoLegalityWrapper.GetTrainerInfo<PB8>(),
-            GameVersion.PLA => AutoLegalityWrapper.GetTrainerInfo<PA8>(),
-            GameVersion.SV => AutoLegalityWrapper.GetTrainerInfo<PK9>(),
-            GameVersion.ZA => AutoLegalityWrapper.GetTrainerInfo<PA9>(),
+            GameVersion.PLA  => AutoLegalityWrapper.GetTrainerInfo<PA8>(),
+            GameVersion.SV   => AutoLegalityWrapper.GetTrainerInfo<PK9>(),
+            GameVersion.ZA   => AutoLegalityWrapper.GetTrainerInfo<PA9>(),
             _ => throw new ArgumentException($"Unsupported game version: {version}")
         };
     }
@@ -200,12 +197,12 @@ public class GenerateValidSpeciesTests
     {
         return version switch
         {
-            GameVersion.GG => PersonalTable.GG,
+            GameVersion.GG   => PersonalTable.GG,
             GameVersion.SWSH => PersonalTable.SWSH,
             GameVersion.BDSP => PersonalTable.BDSP,
-            GameVersion.PLA => PersonalTable.LA,
-            GameVersion.SV => PersonalTable.SV,
-            GameVersion.ZA => PersonalTable.ZA,
+            GameVersion.PLA  => PersonalTable.LA,
+            GameVersion.SV   => PersonalTable.SV,
+            GameVersion.ZA   => PersonalTable.ZA,
             _ => throw new ArgumentException($"Unsupported game version: {version}")
         };
     }
@@ -213,7 +210,7 @@ public class GenerateValidSpeciesTests
     private static List<(ushort species, byte form)> GetAvailableSpeciesAndForms(
         GameVersion version, IPersonalTable personalTable, ITrainerInfo sav)
     {
-        var context = version.GetContext();
+        var context = version.Context;
         var strings = GameInfo.Strings;
         var homeTransfers = GetHomeTransfers(version);
 

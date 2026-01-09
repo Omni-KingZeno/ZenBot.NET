@@ -49,7 +49,7 @@ public class TradeQueueManager<T> where T : PKM, new()
             return false;
 
         T random;
-        bool distributeEggs = cfg.DistributeMysteryEggs && TradeExtensions<T>.HasEggs(Hub.Config.Mode);      
+        bool distributeEggs = cfg.DistributeMysteryEggs && TradeExtensions<T>.HasEggs(Hub.Config.Mode);
         if (distributeEggs)
             TradeExtensions<T>.GenerateMysteryEgg(Hub.Config.Trade.MysteryShinyOdds, out random);
         else

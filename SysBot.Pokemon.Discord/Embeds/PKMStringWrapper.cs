@@ -125,12 +125,13 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     {
         return type switch
         {
-            PokeTradeType.Clone => "Cloning Pod Activated",
-            PokeTradeType.Dump => "Pokémon Scanner Activated",
-            PokeTradeType.ItemTrade => $"{trader}'s {HeldItem}",
+            PokeTradeType.Clone      => "Cloning Pod Activated",
+            PokeTradeType.Dump       => "Pokémon Scanner Activated",
+            PokeTradeType.ItemTrade  => $"{trader}'s {HeldItem}",
             PokeTradeType.MysteryEgg => $"{trader}'s Mystery Egg",
-            PokeTradeType.Seed => $"Seed Checker Activated",
-            PokeTradeType.Specific or PokeTradeType.Giveaway => $"{trader}'s {(PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+            PokeTradeType.Seed       => $"Seed Checker Activated",
+            PokeTradeType.Specific or
+            PokeTradeType.Giveaway   => $"{trader}'s {(PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
             _ => string.Empty
         };
     }
@@ -139,12 +140,12 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     {
         return type switch
         {
-            PokeTradeType.Specific => GetPokemonImageURL(PKM.IsEgg),
-            PokeTradeType.Clone => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
-            PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
+            PokeTradeType.Specific   => GetPokemonImageURL(PKM.IsEgg),
+            PokeTradeType.Clone      => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
+            PokeTradeType.Dump       => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
-            PokeTradeType.ItemTrade => GetPokemonImageURL(PKM.IsEgg),
-            PokeTradeType.Seed => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
+            PokeTradeType.ItemTrade  => GetPokemonImageURL(PKM.IsEgg),
+            PokeTradeType.Seed       => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
             _ => string.Empty,
         };
     }
@@ -153,12 +154,12 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     {
         return type switch
         {
-            PokeTradeType.Specific => HasItem ? GetItemImgURL(HeldItem) : string.Empty,
-            PokeTradeType.Clone => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
-            PokeTradeType.Dump => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
+            PokeTradeType.Specific   => HasItem ? GetItemImgURL(HeldItem) : string.Empty,
+            PokeTradeType.Clone      => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/clone.png",
+            PokeTradeType.Dump       => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/dump.gif",
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
-            PokeTradeType.ItemTrade => GetItemImgURL(HeldItem),
-            PokeTradeType.Seed => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
+            PokeTradeType.ItemTrade  => GetItemImgURL(HeldItem),
+            PokeTradeType.Seed       => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
             _ => string.Empty,
         };
     }

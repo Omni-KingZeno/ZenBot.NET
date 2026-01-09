@@ -1,7 +1,7 @@
+using System.Data;
 using Discord;
 using Discord.Commands;
 using PKHeX.Core;
-using System.Data;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -54,7 +54,7 @@ public class PermissionsModule<T> : SudoModule<T> where T : PKM, new()
                                value: string.Join(", ", missingPerms.Select(p => p.ToString())),
                                inline: false
                            );
-                        }                           
+                        }
                     }
                 }
             }
