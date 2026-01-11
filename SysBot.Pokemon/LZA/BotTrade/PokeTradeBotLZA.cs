@@ -4,6 +4,7 @@ using PKHeX.Core.Searching;
 using SysBot.Base;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsLZA;
+using static SysBot.Pokemon.SpecialRequests;
 
 namespace SysBot.Pokemon;
 
@@ -364,6 +365,13 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
         offered.Heal();
         offered.RefreshChecksum();
 
+        var itemReq = poke.Type == PokeTradeType.SpecialRequest
+           ? CheckItemRequest(ref offered, this, poke, tradePartner.OT, tradePartner.TID7, tradePartner.SID7)
+           : SpecialTradeType.None;
+
+        if (itemReq == SpecialTradeType.FailReturn)
+            return PokeTradeResult.IllegalTrade;
+
         var trainer = new PartnerDataHolder(0, tradePartner.OT, $"{tradePartner.TID7:000000}");
         (toSend, PokeTradeResult update) = await GetEntityToSend(sav, poke, offered, toSend, trainer, token).ConfigureAwait(false);
         if (update != PokeTradeResult.Success)
@@ -372,9 +380,16 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
             return update;
         }
 
+        var spec = GetSpeciesName(offered.Species);
+        if (itemReq != SpecialTradeType.None)
+        {
+            poke.SendNotification(this, "Special request successful!");
+            Log($"Successfully modified their {spec}!");
+        }
+
         if (Hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
         {
-            Log($"Trade cancelled because trainer offered a {GetSpeciesName(offered.Species)} that would evolve upon trade.");
+            Log($"Trade cancelled because trainer offered a {spec} that would evolve upon trade.");
             await ResetToLinkPlay(token).ConfigureAwait(false);
             return PokeTradeResult.TradeEvolveNotAllowed;
         }
@@ -385,6 +400,12 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
         {
             if (tradeResult == PokeTradeResult.TrainerLeft)
                 Log("Trade canceled because trainer left the trade.");
+
+            if (itemReq != SpecialTradeType.None && tradeResult == PokeTradeResult.TrainerLeft)
+            {
+                poke.SendNotification(this, "Your request wasn't legal! Please try again with a different Pokémon or request.");
+            }
+
             await ResetToLinkPlay(token).ConfigureAwait(false);
             return tradeResult;
         }
@@ -744,7 +765,7 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
         return poke.Type switch
         {
             PokeTradeType.Random => await HandleRandomLedy(sav, poke, offered, toSend, partnerID, token).ConfigureAwait(false),
-            PokeTradeType.Clone => await HandleClone(sav, poke, offered, token).ConfigureAwait(false),
+            PokeTradeType.Clone or PokeTradeType.SpecialRequest => await HandleClone(sav, poke, offered, token).ConfigureAwait(false),
             _ => (toSend, PokeTradeResult.Success),
         };
     }

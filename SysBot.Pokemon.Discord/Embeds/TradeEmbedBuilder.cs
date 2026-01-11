@@ -7,7 +7,7 @@ namespace SysBot.Pokemon.Discord;
 public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, PokeRoutineType rType, PokeTradeType type) where T : PKM, new()
 {
     private bool Initialized { get; set; } = false;
-    private bool AltTrade => type is (PokeTradeType.ItemTrade or PokeTradeType.Clone or PokeTradeType.Dump or PokeTradeType.Seed);
+    private bool AltTrade => type is (PokeTradeType.ItemTrade or PokeTradeType.Clone or PokeTradeType.Dump or PokeTradeType.Seed or PokeTradeType.SpecialRequest);
     public EmbedBuilder Builder { get; init; } = new();
     private PKMStringWrapper<T> Strings { get; init; } = new(PKM, Hub.Config.Discord.TradeEmbedSettings, type);
 

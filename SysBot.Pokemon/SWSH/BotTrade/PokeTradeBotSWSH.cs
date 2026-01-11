@@ -5,6 +5,7 @@ using PKHeX.Core.Searching;
 using SysBot.Base;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsSWSH;
+using static SysBot.Pokemon.SpecialRequests;
 
 namespace SysBot.Pokemon;
 
@@ -318,8 +319,8 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState Config) : Poke
             return PokeTradeResult.RecoverOpenBox;
         }
 
-        var info = await GetGameInfo(token).ConfigureAwait(false);
-        var tradePartner = new TradePartnerSWSH(trainerID, trainerName, info.version, info.language, info.gender);
+        var (version, language, gender) = await GetGameInfo(token).ConfigureAwait(false);
+        var tradePartner = new TradePartnerSWSH(trainerID, trainerName, version, language, gender);
 
         if (hub.Config.Trade.UseTradePartnerDetails && TradeExtensions<PK8>.TrySetPartnerDetails(this, tradePartner, poke, hub.Config, out var toSendEdited))
         {
@@ -354,17 +355,44 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState Config) : Poke
             return await EndSeedCheckTradeAsync(poke, offered, token).ConfigureAwait(false);
         }
 
+        var itemReq = poke.Type == PokeTradeType.SpecialRequest
+            ? CheckItemRequest(ref offered, this, poke, trainerName, trainerID.TID7, trainerID.SID7)
+            : SpecialTradeType.None;
+
+        if (itemReq == SpecialTradeType.FailReturn)
+        {
+            await ExitTrade(false, token).ConfigureAwait(false);
+            return PokeTradeResult.IllegalTrade;
+        }
+
         var trainer = new PartnerDataHolder(trainerNID, trainerName, $"{trainerID.TID7:000000}");
         (toSend, PokeTradeResult update) = await GetEntityToSend(sav, poke, offered, oldEC, toSend, trainer, token).ConfigureAwait(false);
         if (update != PokeTradeResult.Success)
         {
+            if (itemReq != SpecialTradeType.None)
+            {
+                poke.SendNotification(this, "Your request wasn't legal! Please try again with a different Pokémon or request.");
+            }
+
             await ExitTrade(false, token).ConfigureAwait(false);
             return update;
         }
 
-        if (hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
+        var spec = GetSpeciesName(offered.Species);
+        if (itemReq != SpecialTradeType.None && itemReq != SpecialTradeType.Shinify)
         {
-            Log($"Trade cancelled because trainer offered a {GetSpeciesName(offered.Species)} that would evolve upon trade.");
+            poke.SendNotification(this, "Special request successful!");
+            Log($"Successfully modified their {spec}!");
+        }
+        else if (itemReq == SpecialTradeType.Shinify)
+        {
+            poke.SendNotification(this, "Shinify success!");
+            Log($"Shinified their {spec}!");
+        }
+
+        if (hub.Config.Trade.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species) && poke.Type != PokeTradeType.SpecialRequest)
+        {
+            Log($"Trade cancelled because trainer offered a {spec} that would evolve upon trade.");
             return PokeTradeResult.TradeEvolveNotAllowed;
         }
 
@@ -474,7 +502,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState Config) : Poke
         return poke.Type switch
         {
             PokeTradeType.Random => await HandleRandomLedy(sav, poke, offered, toSend, partnerID, token).ConfigureAwait(false),
-            PokeTradeType.Clone => await HandleClone(sav, poke, offered, oldEC, token).ConfigureAwait(false),
+            PokeTradeType.Clone or PokeTradeType.SpecialRequest => await HandleClone(sav, poke, offered, oldEC, token).ConfigureAwait(false),
             _ => (toSend, PokeTradeResult.Success),
         };
     }

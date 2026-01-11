@@ -125,13 +125,14 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     {
         return type switch
         {
-            PokeTradeType.Clone      => "Cloning Pod Activated",
-            PokeTradeType.Dump       => "Pokémon Scanner Activated",
-            PokeTradeType.ItemTrade  => $"{trader}'s {HeldItem}",
-            PokeTradeType.MysteryEgg => $"{trader}'s Mystery Egg",
-            PokeTradeType.Seed       => $"Seed Checker Activated",
+            PokeTradeType.Clone          => "Cloning Pod Activated",
+            PokeTradeType.Dump           => "Pokémon Scanner Activated",
+            PokeTradeType.ItemTrade      => $"{trader}'s {HeldItem}",
+            PokeTradeType.MysteryEgg     => $"{trader}'s Mystery Egg",
+            PokeTradeType.Seed           => $"Seed Checker Activated",
+            PokeTradeType.SpecialRequest => $"Special Request Initiated",
             PokeTradeType.Specific or
-            PokeTradeType.Giveaway   => $"{trader}'s {(PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
+            PokeTradeType.Giveaway       => $"{trader}'s {(PKM.IsShiny ? "Shiny Pokémon" : $"Pokémon {(PKM.IsEgg ? "Egg" : "")}")}",
             _ => string.Empty
         };
     }
@@ -146,6 +147,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
             PokeTradeType.ItemTrade  => GetPokemonImageURL(PKM.IsEgg),
             PokeTradeType.Seed       => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
+            PokeTradeType.SpecialRequest => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/f628d1603de38365204b3d1c609d3315d82a3f5a/Bot/SpecialRequest.png",
             _ => string.Empty,
         };
     }
@@ -160,6 +162,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
             PokeTradeType.MysteryEgg => "https://raw.githubusercontent.com/Omni-KingZeno/HomeImages/refs/heads/main/Sprites/128x128/MysteryEgg.png",
             PokeTradeType.ItemTrade  => GetItemImgURL(HeldItem),
             PokeTradeType.Seed       => "https://github.com/Omni-KingZeno/Pokemon-Sprites/blob/main/Bot/seedcheck.gif?raw=true",
+            PokeTradeType.SpecialRequest => "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/f628d1603de38365204b3d1c609d3315d82a3f5a/Bot/SpecialRequest.png",
             _ => string.Empty,
         };
     }

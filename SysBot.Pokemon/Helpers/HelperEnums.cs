@@ -2,6 +2,18 @@ using System.ComponentModel;
 
 namespace SysBot.Pokemon;
 
+public enum SpecialTradeType
+{
+    None,
+    ItemReq,
+    BallReq,
+    SanitizeReq,
+    StatChange,
+    Shinify,
+    TeraChange,
+    FailReturn
+}
+
 public enum TradeEmbedDisplay
 {
     None,
