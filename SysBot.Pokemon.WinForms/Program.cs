@@ -13,8 +13,15 @@ internal static class Program
         var cmd = Environment.GetCommandLineArgs();
         var use = Array.Find(cmd, z => z.EndsWith(".json"));
         var cfg = Config = ConfigLoader.LoadConfig(use);
+
+#if NETCOREAPP
+        Application.SetHighDpiMode(HighDpiMode.SystemAware);
+#endif
+
+        Application.SetCompatibleTextRenderingDefault(false);
         if (cfg.Hub.DarkMode)
             Application.SetColorMode(SystemColorMode.Dark);
+
         PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
     }
 
@@ -24,12 +31,7 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
-#if NETCOREAPP
-        Application.SetHighDpiMode(HighDpiMode.SystemAware);
-#endif
-
         Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
         Application.Run(new Main());
     }
 }

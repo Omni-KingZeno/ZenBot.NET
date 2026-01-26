@@ -68,8 +68,8 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/ZenBot'
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v5.2.3
-        name: Release v5.2.3
+        tag_name: v5.2.4
+        name: Release v5.2.4
         draft: false
         prerelease: false
         files: SysBot.Pokemon.WinForms/bin/Release/net10.0-windows/publish/*.exe
