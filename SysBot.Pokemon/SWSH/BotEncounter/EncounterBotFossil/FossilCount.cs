@@ -43,7 +43,7 @@ public class FossilCount
 
     private static InventoryPouch8 GetTreasurePouch(ReadOnlySpan<byte> itemsBlock)
     {
-        var pouch = new InventoryPouch8(InventoryType.Treasure, ItemStorage8SWSH.Instance, 999, 0, 20);
+        var pouch = new InventoryPouch8(999, 0, 20, ItemStorage8SWSH.Instance, InventoryType.Treasure);
         pouch.GetPouch(itemsBlock);
         return pouch;
     }

@@ -28,16 +28,44 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
             var chunk = availablePokemon
                 .Skip(page * perPage)
                 .Take(perPage)
-                .Select((ev, i) => $"{page * perPage + i + 1}. {(ev.IsShiny ? "★ " : "")}{SpeciesName.GetSpeciesName(ev.Species, 2)}{(string.IsNullOrEmpty(ev.OriginalTrainerName) ? " - Players OT" : $" - {ev.OriginalTrainerName}")}");
+                .ToList();
 
-            var embed = new EmbedBuilder
+            var embedBuilder = new EmbedBuilder
             {
-                Title = "Available Mystery Gift Pokémon",
-                Description = string.Join("\n", chunk),
                 Color = Color.DarkPurple
-            }.Build();
+            };
 
-            embeds.Add(embed);
+            var leftColumn = chunk.Take(10).ToList();
+            var rightColumn = chunk.Skip(10).Take(10).ToList();
+
+            var leftColumnText = string.Join("\n", leftColumn.Select((ev, i) =>
+            {
+                string dateStr = GetDistributionDate(ev);
+                int number = page * perPage + i + 1;
+                return $"{number}. **{(ev.IsShiny ? "★ " : "")}{SpeciesName.GetSpeciesName(ev.Species, 2)}**\n  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n  -# - **Date:** {dateStr}\n  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
+            }));
+
+            var rightColumnText = string.Join("\n", rightColumn.Select((ev, i) =>
+            {
+                string dateStr = GetDistributionDate(ev);
+                int number = page * perPage + 10 + i + 1;
+                return $"{number}. **{(ev.IsShiny ? "★ " : "")}{SpeciesName.GetSpeciesName(ev.Species, 2)}**\n  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n  -# - **Date:** {dateStr}\n  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
+            }));
+
+            if (leftColumnText.Length > 1024)
+                leftColumnText = leftColumnText[..1024];
+
+            embedBuilder.AddField("__Available Mystery Gift Pokémon__", leftColumnText, inline: true);
+
+            if (rightColumn.Count > 0)
+            {
+                if (rightColumnText.Length > 1024)
+                    rightColumnText = rightColumnText[..1024];
+
+                embedBuilder.AddField("\u200B", rightColumnText, inline: true);
+            }
+
+            embeds.Add(embedBuilder.Build());
         }
 
         await PaginatedMessage.CreateAsync(Context, embeds);
@@ -125,8 +153,29 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
 
         // Collapse duplicates by species
         return [.. events
-            .GroupBy(e => e.Species)
-            .Select(g => g.First()).Reverse()];
+        .GroupBy(e => e.Species)
+        .Select(g => g.First())
+        .OrderBy(e => GetDistributionDate(e))
+        .Reverse()];
+    }
+
+    private static string GetDistributionDate(dynamic ev)
+    {
+        DateOnly? startDate = null;
+
+        if (ev is WA9 wa9 && wa9.GetDistributionWindow(out var window9a))
+            startDate = window9a.Start;
+        else if (ev is WC9 wc9 && wc9.GetDistributionWindow(out var window9))
+            startDate = window9.Start;
+        else if (ev is WC8 wc8 && wc8.GetDistributionWindow(out var window8))
+            startDate = window8.Start;
+        else if (ev is WA8 wa8 && wa8.GetDistributionWindow(out var window8a))
+            startDate = window8a.Start;
+        else if (ev is WB8 wb8 && wb8.GetDistributionWindow(out var window8b))
+            startDate = window8b.Start;
+        else if (ev is WB7 wb7 && wb7.GetDistributionWindow(out var window7))
+            startDate = window7.Start;
+
+        return startDate.HasValue ? startDate.Value.ToString("yy-MM-dd") : "No Date";
     }
 }
-
