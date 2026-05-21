@@ -20,10 +20,12 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
     {
         var offset = GetSlotOffset(box, slot);
         var chunkLength = BoxFormatSlotSize - 0x1C;
-        var chunk1 = pk.EncryptedPartyData.AsSpan(0, chunkLength).ToArray();
-        await Connection.WriteBytesAsync(chunk1, offset, token).ConfigureAwait(false);
-        var chunk2 = pk.EncryptedPartyData.AsSpan(chunkLength).ToArray();
-        await Connection.WriteBytesAsync(chunk2, (offset + (uint)chunkLength + 0x70), token).ConfigureAwait(false);
+
+        byte[] data = new byte[pk.SIZE_PARTY];
+        pk.WriteEncryptedDataParty(data);
+
+        await Connection.WriteBytesAsync(data[..chunkLength], offset, token).ConfigureAwait(false);
+        await Connection.WriteBytesAsync(data[chunkLength..], (offset + (uint)chunkLength + 0x70), token).ConfigureAwait(false);
     }
 
     public override async Task<PB7> ReadBoxPokemon(int box, int slot, CancellationToken token)

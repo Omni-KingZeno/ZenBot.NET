@@ -125,9 +125,9 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     [Summary("Adds supplied PKM file to the giveaway folder.")]
     [RequireQueueRole(nameof(DiscordManager.RolesGiveaway))]
     public async Task AddGiveawayAttachAsync()
-    {
-        await Context.Message.DeleteAsync(RequestOptions.Default).ConfigureAwait(false);
+    {        
         await UploadGiveawayPokemonFile(Hub.Config.Folder.GiveawayFolder).ConfigureAwait(false);
+        await Context.Message.DeleteAsync().ConfigureAwait(false);
     }
 
     [Command("AddGiveawayPokemon")]
@@ -225,7 +225,9 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
         var fn = Path.Combine(folder, fileName + Path.GetExtension(pk.FileName));
-        File.WriteAllBytes(fn, pk.DecryptedPartyData);
+        Span<byte> PokeData = stackalloc byte[pk.SIZE_PARTY];
+        pk.WriteDecryptedDataParty(PokeData);
+        File.WriteAllBytes(fn, PokeData);
         LogUtil.LogInfo($"Saved file: {fn}", $"{folder}");
         msg = $"{Format.Bold(fileName)} added to the giveaway folder.";
 
@@ -256,7 +258,9 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
         Directory.CreateDirectory(folder);
         var gaName = attachment.Filename.Replace("_", " ");
         var path = Path.Combine(folder, gaName);
-        File.WriteAllBytes(path, pk.DecryptedPartyData);
+        Span<byte> PokeData = stackalloc byte[pk.SIZE_PARTY];
+        pk.WriteDecryptedDataParty(PokeData);
+        File.WriteAllBytes(path, PokeData);
         LogUtil.LogInfo($"Saved file: {path}", $"{folder}");
         await ReplyAsync($"{Format.Bold(gaName[..^4])} added to the {folder} folder.");
         await ReloadGAPoolAsync().ConfigureAwait(false);
