@@ -29,7 +29,7 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
             var sig = Context.User.GetFavor();
             try
             {
-                _ = TradeExtensions<T>.GenerateMysteryEgg(Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
+                var pkm = TradeExtensions<T>.GenerateMysteryEgg(Info.Hub.Config.Trade.MysteryShinyOdds);
                 await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.MysteryEgg, Context.User).ConfigureAwait(false);
             }
             catch (InvalidOperationException)
@@ -63,7 +63,7 @@ public class MysteryModule<T> : ModuleBase<SocketCommandContext> where T : PKM, 
         var sig = Context.User.GetFavor();
         try
         {
-            _ = TradeExtensions<T>.GenerateMysteryMon(Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
+            var pkm = TradeExtensions<T>.GenerateMysteryMon(Info.Hub.Config.Trade.MysteryShinyOdds);
             await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkm, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
         }
         catch (InvalidOperationException)

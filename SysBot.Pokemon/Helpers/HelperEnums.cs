@@ -2,6 +2,13 @@ using System.ComponentModel;
 
 namespace SysBot.Pokemon;
 
+public enum DistributionType
+{
+    LocalFiles,
+    MysteryEggs,
+    MysteryMons,
+}
+
 public enum SpecialTradeType
 {
     None,

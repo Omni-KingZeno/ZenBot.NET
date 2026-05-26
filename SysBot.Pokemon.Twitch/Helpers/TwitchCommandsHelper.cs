@@ -80,7 +80,7 @@ public static class TwitchCommandsHelper<T> where T : PKM, new()
             {
                 if (hasEggs)
                 {
-                    _ = TradeExtensions<T>.GenerateMysteryMon(TwitchBot<T>.Info.Hub.Config.Trade.MysteryShinyOdds, out var pkm);
+                    var pkm = TradeExtensions<T>.GenerateMysteryEgg(TwitchBot<T>.Info.Hub.Config.Trade.MysteryShinyOdds);
 
                     var valid = new LegalityAnalysis(pkm).Valid;
                     if (valid)

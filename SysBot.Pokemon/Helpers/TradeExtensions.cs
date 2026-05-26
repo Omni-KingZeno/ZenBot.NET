@@ -200,7 +200,7 @@ public class TradeExtensions<T> where T : PKM, new()
         return egg ? eggURL : string.Join("_", baseLink);
     }
 
-    public static T GenerateMysteryMon(int odds, out T pkm)
+    public static T GenerateMysteryMon(int odds)
     {
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
         var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
@@ -224,7 +224,7 @@ public class TradeExtensions<T> where T : PKM, new()
             if (alpha && sav.Version is (GameVersion.PLA or GameVersion.ZA))
                 set += "\nAlpha: Yes";
             var template = new RegenTemplate(new ShowdownSet(set));
-            pkm = (T)sav.GetLegal(template, out _);
+            var pkm = (T)sav.GetLegal(template, out _);
             pkm.OriginalTrainerTrash.Clear();
             pkm.OriginalTrainerName = "Surprise!";
             pkm.SetSuggestedMoves();
@@ -258,7 +258,7 @@ public class TradeExtensions<T> where T : PKM, new()
         throw new InvalidOperationException($"Failed to generate valid Pokémon after {maxAttempts} attempts");
     }
 
-    public static T GenerateMysteryEgg(int odds, out T pkm)
+    public static T GenerateMysteryEgg(int odds)
     {
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
         var sav = BlankSaveFile.Get(trainer.Version, trainer.OT);
@@ -275,7 +275,7 @@ public class TradeExtensions<T> where T : PKM, new()
             var species = availSpec[Util.Rand.Next(availSpec.Count)];
             var shiny = Util.Rand.Next(0, odds) == 0;
             var template = new RegenTemplate(new ShowdownSet($"{(Species)species}"));
-            pkm = (T)sav.GenerateEgg(template, out _);
+            var pkm = (T)sav.GenerateEgg(template, out _);
             pkm.SetSuggestedMoves();
             pkm.SetNature((Nature)Util.Rand.Next(0, 25));
             pkm.SetAbility(Util.Rand.Next(0, 2));

@@ -45,15 +45,15 @@ public class TradeQueueManager<T> where T : PKM, new()
         if (!cfg.DistributeWhileIdle && !force)
             return false;
 
-        if (Hub.Ledy.Pool.Count == 0 && !cfg.DistributeMysteryEggs)
+        if (Hub.Ledy.Pool.Count == 0 && cfg.DistributionType == DistributionType.LocalFiles)
             return false;
 
-        T random;
-        bool distributeEggs = cfg.DistributeMysteryEggs && TradeExtensions<T>.HasEggs(Hub.Config.Mode);
-        if (distributeEggs)
-            TradeExtensions<T>.GenerateMysteryEgg(Hub.Config.Trade.MysteryShinyOdds, out random);
-        else
-            random = Hub.Ledy.Pool.GetRandomPoke();
+        T random = cfg.DistributionType switch
+        {
+            DistributionType.MysteryEggs when TradeExtensions<T>.HasEggs(Hub.Config.Mode) => TradeExtensions<T>.GenerateMysteryEgg(Hub.Config.Trade.MysteryShinyOdds),
+            DistributionType.MysteryMons or DistributionType.MysteryEggs => TradeExtensions<T>.GenerateMysteryMon(Hub.Config.Trade.MysteryShinyOdds), // Fallback to MysteryMon if eggs aren't supported
+            _ => Hub.Ledy.Pool.GetRandomPoke()
+        };
 
         var code = cfg.RandomCode ? Hub.Config.Trade.GetRandomTradeCode() : cfg.TradeCode;
         var code7b = cfg.RandomCode ? PictoCodesExtensions.GetPictoCodesFromLinkCode(code) : [cfg.LGPETradeCode.Picto1, cfg.LGPETradeCode.Picto2, cfg.LGPETradeCode.Picto3];
