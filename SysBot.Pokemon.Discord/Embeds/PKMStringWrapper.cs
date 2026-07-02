@@ -16,7 +16,7 @@ internal class PKMStringWrapper<T>(T PKM, TradeEmbedSettings Config, PokeTradeTy
     internal string FormArgument => GetFormArgumentString();
 
     internal string Ability => type == PokeTradeType.MysteryEgg ? "Unknown" : GameStrings.Ability[PKM.Ability];
-    internal string Nature => GameStrings.Natures[(byte)PKM.StatNature];
+    internal string Nature => GameStrings.Natures[(byte)PKM.StatAlignment];
     internal string HeldItem => GameStrings.Item[PKM.HeldItem];
 
     internal bool HasForm = PKM.Form > 0;

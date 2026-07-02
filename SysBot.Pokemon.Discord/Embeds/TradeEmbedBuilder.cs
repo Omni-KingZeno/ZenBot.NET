@@ -170,7 +170,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
             DisplayedInfo.SpeciesFormMarkHeldItem when Strings.HasForm => $"**{Strings.Shiny}{Strings.Species}-{Strings.Form}{Strings.Gender}**",
             DisplayedInfo.SpeciesFormMarkHeldItem => $"**{Strings.Shiny}{Strings.Species}{Strings.Gender}**",
 
-            DisplayedInfo.StatNature when PKM.StatNature != PKM.Nature => $"**Stat Nature:** {PKM.StatNature}",
+            DisplayedInfo.StatNature when PKM.StatAlignment != PKM.Nature => $"**Stat Nature:** {PKM.StatAlignment}",
 
             DisplayedInfo.Sweet when PKM.Species is (ushort)Species.Alcremie => $"**Sweet:** {Strings.FormArgument}",
 

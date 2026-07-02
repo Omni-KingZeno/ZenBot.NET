@@ -134,20 +134,20 @@ public class GenerateValidSpeciesTests
     [InlineData(GameVersion.PLA)]
     [InlineData(GameVersion.SV)]
     [InlineData(GameVersion.ZA)]
-    public void CanGenerateAllSpeciesForVersion(GameVersion version)
+    public void GenerateNativeSpecies(GameVersion Version)
     {
-        var sav = GetSaveForVersion(version);
-        var personalTable = GetPersonalTableForVersion(version);
-        var availableSpecies = GetAvailableSpeciesAndForms(version, personalTable, sav);
+        var sav = GetSaveForVersion(Version);
+        var personalTable = GetPersonalTableForVersion(Version);
+        var availableSpecies = GetAvailableSpeciesAndForms(Version, personalTable, sav);
 
         var failedSpecies = availableSpecies
-            .Select(sf => TryGenerateLegal(sf, version, sav))
+            .Select(sf => TryGenerateLegal(sf, Version, sav))
             .Where(result => result != null)
             .ToList();
 
         if (failedSpecies.Count != 0)
         {
-            var failureMessage = $"The following species/forms failed to generate legally for {version}:\n"
+            var failureMessage = $"The following species/forms failed to generate legally for {Version}:\n"
                 + string.Join("\n", failedSpecies);
             Assert.Fail(failureMessage);
         }
@@ -248,26 +248,26 @@ public class GenerateValidSpeciesTests
         {
             GameVersion.SWSH =>
         [
-            ((ushort)Species.Celebi, 0),
-            ((ushort)Species.Diancie, 0),
+            ((ushort)Species.Celebi,   0),
+            ((ushort)Species.Diancie,  0),
             ((ushort)Species.Magearna, 0),
-            ((ushort)Species.Zeraora, 0),
-            ((ushort)Species.Meltan, 0),
+            ((ushort)Species.Zeraora,  0),
+            ((ushort)Species.Meltan,   0),
             ((ushort)Species.Melmetal, 0),
         ],
             GameVersion.BDSP =>
         [
-            ((ushort)Species.Celebi, 0),
-            ((ushort)Species.Deoxys, 0),
-            ((ushort)Species.Deoxys, 1),
-            ((ushort)Species.Deoxys, 2),
-            ((ushort)Species.Deoxys, 3),
+            ((ushort)Species.Celebi,   0),
+            ((ushort)Species.Deoxys,   0),
+            ((ushort)Species.Deoxys,   1),
+            ((ushort)Species.Deoxys,   2),
+            ((ushort)Species.Deoxys,   3),
             ((ushort)Species.Giratina, 1),
         ],
             GameVersion.SV => CreateSVHomeTransfers(),
             GameVersion.ZA =>
         [
-            ((ushort)Species.Magearna, 1),
+            ((ushort)Species.Magearna,   1),
             ((ushort)Species.Gimmighoul, 1),
         ],
             _ => []
@@ -278,47 +278,47 @@ public class GenerateValidSpeciesTests
     {
         HashSet<(ushort, int)> transfers =
         [
-            ((ushort)Species.Articuno, 1),
-            ((ushort)Species.Zapdos, 1),
-            ((ushort)Species.Moltres, 1),
-            ((ushort)Species.Regirock, 0),
-            ((ushort)Species.Regice, 0),
-            ((ushort)Species.Registeel, 0),
-            ((ushort)Species.Jirachi, 0),
-            ((ushort)Species.Uxie, 0),
-            ((ushort)Species.Mesprit, 0),
-            ((ushort)Species.Azelf, 0),
-            ((ushort)Species.Heatran, 0),
-            ((ushort)Species.Regigigas, 0),
-            ((ushort)Species.Giratina, 0),
-            ((ushort)Species.Giratina, 1),
-            ((ushort)Species.Cresselia, 0),
-            ((ushort)Species.Manaphy, 0),
-            ((ushort)Species.Shaymin, 0),
-            ((ushort)Species.Shaymin, 1),
-            ((ushort)Species.Tornadus, 0),
-            ((ushort)Species.Tornadus, 1),
-            ((ushort)Species.Thundurus, 0),
-            ((ushort)Species.Thundurus, 1),
-            ((ushort)Species.Landorus, 0),
-            ((ushort)Species.Landorus, 1),
-            ((ushort)Species.Diancie, 0),
-            ((ushort)Species.Hoopa, 0),
-            ((ushort)Species.Hoopa, 1),
-            ((ushort)Species.Volcanion, 0),
-            ((ushort)Species.Cosmog, 0),
-            ((ushort)Species.Cosmoem, 0),
-            ((ushort)Species.Magearna, 0),
-            ((ushort)Species.Magearna, 1),
-            ((ushort)Species.Zacian, 0),
-            ((ushort)Species.Zamazenta, 0),
-            ((ushort)Species.Eternatus, 0),
-            ((ushort)Species.Zarude, 1),
-            ((ushort)Species.Regieleki, 0),
-            ((ushort)Species.Regidrago, 0),
-            ((ushort)Species.Calyrex, 0),
-            ((ushort)Species.Enamorus, 0),
-            ((ushort)Species.Enamorus, 1),
+            ((ushort)Species.Articuno,   1),
+            ((ushort)Species.Zapdos,     1),
+            ((ushort)Species.Moltres,    1),
+            ((ushort)Species.Regirock,   0),
+            ((ushort)Species.Regice,     0),
+            ((ushort)Species.Registeel,  0),
+            ((ushort)Species.Jirachi,    0),
+            ((ushort)Species.Uxie,       0),
+            ((ushort)Species.Mesprit,    0),
+            ((ushort)Species.Azelf,      0),
+            ((ushort)Species.Heatran,    0),
+            ((ushort)Species.Regigigas,  0),
+            ((ushort)Species.Giratina,   0),
+            ((ushort)Species.Giratina,   1),
+            ((ushort)Species.Cresselia,  0),
+            ((ushort)Species.Manaphy,    0),
+            ((ushort)Species.Shaymin,    0),
+            ((ushort)Species.Shaymin,    1),
+            ((ushort)Species.Tornadus,   0),
+            ((ushort)Species.Tornadus,   1),
+            ((ushort)Species.Thundurus,  0),
+            ((ushort)Species.Thundurus,  1),
+            ((ushort)Species.Landorus,   0),
+            ((ushort)Species.Landorus,   1),
+            ((ushort)Species.Diancie,    0),
+            ((ushort)Species.Hoopa,      0),
+            ((ushort)Species.Hoopa,      1),
+            ((ushort)Species.Volcanion,  0),
+            ((ushort)Species.Cosmog,     0),
+            ((ushort)Species.Cosmoem,    0),
+            ((ushort)Species.Magearna,   0),
+            ((ushort)Species.Magearna,   1),
+            ((ushort)Species.Zacian,     0),
+            ((ushort)Species.Zamazenta,  0),
+            ((ushort)Species.Eternatus,  0),
+            ((ushort)Species.Zarude,     1),
+            ((ushort)Species.Regieleki,  0),
+            ((ushort)Species.Regidrago,  0),
+            ((ushort)Species.Calyrex,    0),
+            ((ushort)Species.Enamorus,   0),
+            ((ushort)Species.Enamorus,   1),
             ((ushort)Species.Gimmighoul, 1),
         ];
 

@@ -194,9 +194,9 @@ public static class SpecialRequests
         }
 
         if (pk is PA9 pa)
-            pa.StatNature = nature;
+            pa.StatAlignment = nature;
         else
-            pk.Nature = pk.StatNature = nature;
+            pk.Nature = pk.StatAlignment = nature;
         return SpecialTradeType.StatChange;
     }
 
@@ -307,7 +307,7 @@ public static class SpecialRequests
             if (nickname.Contains(key))
             {
                 pk.ClearNickname();
-                pk.Nature = pk.StatNature = nature;
+                pk.Nature = pk.StatAlignment = nature;
                 return SpecialTradeType.StatChange;
             }
         }
