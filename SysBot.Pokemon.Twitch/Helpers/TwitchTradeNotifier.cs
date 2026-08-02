@@ -94,7 +94,7 @@ public class TwitchTradeNotifier<T> : IPokeTradeNotifier<T> where T : PKM, new()
         switch (dest)
         {
             case TwitchMessageDestination.Channel:
-                Client.SendMessage(Channel, message);
+                _ = Client.SendMessageAsync(Channel, message, false);
                 break;
         }
     }

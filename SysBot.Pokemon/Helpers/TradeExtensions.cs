@@ -238,7 +238,7 @@ public class TradeExtensions<T> where T : PKM, new()
             {
                 pkm.SetPlusFlags(true, true);
             }
-            pkm.Ball = (byte)Util.Rand.Next(1, 26);
+            BallApplicator.ApplyBallLegalRandom(pkm);
 
             if (pkm is IDynamaxLevel d)
                 d.DynamaxLevel = (byte)Util.Rand.Next(0, 10);
@@ -280,7 +280,7 @@ public class TradeExtensions<T> where T : PKM, new()
             pkm.SetNature((Nature)Util.Rand.Next(0, 25));
             pkm.SetAbility(Util.Rand.Next(0, 2));
             pkm.SetRandomIVs();
-            pkm.Ball = (byte)Util.Rand.Next(0, 26);
+            BallApplicator.ApplyBallLegalRandom(pkm);
 
             if (shiny)
                 pkm.SetShiny();

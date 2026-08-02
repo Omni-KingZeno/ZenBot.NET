@@ -19,7 +19,7 @@ public class InfoModule : ModuleBase<SocketCommandContext>
     private const string almForkRepo = "https://github.com/santacrab2/PKHeX-Plugins";
     private const string forkRepo = "https://github.com/Manu098vm/ManuBot.NET";
     private const string thisRepo = "https://github.com/Omni-KingZeno/ZenBot.NET";
-    private const string version = "v5.5.1";
+    private const string version = "v5.5.2";
 
 
     [Command("info")]

@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="TwitchLib.Client" Version="3.4.0" />
+    <PackageReference Include="TwitchLib.Client" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
