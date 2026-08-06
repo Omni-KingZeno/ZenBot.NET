@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
 namespace SysBot.Pokemon.WinForms;
@@ -41,9 +42,24 @@ public class DrawableButton : Button
         Invalidate();
     }
 
+    private static bool IsDarkThemeSafe()
+    {
+        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            return false; // safe default while in the designer
+
+        try
+        {
+            return Program.IsDarkTheme;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
-        bool dark = Program.IsDarkTheme;
+        bool dark = IsDarkThemeSafe();
         Color normalBack = dark ? DarkNormalBackColor : LightNormalBackColor;
         Color hoverBack = dark ? DarkHoverBackColor : LightHoverBackColor;
         Color borderColor = dark ? DarkBorderColor : Color.FromArgb(160, 160, 160);

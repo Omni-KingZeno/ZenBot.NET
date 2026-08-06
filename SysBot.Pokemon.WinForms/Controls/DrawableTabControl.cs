@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace SysBot.Pokemon.WinForms;
 
 public class DrawableTabControl : TabControl
@@ -42,9 +44,24 @@ public class DrawableTabControl : TabControl
         }
     }
 
+    private static bool IsDarkThemeSafe()
+    {
+        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            return false; // safe default while in the designer
+
+        try
+        {
+            return Program.IsDarkTheme;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
-        bool dark = Program.IsDarkTheme;
+        bool dark = IsDarkThemeSafe();
 
         Color stripColor = dark ? Color.FromArgb(32, 32, 32) : Color.White;
         Color pageColor = dark ? Color.FromArgb(32, 32, 32) : Color.White;
