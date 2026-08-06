@@ -44,24 +44,9 @@ public class DrawableTabControl : TabControl
         }
     }
 
-    private static bool IsDarkThemeSafe()
-    {
-        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
-            return false; // safe default while in the designer
-
-        try
-        {
-            return Program.IsDarkTheme;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     protected override void OnPaint(PaintEventArgs e)
     {
-        bool dark = IsDarkThemeSafe();
+        bool dark = ThemeHelper.IsDarkThemeSafe();
 
         Color stripColor = dark ? Color.FromArgb(32, 32, 32) : Color.White;
         Color pageColor = dark ? Color.FromArgb(32, 32, 32) : Color.White;

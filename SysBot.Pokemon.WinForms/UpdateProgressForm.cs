@@ -3,43 +3,11 @@ namespace SysBot.Pokemon.WinForms;
 /// <summary>
 /// Minimal modal progress dialog shown while an update downloads and installs.
 /// </summary>
-public sealed class UpdateProgressForm : Form
+public sealed partial class UpdateProgressForm : Form
 {
-    private readonly ProgressBar _progressBar;
-    private readonly Label _statusLabel;
-
     public UpdateProgressForm()
     {
-        Text = "Updating ZenBot";
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        StartPosition = FormStartPosition.Manual;
-        MaximizeBox = false;
-        MinimizeBox = false;
-        ControlBox = false;
-        ClientSize = new Size(360, 90);
-
-        _statusLabel = new Label
-        {
-            Text = "Downloading update...",
-            AutoSize = false,
-            TextAlign = ContentAlignment.MiddleLeft,
-            Location = new Point(12, 12),
-            Size = new Size(336, 20),
-        };
-
-        _progressBar = new ProgressBar
-        {
-            Minimum = 0,
-            Maximum = 100,
-            Value = 0,
-            Style = ProgressBarStyle.Marquee, // switches to Blocks once real progress is known
-            MarqueeAnimationSpeed = 30,
-            Location = new Point(12, 40),
-            Size = new Size(336, 24),
-        };
-
-        Controls.Add(_statusLabel);
-        Controls.Add(_progressBar);
+        InitializeComponent();
     }
 
     protected override void OnLoad(EventArgs e)
@@ -65,16 +33,16 @@ public sealed class UpdateProgressForm : Form
     public void ReportProgress(int? percent, string? status = null)
     {
         if (status is not null)
-            _statusLabel.Text = status;
+            StatusLabel.Text = status;
 
         if (percent is null)
         {
-            _progressBar.Style = ProgressBarStyle.Marquee;
+            ProgressBar.Style = ProgressBarStyle.Marquee;
         }
         else
         {
-            _progressBar.Style = ProgressBarStyle.Blocks;
-            _progressBar.Value = Math.Clamp(percent.Value, 0, 100);
+            ProgressBar.Style = ProgressBarStyle.Blocks;
+            ProgressBar.Value = Math.Clamp(percent.Value, 0, 100);
         }
     }
 }

@@ -35,7 +35,21 @@ jobs:
 
     - name: Execute unit tests
       run: dotnet test
-      
+
+    - name: Get version from source
+      id: version
+      run: |
+        $content = Get-Content "SysBot.Pokemon\Structures\ProgramConfig.cs" -Raw
+        if ($content -match 'new Version\((\d+),\s*(\d+),\s*(\d+)\)') {
+          $version = "$($matches[1]).$($matches[2]).$($matches[3])"
+          echo "number=$version" >> $env:GITHUB_OUTPUT
+          echo "tag=v$version" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Error "Could not find version string in ProgramConfig.cs"
+          exit 1
+        }
+      shell: pwsh
+
     - name: Build application
       run: >
         dotnet publish SysBot.Pokemon.WinForms/SysBot.Pokemon.WinForms.csproj
@@ -47,6 +61,9 @@ jobs:
         /p:PublishTrimmed=false
         /p:DebugType=portable
         /p:OutputPath=bin\Release\net10.0-windows\
+        /p:Version=${{ steps.version.outputs.number }}
+        /p:AssemblyVersion=${{ steps.version.outputs.number }}
+        /p:FileVersion=${{ steps.version.outputs.number }}
 
     - name: Upload Application
       uses: actions/upload-artifact@v4
@@ -54,25 +71,15 @@ jobs:
         name: SysBot.Pokemon.WinForms
         path: SysBot.Pokemon.WinForms\bin\Release\net10.0-windows\publish\*.exe
 
-    - name: Format version number
-      id: version
-      run: |
-        $runNumber = "${{ github.run_number }}"
-        $lastDigit = $runNumber.Substring($runNumber.Length - 1)
-        $firstDigits = $runNumber.Substring(0, $runNumber.Length - 1)
-        $formattedVersion = "$firstDigits.$lastDigit"
-        echo "number=$formattedVersion" >> $env:GITHUB_OUTPUT
-      shell: pwsh
-
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/ZenBot'
       uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v5.6.0
-        name: Release v5.6.0
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: Release ${{ steps.version.outputs.tag }}
         draft: false
         prerelease: false
         files: SysBot.Pokemon.WinForms/bin/Release/net10.0-windows/publish/*.exe
         generate_release_notes: true
-      env:
-       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}         
