@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using PKHeX.Core;
 using SysBot.Base;
 
@@ -52,6 +54,69 @@ public sealed partial class Main : Form
 
         B_New.Height = CB_Protocol.Height;
         FLP_BotCreator.Height = B_New.Height + B_New.Margin.Vertical;
+
+        if (Environment.GetCommandLineArgs().Contains("--updated", StringComparer.OrdinalIgnoreCase))
+        {
+            Shown += (s, e) =>
+            {
+                ForceToForeground();
+                MessageBox.Show(this,
+                    "Update Successful!",
+                    "Update Complete",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            };
+        }
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    private const int SW_RESTORE = 9;
+
+    /// <summary>
+    /// Forces this window to the foreground even when Windows' foreground-lock would normally
+    /// block it (e.g. when relaunched by a helper script rather than direct user interaction).
+    /// Works by briefly attaching this thread's input state to the current foreground thread's,
+    /// which is one of the few conditions under which SetForegroundWindow is honored.
+    /// </summary>
+    private void ForceToForeground()
+    {
+        if (WindowState == FormWindowState.Minimized)
+            WindowState = FormWindowState.Normal;
+
+        IntPtr foregroundWindow = GetForegroundWindow();
+        uint foregroundThreadId = GetWindowThreadProcessId(foregroundWindow, out _);
+        uint thisThreadId = GetCurrentThreadId();
+
+        bool attached = foregroundThreadId != thisThreadId && AttachThreadInput(foregroundThreadId, thisThreadId, true);
+
+        try
+        {
+            ShowWindow(Handle, SW_RESTORE);
+            SetForegroundWindow(Handle);
+            Activate();
+        }
+        finally
+        {
+            if (attached)
+                AttachThreadInput(foregroundThreadId, thisThreadId, false);
+        }
     }
 
     protected override void ScaleControl(SizeF factor, BoundsSpecified specified)
@@ -66,9 +131,9 @@ public sealed partial class Main : Form
         ProgramMode.LGPE => new PokeBotRunnerImpl<PB7>(cfg.Hub, new BotFactory7LGPE()),
         ProgramMode.SWSH => new PokeBotRunnerImpl<PK8>(cfg.Hub, new BotFactory8SWSH()),
         ProgramMode.BDSP => new PokeBotRunnerImpl<PB8>(cfg.Hub, new BotFactory8BS()),
-        ProgramMode.LA   => new PokeBotRunnerImpl<PA8>(cfg.Hub, new BotFactory8LA()),
-        ProgramMode.SV   => new PokeBotRunnerImpl<PK9>(cfg.Hub, new BotFactory9SV()),
-        ProgramMode.LZA  => new PokeBotRunnerImpl<PA9>(cfg.Hub, new BotFactory9LZA()),
+        ProgramMode.LA => new PokeBotRunnerImpl<PA8>(cfg.Hub, new BotFactory8LA()),
+        ProgramMode.SV => new PokeBotRunnerImpl<PK9>(cfg.Hub, new BotFactory9SV()),
+        ProgramMode.LZA => new PokeBotRunnerImpl<PA9>(cfg.Hub, new BotFactory9LZA()),
         _ => throw new IndexOutOfRangeException("Unsupported mode."),
     };
 
@@ -146,9 +211,10 @@ public sealed partial class Main : Form
         ConfigLoader.Save(cfg);
     }
 
-    private void B_Start_Click(object sender, EventArgs e)
+    private async void B_Start_Click(object sender, EventArgs e)
     {
         SaveCurrentConfig();
+        CheckForUpdate();
 
         LogUtil.LogInfo("Starting all bots...", "Form");
         RunningEnvironment.InitializeStart();
@@ -308,5 +374,75 @@ public sealed partial class Main : Form
 
         if (isWifi)
             NUD_Port.Text = "6000";
+    }
+
+    public async void CheckForUpdate()
+    {
+        var update = await UpdateManager.CheckAsync().ConfigureAwait(true);
+        if (!update.IsUpToDate)
+        {
+            var canAutoUpdate = update.AssetDownloadUrl is not null;
+            var prompt = canAutoUpdate
+                ? $"A newer version of ZenBot is available (v{update.LatestVersion}). Update and restart now?"
+                : $"A newer version of ZenBot is available (v{update.LatestVersion}), but no downloadable asset was found. Open the release page?";
+
+            var result = MessageBox.Show(this,
+                prompt,
+                "Update Available!",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                if (canAutoUpdate)
+                {
+                    using var progressForm = new UpdateProgressForm();
+                    Enabled = false;
+                    progressForm.Show(this);
+
+                    var progress = new Progress<int?>(percent =>
+                    {
+                        switch (percent)
+                        {
+                            case 101: // sentinel: download finished, now staging/applying the update
+                                progressForm.ReportProgress(100, "Applying update...");
+                                break;
+                            case int p:
+                                progressForm.ReportProgress(p, $"Downloading update... {p}%");
+                                break;
+                            default:
+                                progressForm.ReportProgress(null, "Downloading update...");
+                                break;
+                        }
+                    });
+
+                    try
+                    {
+                        await UpdateManager.ApplyUpdateAsync(update.AssetDownloadUrl!, progress).ConfigureAwait(true);                        
+                    }
+                    // ApplyUpdateAsync exits the process on success; if we get here, it failed.
+                    catch (Exception ex)
+                    {
+                        LogUtil.LogInfo($"Auto-update failed: {ex.Message}", "Update Check");
+                        WinFormsUtil.Alert("Automatic update failed. Please update manually from the releases page.");
+                    }
+                    finally
+                    {
+                        progressForm.Close();
+                        Enabled = true;
+                    }
+                }
+                else
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = update.ReleaseUrl,
+                        UseShellExecute = true
+                    });
+                    Application.Exit();
+                    return;
+                }
+            }
+        }
     }
 }
