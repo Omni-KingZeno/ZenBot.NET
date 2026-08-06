@@ -278,6 +278,12 @@ public sealed partial class Main : Form
             WinFormsUtil.Alert("No bots configured, but all supporting services have been issued the reboot command.");
     }
 
+    private async void B_Update_Click(object sender, EventArgs e)
+    {
+        await CheckForUpdate().ConfigureAwait(true);
+        WinFormsUtil.Alert("Your're using the latest version!");
+    }
+
     private void B_New_Click(object sender, EventArgs e)
     {
         var cfg = CreateNewBotConfig();

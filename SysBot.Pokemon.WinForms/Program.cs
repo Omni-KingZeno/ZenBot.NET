@@ -18,8 +18,7 @@ internal static class Program
         Application.SetHighDpiMode(HighDpiMode.SystemAware);
 #endif
 
-        Application.SetCompatibleTextRenderingDefault(false);
-        if (cfg.Hub.DarkMode)
+    if (cfg.Hub.DarkMode)
             Application.SetColorMode(SystemColorMode.Dark);
 
         PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
@@ -31,6 +30,7 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
+        Application.SetCompatibleTextRenderingDefault(false);
         Application.EnableVisualStyles();
         Application.Run(new Main());
     }

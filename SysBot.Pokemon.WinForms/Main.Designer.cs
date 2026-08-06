@@ -43,6 +43,7 @@ namespace SysBot.Pokemon.WinForms
             FLP_Line = new FlowLayoutPanel();
             Tab_Hub = new TabPage();
             PG_Hub = new PropertyGrid();
+            B_UpdateCheck = new DrawableButton();
             Tab_Logs = new TabPage();
             RTB_Logs = new RichTextBox();
             B_Stop = new DrawableButton();
@@ -177,6 +178,7 @@ namespace SysBot.Pokemon.WinForms
             // Tab_Hub
             // 
             Tab_Hub.Controls.Add(PG_Hub);
+            Tab_Hub.Controls.Add(B_UpdateCheck);
             Tab_Hub.Location = new Point(4, 36);
             Tab_Hub.Margin = new Padding(4, 3, 4, 3);
             Tab_Hub.Name = "Tab_Hub";
@@ -193,8 +195,21 @@ namespace SysBot.Pokemon.WinForms
             PG_Hub.Margin = new Padding(4, 3, 4, 3);
             PG_Hub.Name = "PG_Hub";
             PG_Hub.PropertySort = PropertySort.Categorized;
-            PG_Hub.Size = new Size(757, 208);
+            PG_Hub.Size = new Size(757, 178);
             PG_Hub.TabIndex = 0;
+            // 
+            // B_UpdateCheck
+            // 
+            B_UpdateCheck.Dock = DockStyle.Bottom;
+            B_UpdateCheck.FlatStyle = FlatStyle.Flat;
+            B_UpdateCheck.Location = new Point(0, 178);
+            B_UpdateCheck.Margin = new Padding(0);
+            B_UpdateCheck.Name = "B_UpdateCheck";
+            B_UpdateCheck.Size = new Size(757, 30);
+            B_UpdateCheck.TabIndex = 1;
+            B_UpdateCheck.Text = "Check For Update";
+            B_UpdateCheck.UseVisualStyleBackColor = true;
+            B_UpdateCheck.Click += B_Update_Click;
             // 
             // Tab_Logs
             // 
@@ -304,6 +319,7 @@ namespace SysBot.Pokemon.WinForms
         private ComboBox CB_Protocol;
         private FlowLayoutPanel FLP_BotCreator;
         private FlowLayoutPanel FLP_Line;
+        private DrawableButton B_UpdateCheck;
     }
 }
 
