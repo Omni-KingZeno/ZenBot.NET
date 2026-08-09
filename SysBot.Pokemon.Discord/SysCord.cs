@@ -219,13 +219,15 @@ public sealed partial class SysCord<T> where T : PKM, new()
 
         // Create a number to track where the prefix ends and the command begins
         int pos = 0;
-        if (Hub.Config.Discord.AllowAnyCommandPrefix && PrefixRegex().IsMatch(msg.Content))
+        var hasMention = msg.HasMentionPrefix(_client.CurrentUser, ref pos);
+
+        if (Hub.Config.Discord.AllowAnyCommandPrefix && (PrefixRegex().IsMatch(msg.Content) || hasMention))
         {
-            if (await TryHandleCommandAsync(msg, 1).ConfigureAwait(false))
+            if (await TryHandleCommandAsync(msg, hasMention ? pos : 1).ConfigureAwait(false))
                 return;
         }
 
-        if (msg.HasStringPrefix(Hub.Config.Discord.CommandPrefix, ref pos) &&
+        if ((msg.HasStringPrefix(Hub.Config.Discord.CommandPrefix, ref pos)) &&
             await TryHandleCommandAsync(msg, pos).ConfigureAwait(false))
         {
             return;
