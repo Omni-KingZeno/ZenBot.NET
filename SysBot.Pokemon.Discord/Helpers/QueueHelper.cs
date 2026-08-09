@@ -189,7 +189,7 @@ public static class QueueHelper<T> where T : PKM, new()
                     }
                 }
                 break;
-            case DiscordErrorCode.CannotSendMessageToUser:
+            case DiscordErrorCode.CannotSendMessageToUser or DiscordErrorCode.CannotSendMessagesToThisUserDueToHavingNoMutualGuilds:
                 {
                     // The user either has DMs turned off, or Discord thinks they do.
                     message = context.User == trader ? $"{context.User.Mention}\nYou must enable Direct Messages in order for me to DM your trade code!" : "The mentioned user must enable private messages in order for me to DM them their trade code!";
