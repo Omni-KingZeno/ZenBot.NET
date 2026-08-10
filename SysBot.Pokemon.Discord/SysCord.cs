@@ -34,9 +34,6 @@ public sealed partial class SysCord<T> where T : PKM, new()
     private readonly CommandService _commands;
     private readonly IServiceProvider _services;
 
-    [GeneratedRegex(@"^[^\p{L}0-9]")]
-    private static partial Regex PrefixRegex();
-
     // Track loading of Echo/Logging channels, so they aren't loaded multiple times.
     private bool MessageChannelsLoaded { get; set; }
 
@@ -53,7 +50,7 @@ public sealed partial class SysCord<T> where T : PKM, new()
         {
             // How much logging do you want to see?
             LogLevel = LogSeverity.Info,
-            GatewayIntents = Guilds | GuildMessages | GuildMessageReactions | DirectMessages | GuildMembers | GuildPresences | MessageContent,
+            GatewayIntents = Guilds | GuildMessages | GuildMessageReactions | DirectMessages,
             // If you or another service needs to do anything with messages
             // (ex. checking Reactions, checking the content of edited/deleted messages),
             // you must set the MessageCacheSize. You may adjust the number as needed.
@@ -219,15 +216,7 @@ public sealed partial class SysCord<T> where T : PKM, new()
 
         // Create a number to track where the prefix ends and the command begins
         int pos = 0;
-        var hasMention = msg.HasMentionPrefix(_client.CurrentUser, ref pos);
-
-        if (Hub.Config.Discord.AllowAnyCommandPrefix && (PrefixRegex().IsMatch(msg.Content) || hasMention))
-        {
-            if (await TryHandleCommandAsync(msg, hasMention ? pos : 1).ConfigureAwait(false))
-                return;
-        }
-
-        if ((msg.HasStringPrefix(Hub.Config.Discord.CommandPrefix, ref pos)) &&
+        if (msg.HasMentionPrefix(_client.CurrentUser, ref pos) &&
             await TryHandleCommandAsync(msg, pos).ConfigureAwait(false))
         {
             return;
