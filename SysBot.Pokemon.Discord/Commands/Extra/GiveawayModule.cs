@@ -112,7 +112,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
         }
         else
         {
-            await ReplyAsync($"Requested Pokémon not available, use \"{Hub.Config.Discord.CommandPrefix}giveawaypool\" for a full list of available giveaways!").ConfigureAwait(false);
+            await ReplyAsync($"Requested Pokémon not available, use \"{Context.Client.CurrentUser.Mention} giveawaypool\" for a full list of available giveaways").ConfigureAwait(false);
             return;
         }
 
