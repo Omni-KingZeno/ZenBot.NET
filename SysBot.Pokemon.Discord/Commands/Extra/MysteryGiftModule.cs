@@ -42,14 +42,20 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
             {
                 string dateStr = GetDistributionDate(ev);
                 int number = page * perPage + i + 1;
-                return $"{number}. **{(ev.IsShiny ? "★ " : "")}{SpeciesName.GetSpeciesName(ev.Species, 2)}**\n  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n  -# - **Date:** {dateStr}\n  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
+                return $"{number}. **{(ev.IsShiny ? "★ " : "")}{GetSpeciesDisplayName(ev)}**\n" +
+                $"  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n" +
+                $"  -# - **Date:** {dateStr}\n" +
+                $"  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
             }));
 
             var rightColumnText = string.Join("\n", rightColumn.Select((ev, i) =>
             {
                 string dateStr = GetDistributionDate(ev);
                 int number = page * perPage + 10 + i + 1;
-                return $"{number}. **{(ev.IsShiny ? "★ " : "")}{SpeciesName.GetSpeciesName(ev.Species, 2)}**\n  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n  -# - **Date:** {dateStr}\n  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
+                return $"{number}. **{(ev.IsShiny ? "★ " : "")}{GetSpeciesDisplayName(ev)}**\n" +
+                $"  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n" +
+                $"  -# - **Date:** {dateStr}\n" +
+                $"  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
             }));
 
             if (leftColumnText.Length > 1024)
@@ -151,12 +157,27 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
         else
             events = [];
 
-        // Collapse duplicates by species
+        // Collapse duplicates by species + form (different forms are kept as separate entries)
         return [.. events
-        .GroupBy(e => e.Species)
-        .Select(g => g.First())
-        .OrderBy(e => GetDistributionDate(e))
-        .Reverse()];
+            .GroupBy(e => ((int)e.Species, (int)e.Form))
+            .Select(g => g.First())
+            .OrderBy(e => GetDistributionDate(e))
+            .Reverse()];
+    }
+
+    private static string GetSpeciesDisplayName(dynamic ev)
+    {
+        DataMysteryGift mg = ev;
+        string name = SpeciesName.GetSpeciesName(mg.Species, 2);
+
+        if (mg.Form == 0)
+            return name;
+
+        var strings = GameInfo.Strings;
+        var forms = FormConverter.GetFormList(mg.Species, strings.types, strings.forms, GameInfo.GenderSymbolASCII, mg.Context);
+        string formName = mg.Form < forms.Length ? forms[mg.Form] : mg.Form.ToString();
+
+        return string.IsNullOrWhiteSpace(formName) ? name : $"{name}-{formName}";
     }
 
     private static string GetDistributionDate(dynamic ev)
