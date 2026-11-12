@@ -43,7 +43,7 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
                 string dateStr = GetDistributionDate(ev);
                 int number = page * perPage + i + 1;
                 return $"{number}. **{(ev.IsShiny ? "★ " : "")}{GetSpeciesDisplayName(ev)}**\n" +
-                $"  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n" +
+                $"  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players" : ev.OriginalTrainerName)}\n" +
                 $"  -# - **Date:** {dateStr}\n" +
                 $"  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
             }));
@@ -53,7 +53,7 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
                 string dateStr = GetDistributionDate(ev);
                 int number = page * perPage + 10 + i + 1;
                 return $"{number}. **{(ev.IsShiny ? "★ " : "")}{GetSpeciesDisplayName(ev)}**\n" +
-                $"  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players OT" : ev.OriginalTrainerName)}\n" +
+                $"  -# - **OT:** {(string.IsNullOrEmpty(ev.OriginalTrainerName) ? "Players" : ev.OriginalTrainerName)}\n" +
                 $"  -# - **Date:** {dateStr}\n" +
                 $"  -# - **Wondercard ID:** {ev.CardID.ToString("0000")}\n";
             }));

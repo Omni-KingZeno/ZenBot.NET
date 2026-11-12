@@ -3,7 +3,7 @@ using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
 
-public class EchoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
+public class EncounterModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
     [Command("toss")]
     [Summary("Makes all bots that are currently waiting for a go-ahead continue operation.")]

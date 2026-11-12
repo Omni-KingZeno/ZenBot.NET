@@ -29,6 +29,7 @@ public class PoolModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
         if (pool.Count == 0)
         {
             await ReplyAsync("Distribution pool is empty.").ConfigureAwait(false);
+            return;
         }
 
         var lines = pool.Files.Select((z, i) => $"{i + 1:00}: {z.Key} = {(Species)z.Value.RequestInfo.Species}");

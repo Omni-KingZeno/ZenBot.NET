@@ -41,6 +41,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
         if (pool.Count == 0)
         {
             await ReplyAsync("Giveaway pool is empty.").ConfigureAwait(false);
+            return;
         }
 
         var lines = pool.Files.Select((z, i) => $"{i + 1}: {z.Key} = {(Species)z.Value.RequestInfo.Species}").ToList();

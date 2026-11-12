@@ -164,7 +164,7 @@ public class RoleModule : ModuleBase<SocketCommandContext>
 
     [Command("AddFavoredRole")]
     [Alias("arf")]
-    [Summary("Adds the mentioned Role to the \"RoleCanTrade\" list.")]
+    [Summary("Adds the mentioned Role to the \"RoleFavored\" list.")]
     [RequireOwner]
     public async Task AddFavoredRole([Summary("Mentioned Role")] SocketRole role)
     {
@@ -180,7 +180,7 @@ public class RoleModule : ModuleBase<SocketCommandContext>
 
     [Command("RemoveFavoredRole")]
     [Alias("rrf")]
-    [Summary("Removes the mentioned Role from the \"RoleCanTrade\" list")]
+    [Summary("Removes the mentioned Role from the \"RoleFavored\" list")]
     [RequireOwner]
     public async Task RemoveFavoredRole([Summary("Mentioned Role")] SocketRole role)
     {
