@@ -135,7 +135,7 @@ public static class QueueHelper<T> where T : PKM, new()
         };
         msg = $"{user.Mention} - Added to the {type} queue{ticketID}. ";
 
-        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name), type, t);
+        embed = new TradeEmbedBuilder<T>(pk, hub, new QueueUser(trainer.ID, name, user.GetAvatarUrl()), type, t);
 
         if (hub.Config.Discord.UseTradeEmbeds is not TradeEmbedDisplay.TradeInitialize)
         {

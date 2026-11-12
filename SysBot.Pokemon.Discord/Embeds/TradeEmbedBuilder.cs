@@ -271,7 +271,7 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
     private EmbedAuthorBuilder InitializeAuthor() => new()
     {
         Name = Strings.GetAuthorText(trader.Username),
-        IconUrl = Strings.GetBallImageURL(),
+        IconUrl = AltTrade ? trader.AvatarUrl : Strings.GetBallImageURL(),
     };
 
     private EmbedFooterBuilder InitializeFooter()
@@ -302,4 +302,4 @@ public class TradeEmbedBuilder<T>(T PKM, PokeTradeHub<T> Hub, QueueUser trader, 
     }
 }
 
-public record QueueUser(ulong UID, string Username);
+public record QueueUser(ulong UID, string Username, string AvatarUrl);
