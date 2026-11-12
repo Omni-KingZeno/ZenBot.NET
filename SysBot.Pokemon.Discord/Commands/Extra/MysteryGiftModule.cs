@@ -129,6 +129,70 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
         await QueueHelper<T>.AddToQueueAsync(Context, code, user.Username, sig, pk, PokeRoutineType.LinkTrade, PokeTradeType.Specific, user).ConfigureAwait(false);
     }
 
+    [Command("eventSearch")]
+    [Alias("es", "searchEvent")]
+    [Summary("Searches the Mystery Gift list for a Pokémon and shows its <GetEvent> number.")]
+    [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
+    public async Task SearchEvents([Remainder][Summary("Species name")] string species)
+    {
+        var spec = Normalize(species);
+        if (spec.Length == 0)
+        {
+            await ReplyAsync("Please provide a Pokémon name to search for.").ConfigureAwait(false);
+            return;
+        }
+
+        var available = GetAvailablePokemon();
+        var matches = new List<string>();
+
+        for (int i = 0; i < available.Count; i++)
+        {
+            DataMysteryGift mg = available[i];
+            if (!Normalize(GetSpeciesDisplayName(mg)).Contains(spec))
+                continue;
+
+            matches.Add(FormatEntry(i + 1, mg));
+        }
+
+        if (matches.Count == 0)
+        {
+            await ReplyAsync("No Mystery Gifts matched that name in this game.").ConfigureAwait(false);
+            return;
+        }
+
+        var embeds = new List<Embed>();
+        foreach (var page in matches.Chunk(20))
+        {
+            var builder = new EmbedBuilder
+            {
+                Color = Color.DarkPurple,
+                Footer = new EmbedFooterBuilder { Text = $"{matches.Count} result(s). Use getEvent <number> to request one." },
+            };
+
+            var left = string.Join("\n", page.Take(10));
+            var right = string.Join("\n", page.Skip(10));
+
+            builder.AddField("__Search Results__", Truncate(left), inline: true);
+            if (right.Length > 0)
+                builder.AddField("\u200B", Truncate(right), inline: true);
+
+            embeds.Add(builder.Build());
+        }
+
+        await PaginatedMessage.CreateAsync(Context, embeds).ConfigureAwait(false);
+    }
+
+    private static string FormatEntry(int number, DataMysteryGift mg) =>
+        $"{number}. **{(mg.IsShiny ? "★ " : "")}{GetSpeciesDisplayName(mg)}**\n" +
+        $"  -# - **OT:** {(string.IsNullOrEmpty(mg.OriginalTrainerName) ? "Players" : mg.OriginalTrainerName)}\n" +
+        $"  -# - **Date:** {GetDistributionDate(mg)}\n" +
+        $"  -# - **Wondercard ID:** {mg.CardID:0000}\n";
+
+    private static string Truncate(string text) => text.Length > 1024 ? text[..1024] : text;
+
+    private static string Normalize(string text) =>
+        string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+
     private static T? ConvertMysteryGiftToPKM(DataMysteryGift mg)
     {
         var trainer = AutoLegalityWrapper.GetTrainerInfo<T>();
