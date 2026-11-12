@@ -193,6 +193,37 @@ public class RoleModule : ModuleBase<SocketCommandContext>
         await ReplyAsync($"Removed {role.Name} from the list.").ConfigureAwait(false);
     }
 
+    [Command("AddGiveawayRole")]
+    [Alias("arg")]
+    [Summary("Adds the mentioned Role to the \"RoleCanGiveaway\" list.")]
+    [RequireOwner]
+    public async Task AddGiveawayRole([Summary("Mentioned Role")] SocketRole role)
+    {
+        if (Settings.RoleCanGiveaway.Contains(role.Id))
+        {
+            await ReplyAsync("Role Already exists in settings.").ConfigureAwait(false);
+            return;
+        }
+
+        Settings.RoleCanGiveaway.AddIfNew([GetRoleReference(role)]);
+        await ReplyAsync($"Added {role.Name} to the list!").ConfigureAwait(false);
+    }
+
+    [Command("RemoveGiveawayRole")]
+    [Alias("rrg")]
+    [Summary("Removes the mentioned Role from the \"RoleCanGiveaway\" list")]
+    [RequireOwner]
+    public async Task RemoveGiveawayRole([Summary("Mentioned Role")] SocketRole role)
+    {
+        if (!Settings.RoleCanGiveaway.Contains(role.Id))
+        {
+            await ReplyAsync("Role does not exists in settings.").ConfigureAwait(false);
+            return;
+        }
+        SysCordSettings.Settings.RoleCanGiveaway.RemoveAll(z => z.ID == role.Id);
+        await ReplyAsync($"Removed {role.Name} from the list.").ConfigureAwait(false);
+    }
+
     private RemoteControlAccess GetRoleReference(SocketRole role) => new()
     {
         ID = role.Id,
