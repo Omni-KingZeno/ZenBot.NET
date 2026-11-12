@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Globalization;
 using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 
@@ -222,6 +223,7 @@ public static class SpecialRequests
         return nickname switch
         {
             var n when n.StartsWith("clear") => HandleClearRequest(ref pk, trainerName, tid, sid),
+            var n when n.StartsWith("form")  => HandleFormRequest(ref pk, detail, caller),
             var n when n.Contains("male")    => HandleGenderRequest(ref pk),
             var n when n.StartsWith("make")  => HandleMakeShinyRequest(ref pk),
             var n when n.StartsWith("stats") => HandleStatsRequest(ref pk),
@@ -337,6 +339,13 @@ public static class SpecialRequests
         if (pk.Nickname.StartsWith('?') || pk.Nickname.StartsWith('？'))
             return HandleBallRequest(ref pk, detail, caller);
 
+        if (pk.Nickname.StartsWith("form", StringComparison.OrdinalIgnoreCase))
+        {
+            var formResult = HandleFormRequest(ref pk, detail, caller);
+            if (formResult is not SpecialTradeType.None)
+                return formResult;
+        }
+
         if (IsTechnicalMachine<T>(pk.HeldItem))
         {
             if (pk is ITechRecord t)
@@ -370,6 +379,35 @@ public static class SpecialRequests
 
         pk.Ball = (byte)ball;
         return SpecialTradeType.BallReq;
+    }
+
+    private static SpecialTradeType HandleFormRequest<T>(ref T pk, PokeTradeDetail<T> detail, PokeRoutineExecutor<T> caller) where T : PKM, new()
+    {
+        const string prefix = "form";
+        var nickname = pk.Nickname.Trim();
+
+        if (!nickname.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            return SpecialTradeType.None;
+
+        var formText = nickname[prefix.Length..].Trim();
+
+        if (!byte.TryParse(formText, NumberStyles.None, CultureInfo.InvariantCulture, out var form))
+            return SpecialTradeType.None; // No number => normal nickname
+
+        var formCount = pk.PersonalInfo.FormCount;
+        if (form >= formCount)
+        {
+            detail.SendNotification(caller, $"Form {form} doesn't exist for this Pokémon (valid: 0-{Math.Max(0, formCount - 1)}).");
+            return SpecialTradeType.None;
+        }
+
+        pk.ClearNickname();
+        pk.Form = form;
+
+        if (pk is IFormArgument fa)
+            fa.FormArgument = 0;
+
+        return SpecialTradeType.StatChange;
     }
 
     private static bool IsTechnicalMachine<T>(int heldItem) where T : PKM =>

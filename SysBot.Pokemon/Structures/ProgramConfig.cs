@@ -8,7 +8,7 @@ public class ProgramConfig : BotList<PokeBotState>
     public PokeTradeHubConfig Hub { get; set; } = new();
     public int Width { get; set; }
     public int Height { get; set; }
-    public static Version Version { get; } = new Version(5, 8, 0);
+    public static Version Version { get; } = new Version(5, 8, 1);
 }
 
 [JsonSerializable(typeof(ProgramConfig))]
