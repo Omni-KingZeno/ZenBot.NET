@@ -172,6 +172,85 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         Environment.Exit(0);
     }
 
+    [Command("checkForUpdate")]
+    [Alias("updateCheck", "cfu")]
+    [Summary("Checks whether a newer version of the bot is available.")]
+    [RequireOwner]
+    public async Task CheckUpdateAsync()
+    {
+        if (UpdateBridge.CheckAsync is null)
+        {
+            await ReplyAsync("Update checking isn't available in this build.").ConfigureAwait(false);
+            return;
+        }
+
+        try
+        {
+            var info = await UpdateBridge.CheckAsync().ConfigureAwait(false);
+            var msg = info.IsUpToDate
+                ? "Already on the latest version."
+                : $"Update available: v{info.LatestVersion}" + (info.CanAutoUpdate ? "." : " (no downloadable asset; manual update required).");
+            await ReplyAsync(msg).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            await ReplyAsync($"Update check failed: {ex.Message}").ConfigureAwait(false);
+        }
+    }
+
+    [Command("update")]
+    [Alias("selfupdate")]
+    [Summary("Checks for an update, installs it if available, restarts the bot, and reports back here when finished.")]
+    [RequireOwner]
+    public async Task UpdateAsync()
+    {
+        if (UpdateBridge.CheckAsync is null || UpdateBridge.ApplyAsync is null)
+        {
+            await ReplyAsync("Auto-update isn't available in this build.").ConfigureAwait(false);
+            return;
+        }
+
+        if (!UpdateBridge.TryBeginUpdate())
+        {
+            await ReplyAsync("An update is already in progress.").ConfigureAwait(false);
+            return;
+        }
+
+        try
+        {
+            var info = await UpdateBridge.CheckAsync().ConfigureAwait(false);
+            if (info.IsUpToDate)
+            {
+                await ReplyAsync("Already on the latest version.").ConfigureAwait(false);
+                return;
+            }
+            if (!info.CanAutoUpdate)
+            {
+                await ReplyAsync($"v{info.LatestVersion} is available, but there's no downloadable asset. Please update manually.").ConfigureAwait(false);
+                return;
+            }
+
+            await Context.Channel.EchoAndReply($"Updating to v{info.LatestVersion}... **Bot services will go offline briefly while restarting.**").ConfigureAwait(false);
+
+            var notice = new UpdateBridge.PendingUpdateNotice
+            {
+                ChannelId = Context.Channel.Id,
+                RequestedByUserId = Context.User.Id,
+            };
+
+            var failure = await UpdateBridge.ApplyAsync(notice).ConfigureAwait(false);
+            await ReplyAsync($"Update didn't complete: {failure} Bots were resumed if they had been running.").ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            await ReplyAsync($"Update failed: {ex.Message}").ConfigureAwait(false);
+        }
+        finally
+        {
+            UpdateBridge.EndUpdate();
+        }
+    }
+
     private RemoteControlAccess GetReference(IUser user) => new()
     {
         ID = user.Id,

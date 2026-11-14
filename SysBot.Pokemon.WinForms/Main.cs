@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using PKHeX.Core;
 using SysBot.Base;
+using SysBot.Pokemon.Discord;
 
 namespace SysBot.Pokemon.WinForms;
 
@@ -55,7 +56,20 @@ public sealed partial class Main : Form
         B_New.Height = CB_Protocol.Height;
         FLP_BotCreator.Height = B_New.Height + B_New.Margin.Vertical;
 
-        if (Environment.GetCommandLineArgs().Contains("--updated", StringComparer.OrdinalIgnoreCase))
+        RegisterUpdateBridge();
+
+        var pendingUpdate = UpdateBridge.PeekPending();
+        var justUpdated = Environment.GetCommandLineArgs().Contains("--updated", StringComparer.OrdinalIgnoreCase);
+
+        if (pendingUpdate is not null)
+        {
+            Shown += (s, e) =>
+            {
+                LogUtil.LogInfo("Relaunched after a Discord-triggered update; starting services.", "Update");
+                StartAll(sendStartCommand: pendingUpdate.BotsWereRunning);
+            };
+        }
+        else if (justUpdated)
         {
             Shown += (s, e) =>
             {
@@ -66,6 +80,10 @@ public sealed partial class Main : Form
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             };
+        }
+        else
+        {
+            Shown += async (s, e) => await CheckForUpdateOnStartup();
         }
     }
 
@@ -216,13 +234,23 @@ public sealed partial class Main : Form
         SaveCurrentConfig();
         await CheckForUpdate();
 
-        LogUtil.LogInfo("Starting all bots...", "Form");
-        RunningEnvironment.InitializeStart();
-        SendAll(BotControlCommand.Start);
-        Tab_Logs.Select();
+        StartAll();
 
         if (Bots.Count == 0)
             WinFormsUtil.Alert("No bots configured, but all supporting services have been started.");
+    }
+
+    /// <summary>
+    /// Starts supporting services (including the Discord bot) and optionally tells every bot to start.
+    /// Shows no dialogs, so it is safe for unattended launches.
+    /// </summary>
+    private void StartAll(bool sendStartCommand = true)
+    {
+        LogUtil.LogInfo("Starting all bots...", "Form");
+        RunningEnvironment.InitializeStart();
+        if (sendStartCommand)
+            SendAll(BotControlCommand.Start);
+        Tab_Logs.Select();
     }
 
     private void SendAll(BotControlCommand cmd)
@@ -382,6 +410,78 @@ public sealed partial class Main : Form
             NUD_Port.Text = "6000";
     }
 
+    private async Task CheckForUpdateOnStartup()
+    {
+        try
+        {
+            await CheckForUpdate().ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            // Offline, GitHub rate-limited, etc. Don't bother the user at launch.
+            LogUtil.LogInfo($"Startup update check failed: {ex.Message}", "Update Check");
+        }
+    }
+
+    #region Discord-triggered (unattended) update
+
+    private void RegisterUpdateBridge()
+    {
+        UpdateBridge.CheckAsync = async () =>
+        {
+            var u = await UpdateManager.CheckAsync().ConfigureAwait(false);
+            return new UpdateBridge.UpdateInfo(u.IsUpToDate, u.LatestVersion?.ToString(), u.AssetDownloadUrl is not null);
+        };
+
+        UpdateBridge.ApplyAsync = notice => (Task<string>)Invoke(new Func<Task<string>>(() => ApplyRemoteUpdateAsync(notice)));
+    }
+
+    /// <summary>
+    /// Returns only on failure (with the reason); on success ApplyUpdateAsync exits the process.
+    /// </summary>
+    private async Task<string> ApplyRemoteUpdateAsync(UpdateBridge.PendingUpdateNotice notice)
+    {
+        var wasRunning = RunningEnvironment.IsRunning;
+        var failure = "unknown error";
+        try
+        {
+            var update = await UpdateManager.CheckAsync().ConfigureAwait(true);
+            if (update.IsUpToDate)
+                return "Already on the latest version.";
+            if (update.AssetDownloadUrl is null)
+                return "No downloadable asset found for the latest release; update manually.";
+
+            notice.TargetVersion = update.LatestVersion?.ToString();
+            notice.BotsWereRunning = wasRunning;
+            UpdateBridge.SavePending(notice);
+
+            SaveCurrentConfig();
+
+            if (wasRunning)
+            {
+                RunningEnvironment.StopAll();
+                var sw = Stopwatch.StartNew();
+                while (RunningEnvironment.IsRunning && sw.Elapsed < TimeSpan.FromSeconds(15))
+                    await Task.Delay(100).ConfigureAwait(true);
+            }
+
+            await UpdateManager.ApplyUpdateAsync(update.AssetDownloadUrl, new Progress<int?>()).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            failure = ex.Message;
+            LogUtil.LogInfo($"Remote auto-update failed: {ex.Message}", "Update");
+        }
+
+        UpdateBridge.ClearPending();
+        if (wasRunning)
+            SendAll(BotControlCommand.Start);
+
+        return failure;
+    }
+
+    #endregion
+
     public async Task CheckForUpdate()
     {
         var update = await UpdateManager.CheckAsync().ConfigureAwait(true);
@@ -410,7 +510,7 @@ public sealed partial class Main : Form
                     {
                         switch (percent)
                         {
-                            case 101: // sentinel: download finished, now staging/applying the update
+                            case 101:
                                 progressForm.ReportProgress(100, "Applying update...");
                                 break;
                             case int p:
@@ -424,9 +524,9 @@ public sealed partial class Main : Form
 
                     try
                     {
-                        await UpdateManager.ApplyUpdateAsync(update.AssetDownloadUrl!, progress).ConfigureAwait(true);                        
+                        await UpdateManager.ApplyUpdateAsync(update.AssetDownloadUrl!, progress).ConfigureAwait(true);
                     }
-                    // ApplyUpdateAsync exits the process on success; if we get here, it failed.
+
                     catch (Exception ex)
                     {
                         LogUtil.LogInfo($"Auto-update failed: {ex.Message}", "Update Check");

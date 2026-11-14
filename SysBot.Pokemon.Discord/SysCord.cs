@@ -341,5 +341,8 @@ public sealed partial class SysCord<T> where T : PKM, new()
         var game = Hub.Config.Discord.BotGameStatus;
         if (!string.IsNullOrWhiteSpace(game))
             await _client.SetGameAsync(game).ConfigureAwait(false);
+
+        // If this launch follows a Discord-triggered update, report the result.
+        await UpdateBridge.AnnounceIfPendingAsync(_client).ConfigureAwait(false);
     }
 }

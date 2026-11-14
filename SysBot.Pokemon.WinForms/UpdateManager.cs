@@ -28,7 +28,19 @@ public static class UpdateManager
         string ReleaseUrl,
         string? AssetDownloadUrl);
 
-    public static async Task<UpdateCheckResult> CheckAsync()
+    private static (DateTime AtUtc, UpdateCheckResult Result)? _cached;
+
+    public static async Task<UpdateCheckResult> CheckAsync(bool forceRefresh = false)
+    {
+        if (!forceRefresh && _cached is { } c && DateTime.UtcNow - c.AtUtc < TimeSpan.FromSeconds(30))
+            return c.Result;
+
+        var result = await CheckCoreAsync().ConfigureAwait(false);
+        _cached = (DateTime.UtcNow, result);
+        return result;
+    }
+
+    public static async Task<UpdateCheckResult> CheckCoreAsync()
     {
         using HttpClient client = new();
         client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
