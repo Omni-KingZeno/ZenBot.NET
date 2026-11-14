@@ -1,5 +1,6 @@
 using PKHeX.Core;
 using SysBot.Base;
+using static System.Buffers.Binary.BinaryPrimitives;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsSV;
 
@@ -25,10 +26,10 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
         return await ReadPokemon(offset, token).ConfigureAwait(false);
     }
 
-    public async Task<bool> ReadIsChanged(uint offset, byte[] original, CancellationToken token)
+    public async Task<bool> ReadIsChanged(uint offset, ReadOnlyMemory<byte> original, CancellationToken token)
     {
         var result = await Connection.ReadBytesAsync(offset, original.Length, token).ConfigureAwait(false);
-        return !result.SequenceEqual(original);
+        return !result.AsSpan().SequenceEqual(original.Span);
     }
 
     public override Task<PK9> ReadBoxPokemon(int box, int slot, CancellationToken token)
@@ -50,12 +51,12 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
         pkm.RefreshChecksum();
         Span<byte> data = stackalloc byte[pkm.SIZE_STORED];
         pkm.WriteEncryptedDataStored(data);
-        return SwitchConnection.WriteBytesAbsoluteAsync(data, offset, token);
+        return SwitchConnection.WriteBytesAbsoluteAsync(data.ToArray(), offset, token);
     }
 
     public Task SetCurrentBox(byte box, CancellationToken token)
     {
-        return SwitchConnection.PointerPoke([box], Offsets.CurrentBoxPointer, token);
+        return SwitchConnection.PointerPoke(new[] { box }, Offsets.CurrentBoxPointer, token);
     }
 
     public async Task<byte> GetCurrentBox(CancellationToken token)
@@ -120,7 +121,6 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
             Log("Turning off screen.");
             await SetScreen(ScreenState.Off, token).ConfigureAwait(false);
         }
-        await SetController(SwitchController.ProController, token);
     }
 
     public async Task CleanExit(CancellationToken token)
@@ -185,6 +185,9 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
         for (int i = 0; i < 8; i++)
             await Click(A, 1_000, token).ConfigureAwait(false);
 
+        // Wait an extra 10 seconds for the game to load.
+        await Task.Delay(10_000, token).ConfigureAwait(false);
+
         var timer = 60_000;
         while (!await IsOnOverworldTitle(token).ConfigureAwait(false))
         {
@@ -214,7 +217,7 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     public async Task<ulong> GetTradePartnerNID(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 8, token).ConfigureAwait(false);
-        return BitConverter.ToUInt64(data, 0);
+        return ReadUInt64LittleEndian(data);
     }
 
     public Task ClearTradePartnerNID(ulong offset, CancellationToken token)

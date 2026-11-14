@@ -1,3 +1,4 @@
+using static System.Buffers.Binary.BinaryPrimitives;
 using static SysBot.Base.SwitchOffsetTypeUtil;
 
 namespace SysBot.Base;
@@ -22,13 +23,13 @@ public sealed class SwitchUSBSync(int Port) : SwitchUSB(Port), ISwitchConnection
     {
         Send(SwitchCommand.GetMainNsoBase(false));
         byte[] baseBytes = ReadBulkUSB();
-        return BitConverter.ToUInt64(baseBytes, 0);
+        return ReadUInt64LittleEndian(baseBytes);
     }
 
     public ulong GetHeapBase()
     {
         Send(SwitchCommand.GetHeapBase(false));
         byte[] baseBytes = ReadBulkUSB();
-        return BitConverter.ToUInt64(baseBytes, 0);
+        return ReadUInt64LittleEndian(baseBytes);
     }
 }
