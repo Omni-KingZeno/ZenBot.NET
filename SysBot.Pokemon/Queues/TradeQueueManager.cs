@@ -4,6 +4,8 @@ namespace SysBot.Pokemon;
 
 public class TradeQueueManager<T> where T : PKM, new()
 {
+    /// <summary>Lets a frontend (Discord) wrap the notifier used for idle distributions.</summary>
+    public Func<IPokeTradeNotifier<T>, IPokeTradeNotifier<T>>? DistributionNotifierFactory { get; set; }
     private readonly PokeTradeHub<T> Hub;
 
     private readonly PokeTradeQueue<T> Trade = new(PokeTradeType.Specific);
@@ -50,15 +52,20 @@ public class TradeQueueManager<T> where T : PKM, new()
 
         T random = cfg.DistributionType switch
         {
-            DistributionType.MysteryEggs when TradeExtensions<T>.HasEggs(Hub.Config.Mode) => TradeExtensions<T>.GenerateMysteryEgg(Hub.Config.Trade.MysteryShinyOdds),
-            DistributionType.MysteryMons or DistributionType.MysteryEggs => TradeExtensions<T>.GenerateMysteryMon(Hub.Config.Trade.MysteryShinyOdds), // Fallback to MysteryMon if eggs aren't supported
+            DistributionType.MysteryEggs when TradeExtensions<T>.HasEggs(Hub.Config.Mode) => TradeExtensions<T>.GenerateMysteryEgg(cfg.MysteryShinyOdds),
+            DistributionType.MysteryMons or DistributionType.MysteryEggs => TradeExtensions<T>.GenerateMysteryMon(cfg.MysteryShinyOdds), // Fallback to MysteryMon if eggs aren't supported
             _ => Hub.Ledy.Pool.GetRandomPoke()
         };
 
         var code = cfg.RandomCode ? Hub.Config.Trade.GetRandomTradeCode() : cfg.TradeCode;
         var code7b = cfg.RandomCode ? PictoCodesExtensions.GetPictoCodesFromLinkCode(code) : [cfg.LGPETradeCode.Picto1, cfg.LGPETradeCode.Picto2, cfg.LGPETradeCode.Picto3];
         var trainer = new PokeTradeTrainerInfo("Random Distribution");
-        detail = new PokeTradeDetail<T>(random, trainer, PokeTradeHub<T>.LogNotifier, PokeTradeType.Random, code, false, code7b);
+
+        IPokeTradeNotifier<T> notifier = PokeTradeHub<T>.LogNotifier;
+        if (DistributionNotifierFactory is { } factory)
+            notifier = factory(notifier);
+
+        detail = new PokeTradeDetail<T>(random, trainer, notifier, PokeTradeType.Random, code, false, code7b);
         return true;
     }
 

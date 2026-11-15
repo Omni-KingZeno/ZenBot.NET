@@ -70,6 +70,28 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
+    [Command("addDistributionChannel")]
+    [Alias("adec")]
+    [Summary("Adds a channel to the list of channels that are accepting distribution embeds.")]
+    [RequireOwner]
+    public async Task AddDistributionChannel()
+    {
+        var obj = GetReference(Context.Message.Channel);
+        SysCordSettings.HubConfig.Distribution.DistributionEmbedChannels.AddIfNew([obj]);
+        await ReplyAsync("Done.").ConfigureAwait(false);
+    }
+
+    [Command("removeDistributionChannel")]
+    [Alias("rdec")]
+    [Summary("Removes a channel from the list of channels that are accepting distribution embeds.")]
+    [RequireOwner]
+    public async Task RemoveDistributionChannel()
+    {
+        var obj = GetReference(Context.Message.Channel);
+        SysCordSettings.HubConfig.Distribution.DistributionEmbedChannels.RemoveAll(z => z.ID == obj.ID);
+        await ReplyAsync("Done.").ConfigureAwait(false);
+    }
+
     [Command("BanTradeCode")]
     [Alias("btc")]
     [Summary("Adds provided code to banned Trade Code list")]

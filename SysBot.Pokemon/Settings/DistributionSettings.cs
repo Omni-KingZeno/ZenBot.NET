@@ -21,6 +21,15 @@ public class DistributionSettings : ISynchronizationSetting
     [Category(Distribute), Description("When enabled, the DistributionFolder will yield randomly rather than in the same sequence.")]
     public bool Shuffled { get; set; }
 
+    [Category(Distribute), Description("Shiny odds for Mystery Trades. One in chosen odds. Default is Shiny Charm odds (1/1365).")]
+    public int MysteryShinyOdds { get; set; } = 1365;
+
+    [Category(Distribute), Description("Channel IDs where the distribution embed is posted. Empty = disabled.")]
+    public RemoteControlAccessList DistributionEmbedChannels { get; set; } = new();
+
+    [Category(Distribute), Description("Delete the embed if the trade ends with no partner showing up, instead of marking it ended (avoids spam while idle).")]
+    public bool DeleteEmbedIfNoPartner { get; set; } = false;
+
     [Category(Distribute), Description("When set to something other than None, the Random Trades will require this species in addition to the nickname match.")]
     public Species LedySpecies { get; set; } = Species.None;
 

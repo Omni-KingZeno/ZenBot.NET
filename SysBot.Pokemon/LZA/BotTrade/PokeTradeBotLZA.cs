@@ -320,6 +320,7 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
         var tradePartner = await GetTradePartnerInfo(token).ConfigureAwait(false);
         RecordUtil<PokeTradeBotLZA>.Record($"Initiating\t{tradePartner.NID:X16}\t{tradePartner.OT}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
         Log($"Found Link Trade partner: {tradePartner.OT}-{tradePartner.TID7:000000} (ID: {tradePartner.NID})");
+        poke.PartnerName = tradePartner.OT;
 
         var partnerCheck = await CheckPartnerReputation(this, poke, tradePartner.NID, tradePartner.OT, AbuseSettings, token);
         if (partnerCheck != PokeTradeResult.Success)

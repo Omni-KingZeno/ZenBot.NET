@@ -77,6 +77,10 @@ public sealed partial class SysCord<T> where T : PKM, new()
 
         // Setup your DI container.
         _services = ConfigureServices();
+
+        // Distribution embeds: resolve channels lazily (the client may reconnect) and wrap idle-distribution notifiers.
+        DistributionEmbeds.ChannelLookup = id => _client.GetChannel(id) as ISocketMessageChannel;
+        Hub.Queues.DistributionNotifierFactory = inner => new DistributionEmbedNotifier<T>(inner, Hub);
     }
 
     // If any services require the client, or the CommandService, or something else you keep on hand,

@@ -29,6 +29,9 @@ public class PokeTradeDetail<TPoke>(TPoke TradeData, PokeTradeTrainerInfo Traine
     /// <summary> Trainer details </summary>
     public readonly PokeTradeTrainerInfo Trainer = Trainer;
 
+    /// <summary>In-game name of the partner who joined this trade, set by the trade routine.</summary>
+    public string? PartnerName { get; set; }
+
     /// <summary> Destination to be notified for status updates </summary>
     public readonly IPokeTradeNotifier<TPoke> Notifier = Notifier;
 
