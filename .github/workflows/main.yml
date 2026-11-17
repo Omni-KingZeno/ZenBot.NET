@@ -17,7 +17,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: SysBot.NET.sln
+      Solution_Name: SysBot.NET.slnX
 
     steps:
     - name: Checkout
@@ -34,7 +34,7 @@ jobs:
       run: dotnet restore
 
     - name: Execute unit tests
-      run: dotnet test
+      run: dotnet run --project SysBot.Tests/SysBot.Tests.csproj --configuration Release
 
     - name: Get version from source
       id: version
