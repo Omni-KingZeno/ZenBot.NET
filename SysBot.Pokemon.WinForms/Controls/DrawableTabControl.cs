@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace SysBot.Pokemon.WinForms;
 
 public class DrawableTabControl : TabControl

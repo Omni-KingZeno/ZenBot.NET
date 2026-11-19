@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
 namespace SysBot.Pokemon.WinForms;

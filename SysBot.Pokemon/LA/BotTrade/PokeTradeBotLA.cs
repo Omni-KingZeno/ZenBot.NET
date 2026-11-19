@@ -296,7 +296,7 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
         }
 
         // Watch their status to indicate they have offered a Pokémon as well.
-        var offering = await ReadUntilChanged(TradePartnerStatusOffset, [0x3], 25_000, 1_000, true, true, token).ConfigureAwait(false);
+        var offering = await ReadUntilChanged(TradePartnerStatusOffset, new byte[] { 3 }, 25_000, 1_000, true, true, token).ConfigureAwait(false);
         if (!offering)
         {
             await ExitTrade(false, token).ConfigureAwait(false);
@@ -647,14 +647,14 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
     private async Task<bool> CheckCloneChangedOffer(CancellationToken token)
     {
         // Watch their status to indicate they canceled, then offered a new Pokémon.
-        var hovering = await ReadUntilChanged(TradePartnerStatusOffset, [0x2], 25_000, 1_000, true, true, token).ConfigureAwait(false);
+        var hovering = await ReadUntilChanged(TradePartnerStatusOffset, new byte[] { 2 }, 25_000, 1_000, true, true, token).ConfigureAwait(false);
         if (!hovering)
         {
             Log("Trade partner did not change their initial offer.");
             await ExitTrade(false, token).ConfigureAwait(false);
             return false;
         }
-        var offering = await ReadUntilChanged(TradePartnerStatusOffset, [0x3], 25_000, 1_000, true, true, token).ConfigureAwait(false);
+        var offering = await ReadUntilChanged(TradePartnerStatusOffset, new byte[] { 3 }, 25_000, 1_000, true, true, token).ConfigureAwait(false);
         if (!offering)
         {
             await ExitTrade(false, token).ConfigureAwait(false);

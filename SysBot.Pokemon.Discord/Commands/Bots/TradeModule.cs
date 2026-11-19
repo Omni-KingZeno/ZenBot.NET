@@ -130,7 +130,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("TradeUser")]
     [Alias("tu")]
-    [Summary("Maakes the bot trade the mentioned user the provided Showdown Set.")]
+    [Summary("Makes the bot trade the mentioned user the provided Showdown Set.")]
     [RequireSudo]
     public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Showdown Set")][Remainder] string content)
     {

@@ -50,17 +50,16 @@ public static class QueueHelper<T> where T : PKM, new()
             // Notify in PM to mirror what was said in the channel.
             if (result)
             {
-                msg += $"\nYour trade code will be {(typeof(T) == typeof(PB7) ? "" : $"**{code:0000 0000}**.")}";
-
                 if (typeof(T) == typeof(PB7))
                 {
                     var codes = PictoCodesExtensions.GetPictoCodesFromLinkCode(code);
                     var (attachment, embedPicto) = PictoCodesEmbedBuilder.CreatePictoCodesEmbed(codes);
-                    await trader.SendFileAsync(attachment, $"{msg}\nYour trade code will be ", false, embedPicto.Build()).ConfigureAwait(false);
+                    await trader.SendFileAsync(attachment, $"{msg}{receiving}\nYour trade code will be:", false, embedPicto.Build()).ConfigureAwait(false);
                 }
                 else
                 {
-                    await trader.SendMessageAsync($"{msg + receiving}").ConfigureAwait(false);
+                    msg += $"\nYour trade code will be  **{code:0000 0000}**.";
+                    await trader.SendMessageAsync($"{msg}{receiving}").ConfigureAwait(false);
                 }
             }
 

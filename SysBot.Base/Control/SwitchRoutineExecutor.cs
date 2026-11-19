@@ -11,7 +11,7 @@ public abstract class SwitchRoutineExecutor<T> : RoutineExecutor<T> where T : cl
     {
         UseCRLF = Config.GetInnerConfig() is ISwitchConnectionConfig { UseCRLF: true };
         if (Connection is not ISwitchConnectionAsync connect)
-            throw new System.Exception("Not a valid switch connection");
+            throw new Exception("Not a valid switch connection");
         SwitchConnection = connect;
     }
 
@@ -69,15 +69,15 @@ public abstract class SwitchRoutineExecutor<T> : RoutineExecutor<T> where T : cl
         await Connection.SendAsync(cmd, token).ConfigureAwait(false);
     }
 
-    /// <inheritdoc cref="ReadUntilChanged(ulong,byte[],int,int,bool,bool,CancellationToken)"/>
-    public Task<bool> ReadUntilChanged(uint offset, byte[] comparison, int waitms, int waitInterval, bool match, CancellationToken token) =>
+    /// <inheritdoc cref="ReadUntilChanged(ulong,ReadOnlyMemory{byte},int,int,bool,bool,CancellationToken)"/>
+    public Task<bool> ReadUntilChanged(uint offset, ReadOnlyMemory<byte> comparison, int waitms, int waitInterval, bool match, CancellationToken token) =>
         ReadUntilChanged(offset, comparison, waitms, waitInterval, match, false, token);
 
     /// <summary>
     /// Reads an offset until it changes to either match or differ from the comparison value.
     /// </summary>
     /// <returns>If <see cref="match"/> is set to true, then the function returns true when the offset matches the given value.<br>Otherwise, it returns true when the offset no longer matches the given value.</br></returns>
-    public async Task<bool> ReadUntilChanged(ulong offset, byte[] comparison, int waitms, int waitInterval, bool match, bool absolute, CancellationToken token)
+    public async Task<bool> ReadUntilChanged(ulong offset, ReadOnlyMemory<byte> comparison, int waitms, int waitInterval, bool match, bool absolute, CancellationToken token)
     {
         var sw = new Stopwatch();
         sw.Start();
@@ -87,7 +87,7 @@ public abstract class SwitchRoutineExecutor<T> : RoutineExecutor<T> where T : cl
                 ? SwitchConnection.ReadBytesAbsoluteAsync(offset, comparison.Length, token)
                 : SwitchConnection.ReadBytesAsync((uint)offset, comparison.Length, token);
             var result = await task.ConfigureAwait(false);
-            if (match == result.SequenceEqual(comparison))
+            if (match == result.AsSpan().SequenceEqual(comparison.Span))
                 return true;
 
             await Task.Delay(waitInterval, token).ConfigureAwait(false);

@@ -1,3 +1,4 @@
+// ReSharper disable InconsistentNaming - match botbase naming
 namespace SysBot.Base;
 
 /// <summary>

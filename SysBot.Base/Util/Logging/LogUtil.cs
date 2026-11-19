@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using NLog;
 using NLog.Config;
@@ -42,19 +43,19 @@ public static class LogUtil
 
     public static DateTime LastLogged { get; private set; } = DateTime.Now;
 
-    public static void LogError(string message, string identity)
+    public static void LogError(string message, [CallerMemberName] string identity ="")
     {
         Logger.Log(LogLevel.Error, $"{identity} {message}");
         Log(message, identity);
     }
 
-    public static void LogInfo(string message, string identity)
+    public static void LogInfo(string message, [CallerMemberName] string identity = "")
     {
         Logger.Log(LogLevel.Info, $"{identity} {message}");
         Log(message, identity);
     }
 
-    private static void Log(string message, string identity)
+    private static void Log(string message, [CallerMemberName] string identity = "")
     {
         foreach (var fwd in Forwarders)
         {
@@ -72,7 +73,7 @@ public static class LogUtil
         LastLogged = DateTime.Now;
     }
 
-    public static void LogSafe(Exception exception, string identity)
+    public static void LogSafe(Exception exception, [CallerMemberName] string identity = "")
     {
         Logger.Log(LogLevel.Error, $"Exception from {identity}:");
         Logger.Log(LogLevel.Error, exception);
