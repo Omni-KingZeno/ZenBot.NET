@@ -157,8 +157,38 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         return TradeAsyncShowdown(code, content, Context.User, true);
     }
 
+    /// <summary>
+    /// For PB7, a code of 0-999 is read as three Pictocode digits (e.g. 072 = Pikachu, Rattata, Bulbasaur)
+    /// and converted to a seed that produces those pictures. Anything else is used as a raw seed.
+    /// </summary>
+    private bool TryResolveCode(int code, out int resolved, out string error)
+    {
+        resolved = code;
+        error = string.Empty;
+
+        if (typeof(T) != typeof(PB7) || code is < 0 or > 999)
+            return true;
+
+        var wanted = PictoCodesExtensions.FromDigits(code);
+        var banned = Info.Hub.Config.Trade.BannedTradeCodes;
+        if (!PictoCodesExtensions.TryGetLinkCode(wanted, out resolved, s => !banned.Contains((uint)s)))
+        {
+            error = "Couldn't find a code for that combination.";
+            return false;
+        }
+
+        return true;
+    }
+
     private async Task TradeAsyncShowdown(int code, string content, SocketUser user, bool eggTrade = false)
     {
+        if (!TryResolveCode(code, out var resolvedCode, out var codeError))
+        {
+            await ReplyAsync(codeError).ConfigureAwait(false);
+            return;
+        }
+        code = resolvedCode;
+
         content = ReusableActions.StripCodeBlock(content);
         var set = new ShowdownSet(content);
         var template = AutoLegalityWrapper.GetTemplate(set);
@@ -222,6 +252,13 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task TradeAsyncAttach(int code, RequestSignificance sig, SocketUser usr)
     {
+        if (!TryResolveCode(code, out var resolvedCode, out var codeError))
+        {
+            await ReplyAsync(codeError).ConfigureAwait(false);
+            return;
+        }
+        code = resolvedCode;
+
         var attachment = Context.Message.Attachments.FirstOrDefault();
         if (attachment == null)
         {

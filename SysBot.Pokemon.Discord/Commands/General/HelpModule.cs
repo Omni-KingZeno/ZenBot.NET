@@ -5,6 +5,14 @@ namespace SysBot.Pokemon.Discord;
 
 public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContext>
 {
+    private const string PictoGuideUrl = "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/PictoCodeChart.png";
+    private static bool IsLGPE => SysCordSettings.HubConfig.Mode == ProgramMode.LGPE;
+
+    private static readonly HashSet<string> TradeCommandNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "trade", "tradeuser",
+    };
+
     [Command("Legacyhelp")]
     [Summary("Lists available commands.")]
     public async Task HelpAsync()
@@ -30,6 +38,8 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             {
                 var name = cmd.Name;
                 if (mentioned.Contains(name))
+                    continue;
+                if (ShouldHideCommand(cmd))
                     continue;
                 if (cmd.Attributes.Any(z => z is RequireOwnerAttribute) && owner != uid)
                     continue;
@@ -94,9 +104,16 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             Description = $"Here are some commands like **{command}**:",
         };
 
+        bool includesTradeCmd = false;
+
         foreach (var match in result.Commands)
         {
             var cmd = match.Command;
+            if (ShouldHideCommand(cmd))
+                continue;
+
+            if (cmd.Aliases.Any(a => TradeCommandNames.Contains(a)))
+                includesTradeCmd = true;
 
             builder.AddField(x =>
             {
@@ -104,6 +121,17 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
                 x.Value = GetCommandSummary(cmd);
                 x.IsInline = false;
             });
+        }
+
+        if (builder.Fields.Count == 0)
+        {
+            await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.").ConfigureAwait(false);
+            return;
+        }
+
+        if (IsLGPE && includesTradeCmd)
+        {
+            AddPictoGuide(builder);
         }
 
         await ReplyAsync("Help has arrived!", false, builder.Build()).ConfigureAwait(false);
@@ -143,6 +171,8 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             {
                 var name = cmd.Name;
                 if (mentioned.Contains(name))
+                    continue;
+                if (ShouldHideCommand(cmd))
                     continue;
                 if (cmd.Attributes.Any(z => z is RequireOwnerAttribute) && Context.Client.GetApplicationInfoAsync().Result.Owner.Id != Context.User.Id)
                     continue;
@@ -185,6 +215,11 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
 
             if (currentBuilder != null && currentBuilder.Fields.Count > 0)
             {
+                if (IsLGPE && moduleName.Equals("Trade", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddPictoGuide(currentBuilder);
+                }
+
                 embeds.Add(currentBuilder.Build());
             }
         }
@@ -196,6 +231,20 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
         }
 
         await PaginatedMessage.CreateAsync(Context, embeds);
+    }
+
+    private void AddPictoGuide(EmbedBuilder builder)
+    {
+        builder.AddField(x =>
+        {
+            x.Name = "Choosing the Trade Code in Let's Go";
+            x.Value =
+                "Let's Go uses three pictures as the link code. Look up each picture's number on the chart below and type the three digits as your code.\n" +
+                $"- Example: `@BotMention trade 072 Snorlax` => Code would be **`Pikachu, Rattata, Bulbasaur`**\n" +
+                "- With no code provided, a random one is chosen for you";
+            x.IsInline = false;
+        });
+        builder.WithImageUrl(PictoGuideUrl);
     }
 
     private static string GetCommandSummary(CommandInfo cmd)
@@ -217,4 +266,11 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             result += $" ({z.Summary})";
         return result;
     }
+
+    private static bool ShouldHideCommand(CommandInfo cmd)
+    {
+        return IsLGPE && (cmd.Name.Equals("eggtrade", StringComparison.OrdinalIgnoreCase) ||
+                          cmd.Aliases.Any(a => a.Equals("eggtrade", StringComparison.OrdinalIgnoreCase)));
+    }
+
 }
