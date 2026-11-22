@@ -101,7 +101,7 @@ public class QueueSettings
     /// <returns>Effective weight for the trade type.</returns>
     public long GetWeight(int count, DateTime time, PokeTradeType type)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var seconds = (now - time).Seconds;
 
         var cb = GetCountBias(type) * count;

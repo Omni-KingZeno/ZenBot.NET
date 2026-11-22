@@ -41,7 +41,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             Log("Identifying trainer data of the host console.");
             var sav = await IdentifyTrainer(token).ConfigureAwait(false);
             RecentTrainerCache.SetRecentTrainer(sav);
-
+           
             Log($"Starting main {nameof(PokeTradeBotLGPE)} loop.");
             await InnerLoop(sav, token).ConfigureAwait(false);
         }
@@ -163,7 +163,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         {
             Log(socket.Message);
             result = PokeTradeResult.ExceptionConnection;
-            HandleAbortedTrade(detail, type, priority, result);
+            await HandleAbortedTrade(detail, type, priority, result).ConfigureAwait(false);
             throw; // let this interrupt the trade loop. re-entering the trade loop will recheck the connection.
         }
         catch (Exception e)
@@ -172,22 +172,22 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             result = PokeTradeResult.ExceptionInternal;
         }
 
-        HandleAbortedTrade(detail, type, priority, result);
+        await HandleAbortedTrade(detail, type, priority, result).ConfigureAwait(false);
     }
 
-    private void HandleAbortedTrade(PokeTradeDetail<PB7> detail, PokeRoutineType type, uint priority, PokeTradeResult result)
+    private async Task HandleAbortedTrade(PokeTradeDetail<PB7> detail, PokeRoutineType type, uint priority, PokeTradeResult result)
     {
         detail.IsProcessing = false;
         if (result.ShouldAttemptRetry() && detail.Type != PokeTradeType.Random && !detail.IsRetry)
         {
             detail.IsRetry = true;
             hub.Queues.Enqueue(type, detail, Math.Min(priority, PokeTradePriorities.Tier2));
-            detail.SendNotification(this, "Oops! Something happened. I'll requeue you for another attempt.");
+            await detail.SendNotification(this, "Oops! Something happened. I'll requeue you for another attempt.").ConfigureAwait(false);
         }
         else
         {
-            detail.SendNotification(this, $"Oops! Something happened. Canceling the trade: {result}.");
-            detail.TradeCanceled(this, result);
+            await detail.SendNotification(this, $"Oops! Something happened. Canceling the trade: {result}.").ConfigureAwait(false);
+            await detail.TradeCanceled(this, result).ConfigureAwait(false);
         }
     }
 
@@ -195,7 +195,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
     {
         // Update Barrier Settings
         UpdateBarrier(poke.IsSynchronized);
-        poke.TradeInitialize(this);
+        await poke.TradeInitialize(this).ConfigureAwait(false);
         hub.Config.Stream.EndEnterCode(this);
 
         var toSend = poke.TradeData;
@@ -258,7 +258,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
         // Wait for Barrier to trigger all bots simultaneously.
         WaitAtBarrierIfApplicable(token);
-        poke.TradeSearching(this);
+        await poke.TradeSearching(this).ConfigureAwait(false);
 
         Log($"Searching for user {poke.Trainer.TrainerName}");
         await Task.Delay(3000, token);
@@ -271,10 +271,10 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             await Task.Delay(100, token);
             if (btimeout.ElapsedMilliseconds >= tradeMaxWaitTime)
             {
-                poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
+                await poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound).ConfigureAwait(false);
                 var msg = $"{poke.Trainer.TrainerName} not found";
                 Log(msg);
-                poke.SendNotification(this, msg);
+                await poke.SendNotification(this, msg).ConfigureAwait(false);
                 await ExitTrade(false, token).ConfigureAwait(false);
                 hub.Config.Stream.EndEnterCode(this);
                 return PokeTradeResult.NoTrainerFound;
@@ -285,7 +285,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         var tradePartner = await GetTradePartnerInfo(sav, token).ConfigureAwait(false);
         if (!IsValidTradePartner(sav, tradePartner.OT, tradePartner.SID7))
         {
-            poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
+            await poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound).ConfigureAwait(false);
             Log($"{poke.Trainer.TrainerName} not found");
 
             await ExitTrade(false, token).ConfigureAwait(false);
@@ -300,8 +300,9 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         }
 
         var trainerNID = ulong.Parse(tradePartner.SyncID, NumberStyles.HexNumber);
-        RecordUtil<PokeTradeBotLGPE>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.OT}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
-        Log($"Found Link Trade partner: {tradePartner.OT}-{tradePartner.TID7:000000} (ID: {trainerNID})");
+        RecordUtil<PokeTradeBotLGPE>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.OT}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.Id}\t{toSend.EncryptionConstant:X8}");
+        var message = $"Found Link Trade partner: {tradePartner.OT}-{tradePartner.TID7:000000} (ID: {trainerNID})";
+        Log(message);
         poke.PartnerName = tradePartner.OT;
 
         var partnerCheck = await CheckPartnerReputation(this, poke, trainerNID, tradePartner.OT, AbuseSettings, token);
@@ -311,7 +312,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             return partnerCheck;
         }
 
-        poke.SendNotification(this, $"Found Link Trade partner: **{tradePartner.OT}** (TID: **{tradePartner.TID7}** | SID: **{tradePartner.SID7}**). Waiting for a Pokémon...");
+        await poke.SendNotification(this, message).ConfigureAwait(false);
 
         if (poke.Type == PokeTradeType.Dump)
         {
@@ -327,9 +328,9 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         }
 
         while (await GetCurrentScreen(2, token).ConfigureAwait(false) is ScreenScenario.Box)
-            await Click(A, 1000, token);
+            await Click(A, 1000, token).ConfigureAwait(false);
 
-        poke.SendNotification(this, "You have 15 seconds to select your trade Pokemon.");
+        await poke.SendNotification(this, "You have 15 seconds to select your trade Pokemon.").ConfigureAwait(false);
         Log("Waiting on trade screen...");
 
         await Task.Delay(15_000, token).ConfigureAwait(false);
@@ -359,7 +360,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
         // As long as we got rid of our inject in b1s1, assume the trade went through.
         Log("User completed the trade.");
-        poke.TradeFinished(this, received);
+        await poke.TradeFinished(this, received).ConfigureAwait(false);
 
         // Only log if we completed the trade.
         UpdateCountsAndExport(poke, received, toSend);
@@ -419,7 +420,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         Log("Checking for received pokemon in slot 1...");
         while (true)
         {
-
+            
             var newEC = await Connection.ReadBytesAsync(GetSlotOffset(0, slot), 8, token).ConfigureAwait(false);
             if (!newEC.SequenceEqual(oldEC))
             {
@@ -445,17 +446,17 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
     private async Task<PokeTradeResult> ProcessCloneTradeAsync(PokeTradeDetail<PB7> detail, SAV7b sav, CancellationToken token)
     {
-        detail.SendNotification(this, "Highlight the Pokemon in your box You would like Cloned up to 6 at a time! " +
+        await detail.SendNotification(this, "Highlight the Pokemon in your box You would like Cloned up to 6 at a time! " +
             "You have 5 seconds between highlights to move to the next pokemon. (The first 5 starts now!). " +
-            "If you would like to less than 6 remain on the same pokemon until the trade begins.");
+            "If you would like to less than 6 remain on the same pokemon until the trade begins.").ConfigureAwait(false);
         await Task.Delay(10_000, token);
 
         var offered = await ReadPokemon(TradePartnerPokemonOffset, token).ConfigureAwait(false);
         var clones = new List<PB7>() { offered };
-        detail.SendNotification(this, $"You added {(Species)offered.Species} to the clone list.");
+        await detail.SendNotification(this, $"You added {(Species)offered.Species} to the clone list.").ConfigureAwait(false);
 
         if (hub.Config.Discord.ReturnPKMs)
-            detail.SendNotification(this, offered, "Here's what you showed me!");
+            await detail.SendNotification(this, offered, "Here's what you showed me!").ConfigureAwait(false);
 
         for (int i = 0; i < 6; i++)
         {
@@ -470,21 +471,21 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             {
                 clones.Add(newOffered);
                 offered = newOffered;
-                detail.SendNotification(this, $"You added {(Species)offered.Species} to the clone list.");
+                await detail.SendNotification(this, $"You added {(Species)offered.Species} to the clone list.").ConfigureAwait(false);
 
                 if (hub.Config.Discord.ReturnPKMs)
-                    detail.SendNotification(this, offered, "Here's what you showed me!");
+                    await detail.SendNotification(this, offered, "Here's what you showed me!").ConfigureAwait(false);
             }
 
         }
-
+       
         var clonestring = new StringBuilder();
         foreach (var str in clones)
             clonestring.AppendLine($"{(Species)str.Species}");
-        detail.SendNotification(this, "Pokemon to be Cloned", clonestring.ToString());
-
-        detail.SendNotification(this, "Exiting Trade to inject clones, please reconnect using the same link code.");
-        await ExitTrade(false, token);
+        await detail.SendNotification(this, $"Pokemon to be Cloned{Environment.NewLine}{clonestring}").ConfigureAwait(false);
+     
+        await detail.SendNotification(this,"Exiting Trade to inject clones, please reconnect using the same link code.").ConfigureAwait(false);
+        await ExitTrade(false,token);
 
         foreach (var (i, clone) in clones.Select((clone, i) => (i, clone)))
         {
@@ -536,7 +537,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
         await Click(A, 1000, token).ConfigureAwait(false);
         await EnterLinkCode(detail.PictoCodes, token).ConfigureAwait(false);
-        detail.TradeSearching(this);
+        await detail.TradeSearching(this).ConfigureAwait(false);
         Log($"Searching for user {detail.Trainer.TrainerName}...");
         var waitingTimer = new Stopwatch();
         var tradeMaxWaitTime = hub.Config.Trade.TradeWaitTime * 1_000;
@@ -547,7 +548,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             await Task.Delay(100, token);
             if (waitingTimer.ElapsedMilliseconds >= tradeMaxWaitTime)
             {
-                detail.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
+                await detail.TradeCanceled(this, PokeTradeResult.NoTrainerFound).ConfigureAwait(false);
                 Log($"{detail.Trainer.TrainerName} not found");
 
                 await ExitTrade(false, token);
@@ -560,7 +561,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         var tradePartner = await GetTradePartnerInfo(sav, token).ConfigureAwait(false);
         if (!IsValidTradePartner(sav, tradePartner.OT, tradePartner.SID7))
         {
-            detail.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
+            await detail.TradeCanceled(this, PokeTradeResult.NoTrainerFound).ConfigureAwait(false);
             Log($"{detail.Trainer.TrainerName} not found");
 
             await ExitTrade(false, token).ConfigureAwait(false);
@@ -580,13 +581,13 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             }
 
             while (await GetCurrentScreen(2, token).ConfigureAwait(false) is ScreenScenario.Box)
-                await Click(A, 1000, token);
+                await Click(A, 1000, token).ConfigureAwait(false);
 
-            detail.SendNotification(this, $"Sending {(Species)toSend.Species}. You have 15 seconds to select your trade pokemon");
+            await detail.SendNotification(this, $"Sending {(Species)toSend.Species}. You have 15 seconds to select your trade pokemon").ConfigureAwait(false);
             Log("Waiting on trade screen...");
 
             await Task.Delay(10_000, token).ConfigureAwait(false);
-            detail.SendNotification(this, "You have 5 seconds left to get to the trade screen to not break the trade");
+            await detail.SendNotification(this, "You have 5 seconds left to get to the trade screen to not break the trade").ConfigureAwait(false);
             await Task.Delay(5_000, token);
 
             var tradeResult = await ConfirmAndStartTrading(detail, clones.IndexOf(toSend), token);
@@ -611,9 +612,9 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
 
     private async Task<PokeTradeResult> ProcessDumpTradeAsync(PokeTradeDetail<PB7> detail, CancellationToken token)
     {
-        detail.SendNotification(this, "Highlight the Pokemon in your box, you have 30 seconds");
+        await detail.SendNotification(this, "Highlight the Pokemon in your box, you have 30 seconds").ConfigureAwait(false);
         var offered = await ReadPokemon(TradePartnerPokemonOffset, token).ConfigureAwait(false);
-        detail.SendNotification(this, offered, "Here's what you showed me!");
+        await detail.SendNotification(this, offered, "Here's what you showed me!").ConfigureAwait(false);
 
         if (DumpSetting.Dump)
             DumpPokemon(DumpSetting.DumpFolder, detail.Type.ToString().ToLower(), offered);
@@ -625,14 +626,14 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             var newOffered = await ReadPokemon(TradePartnerPokemonOffset, token).ConfigureAwait(false);
             if (SearchUtil.HashByDetails(offered) != SearchUtil.HashByDetails(newOffered))
             {
-                detail.SendNotification(this, newOffered, "Here's the pokemon you showed me");
+                await detail.SendNotification(this, newOffered, "Here's the pokemon you showed me").ConfigureAwait(false);
                 offered = newOffered;
 
                 if (DumpSetting.Dump)
                     DumpPokemon(DumpSetting.DumpFolder, detail.Type.ToString().ToLower(), offered);
             }
         }
-        detail.SendNotification(this, "Time is up!");
+        await detail.SendNotification(this, "Time is up!").ConfigureAwait(false);
         return PokeTradeResult.Success;
     }
 
@@ -641,7 +642,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         int currentPosition = 0;
 
         foreach (PictoCode code in codes)
-        {
+                {
             int targetPosition = (int)code;
             await SelectPicto(currentPosition, targetPosition, token).ConfigureAwait(false);
 
@@ -649,11 +650,11 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
             await Task.Delay(200, token).ConfigureAwait(false);
 
             currentPosition = targetPosition;
-        }
-    }
+                }
+            }
 
     private async Task SelectPicto(int currentPosition, int targetPosition, CancellationToken token)
-    {
+            {
         if (currentPosition == targetPosition)
             return;
 
@@ -664,12 +665,12 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
         int targetColumn = targetPosition % 5;
 
         if (currentRow != targetRow)
-        {
+                {
             var vDirection = (targetRow > currentRow) ? -30000 : 30000;
             await SetStick(SwitchStick.RIGHT, 0, (short)vDirection, 0, token).ConfigureAwait(false);
             await SetStick(SwitchStick.RIGHT, 0, 0, delay, token).ConfigureAwait(false);
             await Task.Delay(100, token).ConfigureAwait(false);
-        }
+            }
 
         if (currentColumn != targetColumn)
         {
@@ -751,11 +752,11 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> hub, PokeBotState cfg) : PokeRou
                 await RestartGameLGPE(hub.Config, token).ConfigureAwait(false);
                 return;
             }
-
+            
             await Click(B, 1_000, token).ConfigureAwait(false);
             if (await IsOnOverworld(token).ConfigureAwait(false))
                 return;
-
+           
             await Click(await GetCurrentScreen(2, token).ConfigureAwait(false)
                 is ScreenScenario.Box or ScreenScenario.YesNoSelector ? A : B, 1_000, token).ConfigureAwait(false);
 

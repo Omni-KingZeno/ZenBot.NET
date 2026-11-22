@@ -13,33 +13,38 @@ public sealed class DistributionEmbedNotifier<T>(IPokeTradeNotifier<T> inner, Po
     private readonly List<IUserMessage> _messages = [];
     private Task _post = Task.CompletedTask;
 
-    public void TradeInitialize(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info) => inner.TradeInitialize(r, info);
+    public Task TradeInitialize(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info) => inner.TradeInitialize(r, info);
 
-    public void TradeSearching(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info)
+    public async Task TradeSearching(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info)
     {
-        inner.TradeSearching(r, info);
-        _post = PostAsync(r, info);
+        await inner.TradeSearching(r, info).ConfigureAwait(false);
+        _post = PostAsync(r, info); // fire and forget, tracked so EndAsync can wait for it
     }
 
-    public void TradeFinished(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, T result)
+    public async Task TradeFinished(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, T result)
     {
-        inner.TradeFinished(r, info, result);
+        await inner.TradeFinished(r, info, result).ConfigureAwait(false);
         var trader = !string.IsNullOrWhiteSpace(info.PartnerName)
             ? info.PartnerName
             : result.Species != 0 ? result.OriginalTrainerName : null;
         _ = EndAsync("✅ Distribution completed", trader: trader);
     }
 
-    public void TradeCanceled(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, PokeTradeResult result)
+    public async Task TradeCanceled(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, PokeTradeResult result)
     {
-        inner.TradeCanceled(r, info, result);
+        await inner.TradeCanceled(r, info, result).ConfigureAwait(false);
         var del = result == PokeTradeResult.NoTrainerFound && hub.Config.Distribution.DeleteEmbedIfNoPartner;
         _ = EndAsync("❎ Distribution Ended", del);
     }
 
-    public void SendNotification(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, string message) => inner.SendNotification(r, info, message);
-    public void SendNotification(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, PokeTradeSummary message) => inner.SendNotification(r, info, message);
-    public void SendNotification(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, T result, string message) => inner.SendNotification(r, info, result, message);
+    public Task SendNotification(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, string message)
+        => inner.SendNotification(r, info, message);
+
+    public Task SendNotification(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, PokeTradeSummary message)
+        => inner.SendNotification(r, info, message);
+
+    public Task SendNotification(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info, T result, string message)
+        => inner.SendNotification(r, info, result, message);
 
     private async Task PostAsync(PokeRoutineExecutor<T> r, PokeTradeDetail<T> info)
     {

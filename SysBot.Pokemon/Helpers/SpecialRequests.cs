@@ -88,6 +88,21 @@ public static class SpecialRequests
         ["CHS"] = LanguageID.ChineseS
     }.ToFrozenDictionary();
 
+    private static void Notify<T>(PokeTradeDetail<T> detail, PokeRoutineExecutor<T> caller, string message) where T : PKM, new()
+    => _ = NotifyAsync(detail, caller, message);
+
+    private static async Task NotifyAsync<T>(PokeTradeDetail<T> detail, PokeRoutineExecutor<T> caller, string message) where T : PKM, new()
+    {
+        try
+        {
+            await detail.SendNotification(caller, message).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            caller.Log($"Failed to send notification: {ex.Message}");
+        }
+    }
+
     public static SpecialTradeType CheckItemRequest<T>(ref T pk, PokeRoutineExecutor<T> caller, PokeTradeDetail<T> detail, string trainerName, uint tid, uint sid) where T : PKM, new()
     {
         LogHeldItem(pk, caller);
@@ -190,7 +205,7 @@ public static class SpecialRequests
 
         if (!Enum.TryParse<Nature>(natureName, out var nature))
         {
-            detail.SendNotification(caller, "Nature request was not found in the db.");
+            Notify(detail, caller, "Nature request was not found in the db.");
             return SpecialTradeType.FailReturn;
         }
 
@@ -373,7 +388,7 @@ public static class SpecialRequests
 
         if (ball < 0)
         {
-            detail.SendNotification(caller, "Ball request was invalid. Check spelling & generation.");
+            Notify(detail, caller, "Ball request was invalid. Check spelling & generation.");
             return SpecialTradeType.None;
         }
 
@@ -397,7 +412,7 @@ public static class SpecialRequests
         var formCount = pk.PersonalInfo.FormCount;
         if (form >= formCount)
         {
-            detail.SendNotification(caller, $"Form {form} doesn't exist for this Pokémon (valid: 0-{Math.Max(0, formCount - 1)}).");
+            Notify(detail, caller, $"Form {form} doesn't exist for this Pokémon (valid: 0-{Math.Max(0, formCount - 1)}).");
             return SpecialTradeType.None;
         }
 
@@ -458,7 +473,7 @@ public static class SpecialRequests
 
         if (la.Valid) return;
 
-        detail.SendNotification(caller, "This request isn't legal! Attemping to legalize...");
+        Notify(detail, caller, "This request isn't legal! Attemping to legalize...");
         caller.Log(la.Report());
 
         try

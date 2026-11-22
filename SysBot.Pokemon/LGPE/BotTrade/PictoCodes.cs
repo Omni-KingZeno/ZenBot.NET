@@ -29,6 +29,7 @@ public static class PictoCodesExtensions
         return result;
     }
 
+
     /// <summary>Splits a 0-999 value into three picture digits (72 becomes 0, 7, 2).</summary>
     public static PictoCode[] FromDigits(int value) =>
     [

@@ -103,7 +103,15 @@ public static class QueueHelper<T> where T : PKM, new()
 
         var trainer = new PokeTradeTrainerInfo(trainerName, userID);
         var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, user, context);
-        var detail = new PokeTradeDetail<T>(pk, trainer, notifier, t, code, sig == RequestSignificance.Favored);
+        var detail = new PokeTradeDetail<T>
+        {
+            Type = t,
+            Code = code,
+            TradeData = pk,
+            Trainer = trainer,
+            Notifier = notifier,
+            IsFavored = sig == RequestSignificance.Favored
+        };
         var trade = new TradeEntry<T>(detail, userID, type, name);
 
         var hub = SysCord<T>.Runner.Hub;
@@ -122,7 +130,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
         var ticketID = string.Empty;
         if (TradeStartModule<T>.IsStartChannel(context.Channel.Id))
-            ticketID = $", unique ID: {detail.ID}";
+            ticketID = $", unique ID: {detail.Id}";
 
         var strings = GameInfo.GetStrings("en");
         receiving = t switch
@@ -146,7 +154,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 msg += $" Estimated: {eta:F1} minutes.";
             }
         }
-
+        detail.IsReady = true;
         return true;
     }
 

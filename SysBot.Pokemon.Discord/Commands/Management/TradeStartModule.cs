@@ -63,7 +63,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
     {
         void Logger(PokeRoutineExecutorBase bot, PokeTradeDetail<T> detail)
         {
-            if (detail.Type == PokeTradeType.Random)
+            if (detail.Type == PokeTradeType.Random || detail.IsRetry)
                 return;
             if (SysCordSettings.Settings.UseTradeStartEmbeds)
                 c.SendMessageAsync(embed: BuildTradeStartEmbed(detail));
@@ -73,7 +73,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
 
         Action<PokeRoutineExecutorBase, PokeTradeDetail<T>> l = Logger;
         SysCord<T>.Runner.Hub.Queues.Forwarders.Add(l);
-        static string GetMessage(PokeRoutineExecutorBase bot, PokeTradeDetail<T> detail) => $"> [{DateTime.Now:hh:mm:ss}] - {bot.Connection.Label} is now trading (ID {detail.ID}) {detail.Trainer.TrainerName}";
+        static string GetMessage(PokeRoutineExecutorBase bot, PokeTradeDetail<T> detail) => $"> [{DateTime.Now:hh:mm:ss}] - {bot.Connection.Label} is now trading (ID {detail.Id}) {detail.Trainer.TrainerName}";
 
         var entry = new TradeStartAction(cid, l, c.Name);
         Channels.Add(cid, entry);
@@ -110,7 +110,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
             .WithAuthor("Trade Started", iconUrl: avatarUrl)
             .WithDescription($"{pokemonName}\n**Trader:** {detail.Trainer.TrainerName}")
             .WithColor(color)
-            .WithFooter($"Trade ID: {detail.ID}", footerURL)
+            .WithFooter($"Trade ID: {detail.Id}", footerURL)
             .WithThumbnailUrl(thumbnailUrl)
             .Build();
     }

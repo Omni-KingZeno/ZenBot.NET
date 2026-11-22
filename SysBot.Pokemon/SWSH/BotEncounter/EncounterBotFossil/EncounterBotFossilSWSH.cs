@@ -34,7 +34,7 @@ public class EncounterBotFossilSWSH : EncounterBotSWSH
 
         while (!token.IsCancellationRequested)
         {
-            if (encounterCount != 0 && encounterCount % reviveCount == 0)
+            if (EncounterCount != 0 && EncounterCount % reviveCount == 0)
             {
                 Log($"Ran out of fossils to revive {Settings.Species}.");
                 if (Settings.InjectWhenEmpty)

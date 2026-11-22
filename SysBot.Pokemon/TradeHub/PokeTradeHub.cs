@@ -19,7 +19,7 @@ public class PokeTradeHub<T> where T : PKM, new()
         Giveaway = new GiveawayDistributor<T>(GApool);
         BotSync = new BotSynchronizer(config.Distribution);
         var plural = BotSync.Barrier.ParticipantCount > 1 ? "s" : "";
-        BotSync.BarrierReleasingActions.Add(() => LogUtil.LogInfo($"{BotSync.Barrier.ParticipantCount} bot{plural} released.", "Barrier"));
+        BotSync.BarrierReleasingActions.Add(() => LogUtil.LogInfo($"{BotSync.Barrier.ParticipantCount} bot{plural} released."));
 
         Queues = new TradeQueueManager<T>(this);
     }

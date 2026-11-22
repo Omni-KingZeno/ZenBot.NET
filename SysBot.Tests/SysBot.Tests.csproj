@@ -4,16 +4,16 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="PKHeX.Core">
-      <HintPath>..\SysBot.Pokemon\deps\PKHeX.Core.dll</HintPath>
-    </Reference>
+	<ItemGroup>
+		<Reference Include="PKHeX.Core">
+			<HintPath>..\SysBot.Pokemon\deps\PKHeX.Core.dll</HintPath>
+		</Reference>
     <Reference Include="PKHeX.Core.AutoMod">
       <HintPath>..\SysBot.Pokemon\deps\PKHeX.Core.AutoMod.dll</HintPath>
     </Reference>
-  </ItemGroup>
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
     <PackageReference Include="xunit.v3" Version="4.0.3" />
@@ -21,7 +21,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup>

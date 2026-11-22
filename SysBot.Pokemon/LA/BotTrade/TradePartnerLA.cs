@@ -1,6 +1,6 @@
-using System.Buffers.Binary;
 using System.Diagnostics;
 using PKHeX.Core;
+using static System.Buffers.Binary.BinaryPrimitives;
 
 namespace SysBot.Pokemon;
 
@@ -16,8 +16,8 @@ public sealed class TradePartnerLA : ITradePartner
     public TradePartnerLA(byte[] TIDSID, byte[] trainerNameObject, byte[] info)
     {
         Debug.Assert(TIDSID.Length == 4);
-        TID7 = BinaryPrimitives.ReadUInt32LittleEndian(TIDSID.AsSpan()) % 1_000_000;
-        SID7 = BinaryPrimitives.ReadUInt32LittleEndian(TIDSID.AsSpan()) / 1_000_000;
+        TID7 = ReadUInt32LittleEndian(TIDSID.AsSpan()) % 1_000_000;
+        SID7 = ReadUInt32LittleEndian(TIDSID.AsSpan()) / 1_000_000;
         OT = StringConverter8.GetString(trainerNameObject);
         Game = info[0];
         Gender = info[1];

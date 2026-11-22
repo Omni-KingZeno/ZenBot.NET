@@ -57,7 +57,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
         Span<byte> data = stackalloc byte[pk.SIZE_PARTY];
         pk.WriteDecryptedDataParty(data);
         File.WriteAllBytes(fn, data);
-        LogUtil.LogInfo($"Saved file: {fn}", "Dump");
+        LogUtil.LogInfo($"Saved file: {fn}");
     }
 
     public async Task<bool> TryReconnect(int attempts, int extraDelay, SwitchProtocol protocol, CancellationToken token)
@@ -88,7 +88,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
         {
             var protocol = Config.Connection.Protocol;
             var msg = protocol is SwitchProtocol.WiFi ? "sys-botbase" : "usb-botbase";
-            msg += $" version is not supported. Expected version {BotbaseVersion} or greater and your current version is {data}. Please download the latest version from: ";
+            msg += $" version is not supported. Expected version {BotbaseVersion} or greater, and your current version is {data}. Please download the latest version from: ";
             if (protocol is SwitchProtocol.WiFi)
                 msg += "https://github.com/olliz0r/sys-botbase/releases/latest";
             else
@@ -106,10 +106,10 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
         Log("Trainer data is not valid.");
 
         bool found = false;
-        var msg = "";
+        var msg = "Found ";
         if (await SwitchConnection.IsProgramRunning(ovlloaderID, token).ConfigureAwait(false))
         {
-            msg += "Found Tesla Menu";
+            msg += "Tesla Menu";
             found = true;
         }
 
@@ -120,6 +120,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
             msg += "dmnt (cheat codes?)";
             found = true;
         }
+
         if (found)
         {
             msg += ".";
@@ -157,7 +158,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
         var previous = list.TryGetPreviousNID(TrainerNID);
         if (previous != null)
         {
-            var delta = DateTime.Now - previous.Time; // Time that has passed since last trade.
+            var delta = DateTime.UtcNow - previous.Time; // Time that has passed since last trade.
             Log($"Last traded with {user.TrainerName} {delta.TotalMinutes:F1} minutes ago (OT: {TrainerName}).");
 
             // Allows setting a cooldown for repeat trades. If the same user is encountered within the cooldown period for the same trade type, the user is warned and the trade will be ignored.
@@ -165,7 +166,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
             if (cd != 0 && TimeSpan.FromMinutes(cd) > delta)
             {
                 var wait = TimeSpan.FromMinutes(cd) - delta;
-                poke.Notifier.SendNotification(bot, poke, $"You are still on trade cooldown and cannot trade for another {wait.TotalMinutes:F1} minute(s).");
+                await poke.Notifier.SendNotification(bot, poke, $"You are still on trade cooldown and cannot trade for another {wait.TotalMinutes:F1} minute(s).").ConfigureAwait(false);
                 var msg = $"Found {user.TrainerName}{useridmsg} ignoring the {cd} minute trade cooldown. Last encountered {delta.TotalMinutes:F1} minutes ago.";
                 if (AbuseSettings.EchoNintendoOnlineIDCooldown)
                     msg += $"\nID: {TrainerNID}";
@@ -186,7 +187,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
                         await BlockUser(token).ConfigureAwait(false);
                         if (AbuseSettings.BanIDWhenBlockingUser || bot is not PokeRoutineExecutor8SWSH) // Only ban ID if blocking in SWSH, always in other games.
                         {
-                            AbuseSettings.BannedIDs.AddIfNew([GetReference(TrainerName, TrainerNID, "in-game block for multiple accounts")]);
+                            AbuseSettings.BannedIDs.AddIfNew(GetReference(TrainerName, TrainerNID, "in-game block for multiple accounts"));
                             Log($"Added {TrainerNID} to the BannedIDs list.");
                         }
                     }
@@ -216,7 +217,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
                         await BlockUser(token).ConfigureAwait(false);
                         if (AbuseSettings.BanIDWhenBlockingUser || bot is not PokeRoutineExecutor8SWSH) // Only ban ID if blocking in SWSH, always in other games.
                         {
-                            AbuseSettings.BannedIDs.AddIfNew([GetReference(TrainerName, TrainerNID, "in-game block for sending to multiple in-game players")]);
+                            AbuseSettings.BannedIDs.AddIfNew(GetReference(TrainerName, TrainerNID, "in-game block for sending to multiple in-game players"));
                             Log($"Added {TrainerNID} to the BannedIDs list.");
                         }
                     }

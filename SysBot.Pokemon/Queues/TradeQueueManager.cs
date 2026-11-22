@@ -65,22 +65,30 @@ public class TradeQueueManager<T> where T : PKM, new()
         if (DistributionNotifierFactory is { } factory)
             notifier = factory(notifier);
 
-        detail = new PokeTradeDetail<T>(random, trainer, notifier, PokeTradeType.Random, code, false, code7b);
+        detail = new PokeTradeDetail<T>
+        {
+            Type = PokeTradeType.Random,
+            Code = code,
+            Code7b = code7b,
+            TradeData = random,
+            Trainer = trainer,
+            Notifier = notifier,
+        };
         return true;
     }
 
-    public bool TryDequeue(PokeRoutineType type, out PokeTradeDetail<T> detail, out uint priority)
+    public bool TryDequeue(PokeRoutineType type, out PokeTradeDetail<T> detail, out uint priority, bool checkReady = true)
     {
         if (type == PokeRoutineType.FlexTrade)
             return GetFlexDequeue(out detail, out priority);
 
-        return TryDequeueInternal(type, out detail, out priority);
+        return TryDequeueInternal(type, out detail, out priority, checkReady);
     }
 
-    private bool TryDequeueInternal(PokeRoutineType type, out PokeTradeDetail<T> detail, out uint priority)
+    private bool TryDequeueInternal(PokeRoutineType type, out PokeTradeDetail<T> detail, out uint priority, bool checkReady = true)
     {
         var queue = GetQueue(type);
-        return queue.TryDequeue(out detail, out priority);
+        return queue.TryDequeue(out detail, out priority, checkReady);
     }
 
     private bool GetFlexDequeue(out PokeTradeDetail<T> detail, out uint priority)
@@ -91,7 +99,7 @@ public class TradeQueueManager<T> where T : PKM, new()
         return GetFlexDequeueWeighted(cfg, out detail, out priority);
     }
 
-    private bool GetFlexDequeueWeighted(QueueSettings cfg, out PokeTradeDetail<T> detail, out uint priority)
+    private bool GetFlexDequeueWeighted(QueueSettings cfg, out PokeTradeDetail<T> detail, out uint priority, bool checkReady = true)
     {
         PokeTradeQueue<T>? preferredQueue = null;
         long bestWeight = 0; // prefer higher weights
@@ -126,7 +134,7 @@ public class TradeQueueManager<T> where T : PKM, new()
             return false;
         }
 
-        return preferredQueue.TryDequeue(out detail, out priority);
+        return preferredQueue.TryDequeue(out detail, out priority, checkReady);
     }
 
     private bool GetFlexDequeueOld(out PokeTradeDetail<T> detail, out uint priority)
