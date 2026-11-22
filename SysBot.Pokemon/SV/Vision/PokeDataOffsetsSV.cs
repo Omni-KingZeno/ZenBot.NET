@@ -21,5 +21,5 @@ public class PokeDataOffsetsSV
     public IReadOnlyList<long> OverworldPointer               { get; } = [0x473ADE0, 0x160, 0xE8, 0x28];
 
     public const int BoxFormatSlotSize = 0x158;
-    public const ulong LibAppletWeID = 0x010000000000100a; // One of the process IDs for the news.
+    public const ulong LibAppletWeID = 0x0100000000001043; // One of the process IDs for the news.
 }

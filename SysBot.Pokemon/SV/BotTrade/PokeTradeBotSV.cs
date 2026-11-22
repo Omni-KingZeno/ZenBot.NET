@@ -589,6 +589,20 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         return await SetUpPortalCursor(token).ConfigureAwait(false);
     }
 
+    // Polls for the news applet instead of a single check, since it can take a moment to launch.
+    private async Task<bool> IsNewsShowing(CancellationToken token)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false))
+            {
+                return true;
+            }
+            await Task.Delay(500, token).ConfigureAwait(false);
+        }
+        return false;
+    }
+
     // Should be used from the overworld. Opens X menu, attempts to connect online, and enters the Portal.
     // The cursor should be positioned over Link Trade.
     private async Task<bool> ConnectAndEnterPortal(CancellationToken token)
@@ -602,7 +616,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         await Click(X, 1_000, token).ConfigureAwait(false);
 
         // Handle the news popping up.
-        if (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false))
+        if (await IsNewsShowing(token).ConfigureAwait(false))
         {
             Log("News detected, will close once it's loaded!");
             await Task.Delay(5_000, token).ConfigureAwait(false);
@@ -644,7 +658,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         }
 
         // Handle the news popping up.
-        if (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false))
+        if (await IsNewsShowing(token).ConfigureAwait(false))
         {
             Log("News detected, will close once it's loaded!");
             await Task.Delay(5_000, token).ConfigureAwait(false);
@@ -664,6 +678,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         if (await IsConnectedOnline(ConnectedOffset, token).ConfigureAwait(false))
             return true;
 
+        Log("Connecting to the internet...");
         await Click(L, 1_000, token).ConfigureAwait(false);
         await Click(A, 4_000, token).ConfigureAwait(false);
 
@@ -677,6 +692,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
 
         // There are several seconds after connection is established before we can dismiss the menu.
         await Task.Delay(3_000 + config.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
+        Log("Connected!");
         await Click(A, 1_000, token).ConfigureAwait(false);
         return true;
     }
