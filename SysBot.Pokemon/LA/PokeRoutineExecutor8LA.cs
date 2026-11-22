@@ -15,7 +15,7 @@ public abstract class PokeRoutineExecutor8LA(PokeBotState Config) : PokeRoutineE
     public override async Task<PA8> ReadPokemon(ulong offset, int size, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, size, token).ConfigureAwait(false);
-        return new PA8(data);
+        return new PA8(Require(data, size));
     }
 
     public override async Task<PA8> ReadPokemonPointer(IEnumerable<long> jumps, int size, CancellationToken token)
@@ -62,7 +62,7 @@ public abstract class PokeRoutineExecutor8LA(PokeBotState Config) : PokeRoutineE
     public async Task<byte> GetCurrentBox(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.CurrentBoxPointer, token).ConfigureAwait(false);
-        return data[0];
+        return RequireByte(data);
     }
 
     public async Task<SAV8LA> IdentifyTrainer(CancellationToken token)
@@ -100,7 +100,7 @@ public abstract class PokeRoutineExecutor8LA(PokeBotState Config) : PokeRoutineE
         var sav = new SAV8LA();
         var info = sav.MyStatus;
         var read = await SwitchConnection.PointerPeek(info.Data.Length, Offsets.MyStatusPointer, token).ConfigureAwait(false);
-        read.CopyTo(info.Data);
+        Require(read, info.Data.Length).CopyTo(info.Data);
         return sav;
     }
 
@@ -154,7 +154,7 @@ public abstract class PokeRoutineExecutor8LA(PokeBotState Config) : PokeRoutineE
     public async Task<bool> CheckIfSoftBanned(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 4, token).ConfigureAwait(false);
-        return ReadUInt32LittleEndian(data) != 0;
+        return ReadUInt32LittleEndian(Require(data, 4)) != 0;
     }
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
@@ -216,13 +216,13 @@ public abstract class PokeRoutineExecutor8LA(PokeBotState Config) : PokeRoutineE
     public async Task<ulong> GetTradePartnerNID(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 8, token).ConfigureAwait(false);
-        return ReadUInt64LittleEndian(data);
+        return ReadUInt64LittleEndian(Require(data, 8));
     }
 
     public async Task<bool> IsOnOverworld(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     // Only used to check if we made it off the title screen; the pointer isn't viable until a few seconds after clicking A.
@@ -237,6 +237,6 @@ public abstract class PokeRoutineExecutor8LA(PokeBotState Config) : PokeRoutineE
     public async Task<TextSpeedOption> GetTextSpeed(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.TextSpeedPointer, token).ConfigureAwait(false);
-        return (TextSpeedOption)data[0];
+        return (TextSpeedOption)RequireByte(data);
     }
 }

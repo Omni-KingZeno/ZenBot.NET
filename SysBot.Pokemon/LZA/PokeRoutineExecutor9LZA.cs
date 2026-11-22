@@ -14,7 +14,7 @@ public abstract class PokeRoutineExecutor9LZA(PokeBotState Config) : PokeRoutine
 
     public override async Task<PA9> ReadPokemon(ulong offset, int size, CancellationToken token)
     {
-        var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, size, token).ConfigureAwait(false);
+        var data = Require(await SwitchConnection.ReadBytesAbsoluteAsync(offset, size, token).ConfigureAwait(false), size);
         return new PA9(data);
     }
 
@@ -62,7 +62,7 @@ public abstract class PokeRoutineExecutor9LZA(PokeBotState Config) : PokeRoutine
     public async Task<byte> GetCurrentBox(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.CurrentBoxPointer, token).ConfigureAwait(false);
-        return data[0];
+        return RequireByte(data);
     }
 
     public async Task<SAV9ZA> IdentifyTrainer(CancellationToken token)
@@ -100,7 +100,7 @@ public abstract class PokeRoutineExecutor9LZA(PokeBotState Config) : PokeRoutine
         var sav = new SAV9ZA();
         var info = sav.MyStatus;
         var read = await SwitchConnection.PointerPeek(info.Data.Length, Offsets.MyStatusPointer, token).ConfigureAwait(false);
-        read.CopyTo(info.Data);
+        Require(read, info.Data.Length).CopyTo(info.Data);
         return sav;
     }
 
@@ -200,31 +200,31 @@ public abstract class PokeRoutineExecutor9LZA(PokeBotState Config) : PokeRoutine
     public async Task<ulong> GetTradePartnerNID(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(8, Offsets.TradePartnerBackupNIDPointer, token).ConfigureAwait(false);
-        return ReadUInt64LittleEndian(data);
+        return ReadUInt64LittleEndian(Require(data, sizeof(ulong)));
     }
 
     public async Task<bool> IsOnOverworld(CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesMainAsync(OverworldOffset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     public async Task<TextSpeedOption> GetTextSpeed(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.TextSpeedPointer, token).ConfigureAwait(false);
-        return (TextSpeedOption)((data[0] & 7) >> 1);
+        return (TextSpeedOption)((RequireByte(data) & 7) >> 1);
     }
 
     public async Task<bool> IsConnected(CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesMainAsync(ConnectedOffset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     public async Task<byte> GetStoredLinkTradeCodeLength(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.LinkTradeCodeLengthPointer, token).ConfigureAwait(false);
-        return data[0];
+        return RequireByte(data);
     }
 
     public async Task<int> GetStoredLinkTradeCode(CancellationToken token)
@@ -246,13 +246,13 @@ public abstract class PokeRoutineExecutor9LZA(PokeBotState Config) : PokeRoutine
     public async Task<bool> IsOnMenu(MenuState state, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesMainAsync(MenuOffset, 1, token).ConfigureAwait(false);
-        return (MenuState)data[0] == state;
+        return (MenuState)RequireByte(data) == state;
     }
 
     public async Task<MenuState> GetMenuState(CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesMainAsync(MenuOffset, 1, token).ConfigureAwait(false);
-        return (MenuState)data[0];
+        return (MenuState)RequireByte(data);
     }
 
     public enum MenuState : byte

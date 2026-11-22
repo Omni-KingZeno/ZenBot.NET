@@ -14,7 +14,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
         await ReadPokemon(offset, BoxFormatSlotSize, token).ConfigureAwait(false);
 
     public override async Task<PB7> ReadPokemon(ulong offset, int size, CancellationToken token) =>
-        new(await Connection.ReadBytesAsync((uint)offset, size, token).ConfigureAwait(false));
+        new(Require(await Connection.ReadBytesAsync((uint)offset, size, token).ConfigureAwait(false), size));
 
     public async Task SetBoxPokemon(PB7 pk, int box, int slot, CancellationToken token)
     {
@@ -38,6 +38,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
     {
         var offset = GetSlotOffset(box, slot);
         var data = await Connection.ReadBytesAsync(offset, BoxFormatSlotSize + GapSize, token).ConfigureAwait(false);
+        Require(data, BoxFormatSlotSize + GapSize);
         var chunkLength = BoxFormatSlotSize - 0x1C;
         var chunk1 = data.AsSpan(0, chunkLength).ToArray();
         var chunk2 = data.AsSpan(chunkLength + 0x70, 0x1C).ToArray();
@@ -109,7 +110,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
         var sav = new SAV7b();
         var info = sav.Blocks.Status;
         var read = await Connection.ReadBytesAsync(TrainerDataOffset, TrainerDataLength, token).ConfigureAwait(false);
-        read.CopyTo(info.Data);
+        Require(read, TrainerDataLength).CopyTo(info.Data);
         return sav;
     }
 
@@ -117,7 +118,7 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
     {
         var info = new SAV7b();
         var read = await Connection.ReadBytesAsync(offset, 0x168, token).ConfigureAwait(false);
-        read.CopyTo(info.Blocks.Status.Data);
+        Require(read, 0x168).CopyTo(info.Blocks.Status.Data);
         return info;
     }
 
@@ -184,17 +185,17 @@ public abstract class PokeRoutineExecutor7LGPE(PokeBotState cfg) : PokeRoutineEx
     public async Task<ScreenScenario> GetCurrentScreen(int size, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesMainAsync(CurrentScreenOffset, size, token).ConfigureAwait(false);
-        var value = BitConverter.ToUInt16(data, 0);
+        var value = BitConverter.ToUInt16(Require(data, sizeof(ushort)), 0);
         var scenario = (ScreenScenario)value;
         return scenario;
     }
 
     public async Task<bool> IsOnOverworld(CancellationToken token) =>
-        (await Connection.ReadBytesAsync(OverworldOffset, 1, token).ConfigureAwait(false))[0] == 1;
+        RequireByte(await Connection.ReadBytesAsync(OverworldOffset, 1, token).ConfigureAwait(false)) == 1;
 
     public async Task<bool> IsInWaitingScreen(CancellationToken token) =>
-        BitConverter.ToUInt32(await SwitchConnection.ReadBytesMainAsync(WaitingScreenOffset, 4, token).ConfigureAwait(false), 0) == 0;
+        BitConverter.ToUInt32(Require(await SwitchConnection.ReadBytesMainAsync(WaitingScreenOffset, 4, token).ConfigureAwait(false), 4), 0) == 0;
 
     public async Task<TextSpeedOption> GetTextSpeed(CancellationToken token) =>
-        (TextSpeedOption)((await Connection.ReadBytesAsync(TextSpeedOffset, 1, token).ConfigureAwait(false))[0] & 3);
+        (TextSpeedOption)(RequireByte(await Connection.ReadBytesAsync(TextSpeedOffset, 1, token).ConfigureAwait(false)) & 3);
 }

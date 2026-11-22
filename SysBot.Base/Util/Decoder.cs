@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace SysBot.Base;
 
 /// <summary>
@@ -9,37 +11,11 @@ public static class Decoder
 
     public static void LoadHexBytesTo(ReadOnlySpan<byte> str, Span<byte> dest)
     {
-        // The input string is 2-char hex values optionally separated.
-        // The destination array should always be larger or equal than the bytes written. Let the runtime bounds check us.
-        Convert.FromHexString(str, dest, out _, out _);
+        var status = Convert.FromHexString(str, dest, out _, out _);
+        if (status != OperationStatus.Done)
+            throw new FormatException($"Invalid hex response from the console: {status}.");
     }
 
-    private static byte DecodeTuple(char _0, char _1)
-    {
-        return (byte)(DecodeChar(_0) << 4 | DecodeChar(_1));
-
-        static int DecodeChar(char x)
-        {
-            if (char.IsAsciiDigit(x))
-                return (byte)(x - '0');
-            if (char.IsAsciiHexDigitUpper(x))
-                return (byte)(x - 'A' + 10);
-            if (char.IsAsciiHexDigitLower(x))
-                return (byte)(x - 'a' + 10);
-            throw new ArgumentOutOfRangeException(nameof(_0));
-        }
-    }
-
-    public static byte[] ConvertPeekToBytes(byte[] bytes)
-    {
-        var dest = new byte[bytes.Length / 2];
-        for (int i = 0; i < dest.Length; i++)
-        {
-            int ofs = i * 2;
-            var _0 = (char)bytes[ofs + 0];
-            var _1 = (char)bytes[ofs + 1];
-            dest[i] = DecodeTuple(_0, _1);
-        }
-        return dest;
-    }
+    public static byte[] ConvertPeekToBytes(ReadOnlySpan<byte> bytes) =>
+        Convert.FromHexString(bytes.TrimEnd((byte)'\n'));
 }

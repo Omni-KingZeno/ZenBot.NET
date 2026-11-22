@@ -589,7 +589,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         return await SetUpPortalCursor(token).ConfigureAwait(false);
     }
 
-    // Polls for the news applet instead of a single check, since it can take a moment to launch.
+    // Polls for the news applet instead of a single check since it can take a moment to launch.
     private async Task<bool> IsNewsShowing(CancellationToken token)
     {
         for (int i = 0; i < 6; i++)

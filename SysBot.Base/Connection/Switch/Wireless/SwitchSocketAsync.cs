@@ -45,10 +45,8 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
 
     public override void Reset()
     {
-        if (Connected)
-            Disconnect();
-        else
-            InitializeSocket();
+        try { if (Connection.Connected) Connection.Shutdown(SocketShutdown.Both); } catch { /* already dead */ }
+        InitializeSocket();
         Connect();
     }
 
@@ -71,6 +69,8 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
     public ValueTask<int> SendAsync(ReadOnlyMemory<byte> buffer, CancellationToken token)
         => Connection.SendAsync(buffer, token);
 
+    private const int ReceiveTimeoutMs = 10_000;
+
     private async Task<byte[]> ReadBytesFromCmdAsync(ReadOnlyMemory<byte> cmd, int length, CancellationToken token)
     {
         try
@@ -81,7 +81,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             try
             {
                 var mem = buffer.AsMemory()[..size];
-                await Connection.ReceiveAsync(mem, token).ConfigureAwait(false);
+                await ReceiveExactAsync(mem, token).ConfigureAwait(false);
                 return DecodeResult(mem, length);
             }
             finally
@@ -89,10 +89,41 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
                 ArrayPool<byte>.Shared.Return(buffer, true);
             }
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SocketException ex)
         {
             Log($"{nameof(ReadBytesFromCmdAsync)} failed: {ex.Message}");
-            return [];
+            throw;
+        }
+        catch (ObjectDisposedException ex)
+        {
+            Log($"{nameof(ReadBytesFromCmdAsync)} failed: {ex.Message}");
+            throw new SocketException((int)SocketError.NotConnected);
+        }
+    }
+
+    /// <summary> Reads until the buffer is full. A zero-byte read means the peer closed the connection. </summary>
+    private async Task ReceiveExactAsync(Memory<byte> buffer, CancellationToken token)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+        cts.CancelAfter(ReceiveTimeoutMs);
+        try
+        {
+            var total = 0;
+            while (total < buffer.Length)
+            {
+                var read = await Connection.ReceiveAsync(buffer[total..], SocketFlags.None, cts.Token).ConfigureAwait(false);
+                if (read == 0)
+                    throw new SocketException((int)SocketError.ConnectionReset);
+                total += read;
+            }
+        }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested)
+        {
+            throw new SocketException((int)SocketError.TimedOut);
         }
     }
 
@@ -137,7 +168,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             }
             return ReadUInt64BigEndian(baseBytes);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(GetMainNsoBaseAsync)} failed: {ex.Message}");
             return 0;
@@ -156,7 +187,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             }
             return ReadUInt64BigEndian(baseBytes);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(GetHeapBaseAsync)} failed: {ex.Message}");
             return 0;
@@ -175,7 +206,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             }
             return Encoding.ASCII.GetString(bytes).Trim();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(GetTitleID)} failed: {ex.Message}");
             return string.Empty;
@@ -195,7 +226,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             }
             return Encoding.ASCII.GetString(bytes).Trim('\0');
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(GetBotbaseVersion)} failed: {ex.Message}");
             return string.Empty;
@@ -214,7 +245,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             }
             return Encoding.ASCII.GetString(bytes).Trim('\0', '\n');
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(GetGameInfo)} failed: {ex.Message}");
             return string.Empty;
@@ -233,7 +264,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             }
             return ulong.TryParse(Encoding.ASCII.GetString(bytes).Trim(), out var value) && value == 1;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(IsProgramRunning)} failed: {ex.Message}");
             return false;
@@ -306,7 +337,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             await Connection.ReceiveAsync(buffer, token).ConfigureAwait(false);
             return buffer;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(ReadRaw)} failed: {ex.Message}");
             return [];
@@ -319,7 +350,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
         {
             await SendAsync(command, token).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(SendRaw)} failed: {ex.Message}");
         }
@@ -348,7 +379,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             // Sent visually (big-endian, thanks); interpret as such.
             return ReadUInt64BigEndian(offsetBytes);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(PointerAll)} failed: {ex.Message}");
             return 0;
@@ -368,7 +399,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             // Sent visually (big-endian, thanks); interpret as such.
             return ReadUInt64BigEndian(offsetBytes);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(PointerRelative)} failed: {ex.Message}");
             return 0;
@@ -390,7 +421,7 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             var value = MemoryMarshal.Read<T>(data);
             return (true, value);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not (SocketException or OperationCanceledException))
         {
             Log($"{nameof(TryReadInternal)}<{typeof(T).Name}> failed: {ex.Message}");
             return (false, default);
@@ -406,7 +437,6 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
     public async Task<byte[]> PixelPeek(CancellationToken token)
     {
         await SendAsync(SwitchCommand.PixelPeek(), token).ConfigureAwait(false);
-        await Task.Delay(Connection.ReceiveBufferSize / DelayFactor + BaseDelay, token).ConfigureAwait(false);
 
         var data = await FlexRead(token).ConfigureAwait(false);
         var result = Array.Empty<byte>();
@@ -422,31 +452,39 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
         return result;
     }
 
+    private const int FlexReadIdleTimeoutMs = 5_000;
+
     private async Task<byte[]> FlexRead(CancellationToken token)
     {
-        List<byte> flexBuffer = [];
-        int available = Connection.Available;
-        Connection.ReceiveTimeout = 1_000;
-
-        do
+        using var ms = new MemoryStream();
+        var buffer = ArrayPool<byte>.Shared.Rent(64 * 1024);
+        try
         {
-            byte[] buffer = new byte[available];
-            try
+            while (true)
             {
-                Connection.Receive(buffer, available, SocketFlags.None);
-                flexBuffer.AddRange(buffer);
-            }
-            catch (Exception ex)
-            {
-                LogError($"Socket exception thrown while receiving data:\n{ex.Message}");
-                return [];
-            }
+                int read;
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+                cts.CancelAfter(FlexReadIdleTimeoutMs);
+                try
+                {
+                    read = await Connection.ReceiveAsync(buffer.AsMemory(), SocketFlags.None, cts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!token.IsCancellationRequested)
+                {
+                    throw new SocketException((int)SocketError.TimedOut);
+                }
 
-            await Task.Delay(MaximumTransferSize / DelayFactor + BaseDelay, token).ConfigureAwait(false);
-            available = Connection.Available;
-        } while (flexBuffer.Count == 0 || flexBuffer.Last() != (byte)'\n');
+                if (read == 0)
+                    throw new SocketException((int)SocketError.ConnectionReset);
 
-        Connection.ReceiveTimeout = 0;
-        return [.. flexBuffer];
+                ms.Write(buffer, 0, read);
+                if (buffer[read - 1] == (byte)'\n')
+                    return ms.ToArray();
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 }

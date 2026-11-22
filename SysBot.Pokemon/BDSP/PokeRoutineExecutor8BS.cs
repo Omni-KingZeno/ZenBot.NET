@@ -15,7 +15,7 @@ public abstract class PokeRoutineExecutor8BS(PokeBotState Config) : PokeRoutineE
     public override async Task<PB8> ReadPokemon(ulong offset, int size, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, size, token).ConfigureAwait(false);
-        return new PB8(data);
+        return new PB8(Require(data, size));
     }
 
     public override async Task<PB8> ReadPokemonPointer(IEnumerable<long> jumps, int size, CancellationToken token)
@@ -95,18 +95,18 @@ public abstract class PokeRoutineExecutor8BS(PokeBotState Config) : PokeRoutineE
 
         // Set the OT.
         var name = await SwitchConnection.PointerPeek(TradePartnerBS.MaxByteLengthStringObject, Offsets.MyStatusTrainerPointer, token).ConfigureAwait(false);
-        info.OT = TradePartnerBS.ReadStringFromRAMObject(name);
+        info.OT = TradePartnerBS.ReadStringFromRAMObject(Require(name, TradePartnerBS.MaxByteLengthStringObject));
 
         // Set the TID, SID, and Language
         var offset = await SwitchConnection.PointerAll(Offsets.MyStatusTIDPointer, token).ConfigureAwait(false);
         var tid = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 2, token).ConfigureAwait(false);
         var sid = await SwitchConnection.ReadBytesAbsoluteAsync(offset + 2, 2, token).ConfigureAwait(false);
 
-        info.TID16 = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(tid);
-        info.SID16 = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(sid);
+        info.TID16 = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(Require(tid, 2));
+        info.SID16 = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(Require(sid, 2));
 
         var lang = await SwitchConnection.PointerPeek(1, Offsets.ConfigLanguagePointer, token).ConfigureAwait(false);
-        sav.Language = lang[0];
+        sav.Language = RequireByte(lang);
         return sav;
     }
 
@@ -163,7 +163,7 @@ public abstract class PokeRoutineExecutor8BS(PokeBotState Config) : PokeRoutineE
     public async Task<bool> CheckIfSoftBanned(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 4, token).ConfigureAwait(false);
-        return ReadSingleLittleEndian(data) != 0;
+        return ReadSingleLittleEndian(Require(data, 4)) != 0;
     }
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
@@ -224,28 +224,28 @@ public abstract class PokeRoutineExecutor8BS(PokeBotState Config) : PokeRoutineE
     private async Task<bool> IsSceneID(uint expected, CancellationToken token)
     {
         var byt = await SwitchConnection.PointerPeek(1, Offsets.SceneIDPointer, token).ConfigureAwait(false);
-        return byt[0] == expected;
+        return RequireByte(byt) == expected;
     }
 
     // Uses absolute offset which is set each session. Checks for IsGaming or IsTalking.
     public async Task<bool> IsUnionWork(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     // Whenever we're in a trade, this pointer will be loaded, otherwise 0
     public async Task<bool> IsPartnerParamLoaded(CancellationToken token)
     {
         var byt = await SwitchConnection.PointerPeek(8, Offsets.LinkTradePartnerParamPointer, token).ConfigureAwait(false);
-        return ReadUInt64LittleEndian(byt) != 0;
+        return ReadUInt64LittleEndian(Require(byt, 8)) != 0;
     }
 
-    public async Task<ulong> GetTradePartnerNID(CancellationToken token) => ReadUInt64LittleEndian(await SwitchConnection.PointerPeek(sizeof(ulong), Offsets.LinkTradePartnerNIDPointer, token).ConfigureAwait(false));
+    public async Task<ulong> GetTradePartnerNID(CancellationToken token) => ReadUInt64LittleEndian(Require(await SwitchConnection.PointerPeek(sizeof(ulong), Offsets.LinkTradePartnerNIDPointer, token).ConfigureAwait(false), sizeof(ulong)));
 
     public async Task<TextSpeedOption> GetTextSpeed(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.ConfigTextSpeedPointer, token).ConfigureAwait(false);
-        return (TextSpeedOption)data[0];
+        return (TextSpeedOption)RequireByte(data);
     }
 }

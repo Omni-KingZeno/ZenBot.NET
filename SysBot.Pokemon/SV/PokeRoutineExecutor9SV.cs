@@ -15,7 +15,7 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     public override async Task<PK9> ReadPokemon(ulong offset, int size, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, size, token).ConfigureAwait(false);
-        return new PK9(data);
+        return new PK9(Require(data, size));
     }
 
     public override async Task<PK9> ReadPokemonPointer(IEnumerable<long> jumps, int size, CancellationToken token)
@@ -62,7 +62,7 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     public async Task<byte> GetCurrentBox(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.CurrentBoxPointer, token).ConfigureAwait(false);
-        return data[0];
+        return RequireByte(data);
     }
 
     public async Task<SAV9SV> IdentifyTrainer(CancellationToken token)
@@ -100,7 +100,7 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
         var sav = new SAV9SV();
         var info = sav.MyStatus;
         var read = await SwitchConnection.PointerPeek(info.Data.Length, Offsets.MyStatusPointer, token).ConfigureAwait(false);
-        read.CopyTo(info.Data);
+        Require(read, info.Data.Length).CopyTo(info.Data);
         return sav;
     }
 
@@ -108,7 +108,7 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     {
         var info = new TradeMyStatus9();
         var read = await SwitchConnection.PointerPeek(info.Data.Length, pointer, token).ConfigureAwait(false);
-        read.CopyTo(info.Data, 0);
+        Require(read, info.Data.Length).CopyTo(info.Data, 0);
         return info;
     }
 
@@ -212,13 +212,13 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     public async Task<bool> IsConnectedOnline(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     public async Task<ulong> GetTradePartnerNID(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 8, token).ConfigureAwait(false);
-        return ReadUInt64LittleEndian(data);
+        return ReadUInt64LittleEndian(Require(data, 8));
     }
 
     public Task ClearTradePartnerNID(ulong offset, CancellationToken token)
@@ -230,7 +230,7 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     public async Task<bool> IsOnOverworld(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 0x11;
+        return RequireByte(data) == 0x11;
     }
 
     // Only used to check if we made it off the title screen; the pointer isn't viable until a few seconds after clicking A.
@@ -246,19 +246,19 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
     public async Task<bool> IsInPokePortal(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 0x10;
+        return RequireByte(data) == 0x10;
     }
 
     // 0x14 in a box and during trades, trade evolutions, and move learning.
     public async Task<bool> IsInBox(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 0x14;
+        return RequireByte(data) == 0x14;
     }
 
     public async Task<TextSpeedOption> GetTextSpeed(CancellationToken token)
     {
         var data = await SwitchConnection.PointerPeek(1, Offsets.ConfigPointer, token).ConfigureAwait(false);
-        return (TextSpeedOption)(data[0] & 3);
+        return (TextSpeedOption)(RequireByte(data) & 3);
     }
 }

@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Net.Sockets;
 using static System.Buffers.Binary.BinaryPrimitives;
 using static SysBot.Base.SwitchOffsetTypeUtil;
 
@@ -29,10 +30,8 @@ public sealed class SwitchSocketSync(IWirelessConnectionConfig cfg) : SwitchSock
 
     public override void Reset()
     {
-        if (Connected)
-            Disconnect();
-        else
-            InitializeSocket();
+        try { if (Connection.Connected) Connection.Shutdown(SocketShutdown.Both); } catch { /* already dead */ }
+        InitializeSocket();
         Connect();
     }
 

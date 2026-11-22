@@ -24,7 +24,7 @@ public abstract class SwitchSocket : IConsoleConnection
     {
         Type = type;
         Protocol = protocol;
-        Connection = new Socket(type, protocol);
+        Connection = CreateSocket();
         Info = wi;
         Name = Label = wi.IP;
     }
@@ -36,5 +36,29 @@ public abstract class SwitchSocket : IConsoleConnection
     public abstract void Connect();
     public abstract void Reset();
     public abstract void Disconnect();
-    public void InitializeSocket() => Connection = new Socket(Type, Protocol);
+    public void InitializeSocket()
+    {
+        try { Connection?.Dispose(); } catch { /* ignore */ }
+        Connection = CreateSocket();
+    }
+
+    private Socket CreateSocket()
+    {
+        var socket = new Socket(Type, Protocol);
+        if (Type != SocketType.Stream || Protocol != ProtocolType.Tcp)
+            return socket;
+        try
+        {
+            // Detect dead peers/NAT drops instead of finding out on the next read.
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 10);
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+        }
+        catch (Exception ex) when (ex is SocketException or PlatformNotSupportedException or ArgumentException)
+        {
+            // Keepalive tuning isn't supported everywhere; the defaults still work.
+        }
+        return socket;
+    }
 }

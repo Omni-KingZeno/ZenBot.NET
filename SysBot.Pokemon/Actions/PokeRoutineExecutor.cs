@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using PKHeX.Core;
 using SysBot.Base;
 using static SysBot.Base.SwitchButton;
@@ -8,6 +9,15 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
     : PokeRoutineExecutorBase(Config)
     where T : PKM, new()
 {
+    protected static byte[] Require(byte[] data, int length)
+    {
+        if (data.Length < length)
+            throw new SocketException((int)SocketError.ConnectionReset);
+        return data;
+    }
+
+    protected static byte RequireByte(byte[] data) => Require(data, 1)[0];
+
     public abstract Task<T> ReadPokemon(ulong offset, CancellationToken token);
     public abstract Task<T> ReadPokemon(ulong offset, int size, CancellationToken token);
     public abstract Task<T> ReadPokemonPointer(IEnumerable<long> jumps, int size, CancellationToken token);
@@ -70,7 +80,15 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
             for (int i = 0; i < (uint)attempts; i++)
             {
                 LogUtil.LogInfo($"Trying to reconnect... ({i + 1})", Connection.Label);
-                Connection.Reset();
+                try
+                {
+                    Connection.Reset();
+                }
+                catch (Exception ex)
+                {
+                    LogUtil.LogError($"Reconnect attempt failed: {ex.Message}", Connection.Label);
+                }
+
                 if (Connection.Connected)
                     break;
 
@@ -107,13 +125,13 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
 
         bool found = false;
         var msg = "Found ";
-        if (await SwitchConnection.IsProgramRunning(ovlloaderID, token).ConfigureAwait(false))
+        if (await TryIsProgramRunning(ovlloaderID, token).ConfigureAwait(false))
         {
             msg += "Tesla Menu";
             found = true;
         }
 
-        if (await SwitchConnection.IsProgramRunning(dmntID, token).ConfigureAwait(false))
+        if (await TryIsProgramRunning(dmntID, token).ConfigureAwait(false))
         {
             if (found)
                 msg += " and ";
@@ -126,6 +144,19 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
             msg += ".";
             Log(msg);
             Log("Please remove interfering applications and reboot the Switch.");
+        }
+    }
+
+    private async Task<bool> TryIsProgramRunning(ulong id, CancellationToken token)
+    {
+        try
+        {
+            return await SwitchConnection.IsProgramRunning(id, token).ConfigureAwait(false);
+        }
+        catch (SocketException ex)
+        {
+            Log($"Could not check for interfering apps: {ex.Message}");
+            return false;
         }
     }
 

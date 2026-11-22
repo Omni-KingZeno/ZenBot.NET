@@ -20,7 +20,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public override async Task<PK8> ReadPokemon(ulong offset, int size, CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync((uint)offset, size, token).ConfigureAwait(false);
-        return new PK8(data);
+        return new PK8(Require(data, size));
     }
 
     public override async Task<PK8> ReadPokemonPointer(IEnumerable<long> jumps, int size, CancellationToken token)
@@ -34,7 +34,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public async Task<PK8> ReadSurpriseTradePokemon(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(SurpriseTradePartnerPokemonOffset, BoxFormatSlotSize, token).ConfigureAwait(false);
-        return new PK8(data);
+        return new PK8(Require(data, BoxFormatSlotSize));
     }
 
     public Task SetBoxPokemon(PK8 pkm, int box, int slot, CancellationToken token, ITrainerInfo? sav = null)
@@ -66,7 +66,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public async Task<byte> GetCurrentBox(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(CurrentBoxOffset, 1, token).ConfigureAwait(false);
-        return data[0];
+        return RequireByte(data);
     }
 
     public async Task<bool> ReadIsChanged(uint offset, ReadOnlyMemory<byte> original, CancellationToken token)
@@ -133,7 +133,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
         var sav = new SAV8SWSH();
         var info = sav.MyStatus;
         var read = await Connection.ReadBytesAsync(TrainerDataOffset, TrainerDataLength, token).ConfigureAwait(false);
-        read.CopyTo(info.Data);
+        Require(read, TrainerDataLength).CopyTo(info.Data);
         return sav;
     }
 
@@ -162,7 +162,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     {
         // Reads the Y-Comm Flag to check if the game is connected online
         var data = await Connection.ReadBytesAsync(IsConnectedOffset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     public async Task ReconnectToYComm(ulong overworldOffset, PokeTradeHubConfig config, CancellationToken token)
@@ -216,7 +216,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     {
         // Check if the Unix Timestamp isn't zero, if so we are soft-banned.
         var data = await Connection.ReadBytesAsync(SoftBanUnixTimespanOffset, 1, token).ConfigureAwait(false);
-        return data[0] > 1;
+        return RequireByte(data) > 1;
     }
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
@@ -276,25 +276,25 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public async Task<bool> IsCorrectScreen(uint expectedScreen, CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(CurrentScreenOffset, 4, token).ConfigureAwait(false);
-        return ReadUInt32LittleEndian(data) == expectedScreen;
+        return ReadUInt32LittleEndian(Require(data, 4)) == expectedScreen;
     }
 
     public async Task<uint> GetCurrentScreen(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(CurrentScreenOffset, 4, token).ConfigureAwait(false);
-        return ReadUInt32LittleEndian(data);
+        return ReadUInt32LittleEndian(Require(data, 4));
     }
 
     public async Task<bool> IsInBattle(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(Version == GameVersion.SH ? InBattleRaidOffsetSH : InBattleRaidOffsetSW, 1, token).ConfigureAwait(false);
-        return data[0] == (Version == GameVersion.SH ? 0x40 : 0x41);
+        return RequireByte(data) == (Version == GameVersion.SH ? 0x40 : 0x41);
     }
 
     public async Task<bool> IsInBox(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(CurrentScreenOffset, 4, token).ConfigureAwait(false);
-        var dataint = ReadUInt32LittleEndian(data);
+        var dataint = ReadUInt32LittleEndian(Require(data, 4));
         return dataint is CurrentScreen_Box1 or CurrentScreen_Box2;
     }
 
@@ -310,7 +310,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public async Task<bool> IsOnOverworld(ulong offset, CancellationToken token)
     {
         var data = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 1, token).ConfigureAwait(false);
-        return data[0] == 1;
+        return RequireByte(data) == 1;
     }
 
     // Used to check if the battle menu has loaded, so we can attempt to flee.
@@ -318,19 +318,19 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public async Task<bool> IsOnBattleMenu(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(BattleMenuOffset, 1, token).ConfigureAwait(false);
-        return data[0] >= 1;
+        return RequireByte(data) >= 1;
     }
 
     public async Task<TextSpeedOption> GetTextSpeed(CancellationToken token)
     {
         var data = await Connection.ReadBytesAsync(TextSpeedOffset, 1, token).ConfigureAwait(false);
-        return (TextSpeedOption)(data[0] & 3);
+        return (TextSpeedOption)(RequireByte(data) & 3);
     }
 
     public async Task SetTextSpeed(TextSpeedOption speed, CancellationToken token)
     {
         var textSpeedByte = await Connection.ReadBytesAsync(TextSpeedOffset, 1, token).ConfigureAwait(false);
-        var data = new[] { (byte)((textSpeedByte[0] & 0xFC) | (int)speed) };
+        var data = new[] { (byte)((RequireByte(textSpeedByte) & 0xFC) | (int)speed) };
         await Connection.WriteBytesAsync(data, TextSpeedOffset, token).ConfigureAwait(false);
     }
 
