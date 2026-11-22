@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "ZenBot" ]
 
+permissions:
+  contents: write
+
 jobs:
 
   build:
@@ -21,12 +24,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
 
@@ -66,20 +69,26 @@ jobs:
         /p:FileVersion=${{ steps.version.outputs.number }}
 
     - name: Upload Application
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: SysBot.Pokemon.WinForms
         path: SysBot.Pokemon.WinForms\bin\Release\net10.0-windows\publish\*.exe
 
-    - name: Create Release
+    - name: Create or update release
       if: github.event_name == 'push' && github.ref == 'refs/heads/ZenBot'
-      uses: softprops/action-gh-release@v2
+      shell: pwsh
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.version.outputs.tag }}
-        name: Release ${{ steps.version.outputs.tag }}
-        draft: false
-        prerelease: false
-        files: SysBot.Pokemon.WinForms/bin/Release/net10.0-windows/publish/*.exe
-        generate_release_notes: true
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        $tag = "${{ steps.version.outputs.tag }}"
+        $files = Get-ChildItem "SysBot.Pokemon.WinForms/bin/Release/net10.0-windows/publish/*.exe" | ForEach-Object { $_.FullName }
+
+        gh release view $tag *> $null
+        if ($LASTEXITCODE -eq 0) {
+          Write-Host "Release $tag exists - replacing exe."
+          gh release upload $tag $files --clobber
+        } else {
+          Write-Host "No release for $tag - creating it."
+          gh release create $tag $files --title "Release $tag" --generate-notes --target ${{ github.sha }}
+        }
+        if ($LASTEXITCODE -ne 0) { exit 1 }
