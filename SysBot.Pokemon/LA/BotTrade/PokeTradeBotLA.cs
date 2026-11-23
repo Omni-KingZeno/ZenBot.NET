@@ -321,7 +321,10 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
             : SpecialTradeType.None;
 
         if (itemReq == SpecialTradeType.FailReturn)
+        {
+            await ExitTrade(false, token).ConfigureAwait(false);
             return PokeTradeResult.IllegalTrade;
+        }
 
         var trainer = new PartnerDataHolder(0, tradePartner.OT, $"{tradePartner.TID7:000000}");
         (toSend, PokeTradeResult update) = await GetEntityToSend(sav, poke, offered, toSend, trainer, token).ConfigureAwait(false);

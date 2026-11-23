@@ -346,7 +346,7 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
         }
 
         // Watch their status to indicate they have offered a Pokémon as well.
-        var offering = await ReadUntilChanged(TradePartnerStatusOffset, new byte[] {3}, 25_000, 1_000, true, true, token).ConfigureAwait(false);
+        var offering = await ReadUntilChanged(TradePartnerStatusOffset, new byte[] { 3 }, 25_000, 1_000, true, true, token).ConfigureAwait(false);
         if (!offering)
         {
             await ResetToLinkPlay(token).ConfigureAwait(false);
@@ -372,7 +372,10 @@ public class PokeTradeBotLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeR
            : SpecialTradeType.None;
 
         if (itemReq == SpecialTradeType.FailReturn)
+        {
+            await ResetToLinkPlay(token).ConfigureAwait(false);
             return PokeTradeResult.IllegalTrade;
+        }
 
         var trainer = new PartnerDataHolder(0, tradePartner.OT, $"{tradePartner.TID7:000000}");
         (toSend, PokeTradeResult update) = await GetEntityToSend(sav, poke, offered, toSend, trainer, token).ConfigureAwait(false);

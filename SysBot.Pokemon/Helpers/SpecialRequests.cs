@@ -114,17 +114,19 @@ public static class SpecialRequests
             >= Items.FullHeal and <= Items.Lemonade
             or Items.PokeDoll or Items.Revive
             or Items.FreshWater or Items.SodaPop when pk is not PA9        => HandleStatChange(ref pk),
-            >= Items.GuardSpec and <= Items.XSpDef                         => HandleLanguageChange(ref pk),
+            >= Items.GuardSpec and <= Items.XSpDef                         => HandleLanguageChange(ref pk, detail, caller),
             >= Items.LonelyMint and <= Items.SeriousMint                   => HandleNatureChange(ref pk, detail, caller),
             >= Items.NormalTeraShard and <= Items.FairyTeraShard
             or Items.StellarTeraShard                                      => HandleTeraChange(ref pk),
             _                                                              => CheckNicknameRequests(ref pk, trainerName, tid, sid, detail, caller)
         };
 
-        if (result is not SpecialTradeType.None)
-            FinalizePokemon(ref pk, caller, detail, result);
+        if (result is SpecialTradeType.None)
+            return result;
 
-        return result;
+        return FinalizePokemon(ref pk, caller, detail, result)
+            ? result
+            : SpecialTradeType.FailReturn;
     }
 
     private static SpecialTradeType HandleOTChange<T>(ref T pk, string trainerName, uint tid, uint sid) where T : PKM, new()
@@ -186,15 +188,19 @@ public static class SpecialRequests
         return SpecialTradeType.StatChange;
     }
 
-    private static SpecialTradeType HandleLanguageChange<T>(ref T pk) where T : PKM, new()
+    private static SpecialTradeType HandleLanguageChange<T>(ref T pk, PokeTradeDetail<T> detail, PokeRoutineExecutor<T> caller) where T : PKM, new()
     {
-        if (LanguageItems.TryGetValue(pk.HeldItem, out var language))
-        {
-            pk.Language = (int)language;
-            pk.ClearNickname();
-            return SpecialTradeType.SanitizeReq;
-        }
-        return SpecialTradeType.None;
+        if (!LanguageItems.TryGetValue(pk.HeldItem, out var language))
+            return SpecialTradeType.None;
+
+        pk.Language = (int)language;
+        pk.ClearNickname();
+
+        var ot = pk.OriginalTrainerName;
+        if (SetOTFitted(pk, ot))
+            NotifyOTTrimmed(detail, caller, ot, pk.OriginalTrainerName);
+
+        return SpecialTradeType.SanitizeReq;
     }
 
     private static SpecialTradeType HandleNatureChange<T>(ref T pk, PokeTradeDetail<T> detail, PokeRoutineExecutor<T> caller) where T : PKM, new()
@@ -455,7 +461,7 @@ public static class SpecialRequests
         }
     }
 
-    private static void FinalizePokemon<T>(ref T pk, PokeRoutineExecutor<T> caller, PokeTradeDetail<T> detail, SpecialTradeType tradeType) where T : PKM, new()
+    private static bool FinalizePokemon<T>(ref T pk, PokeRoutineExecutor<T> caller, PokeTradeDetail<T> detail, SpecialTradeType tradeType) where T : PKM, new()
     {
         if (pk is ITechRecord t && !pk.IsEgg)
             t.SetRecordFlags(pk.Moves);
@@ -463,33 +469,66 @@ public static class SpecialRequests
         if (tradeType is not SpecialTradeType.ItemReq && !pk.IsEgg && pk is not (PB7 or PA8))
             pk.HeldItem = Items.MasterBall;
 
-        LegalizeIfNotLegal(ref pk, caller, detail);
+        return LegalizeIfNotLegal(ref pk, caller, detail);
     }
 
-    private static void LegalizeIfNotLegal<T>(ref T pkm, PokeRoutineExecutor<T> caller, PokeTradeDetail<T> detail) where T : PKM, new()
+    private static bool LegalizeIfNotLegal<T>(ref T pkm, PokeRoutineExecutor<T> caller, PokeTradeDetail<T> detail) where T : PKM, new()
     {
-        var tempPk = pkm.Clone();
         var la = new LegalityAnalysis(pkm);
+        if (la.Valid)
+            return true;
 
-        if (la.Valid) return;
-
-        Notify(detail, caller, "This request isn't legal! Attemping to legalize...");
+        caller.Log("Special request isn't legal, attempting to legalize...");
         caller.Log(la.Report());
 
         try
         {
-            pkm = (T)pkm.LegalizePokemon();
-            pkm.OriginalTrainerName = tempPk.OriginalTrainerName;
+            var originalOT = pkm.OriginalTrainerName;
+            var trimmed = false;
+            var valid = false;
 
-            la = new LegalityAnalysis(pkm);
-            if (!la.Valid)
+            for (var attempt = 0; attempt < 2 && !valid; attempt++)
+            {
                 pkm = (T)pkm.LegalizePokemon();
+                trimmed |= SetOTFitted(pkm, originalOT);
+                valid = new LegalityAnalysis(pkm).Valid;
+            }
+
+            if (!valid)
+            {
+                caller.Log("Legalization failed: result is still illegal.");
+                Notify(detail, caller, "I couldn't make that request legal. Please try a different Pokémon or request.");
+                return false;
+            }
+
+            if (trimmed)
+                NotifyOTTrimmed(detail, caller, originalOT, pkm.OriginalTrainerName);
+
+            return true;
         }
         catch (Exception e)
         {
             caller.Log("Legalization failed: " + e.Message);
+            Notify(detail, caller, "I couldn't make that request legal. Please try a different Pokémon or request.");
+            return false;
         }
     }
+
+    /// <summary>
+    /// Sets the OT name, trimming it to the language's limit if needed. Returns true if it was trimmed.
+    /// </summary>
+    private static bool SetOTFitted(PKM pk, string ot)
+    {
+        var max = Legal.GetMaxLengthOT(pk.Generation, (LanguageID)pk.Language);
+        var trimmed = ot.Length > max;
+
+        pk.OriginalTrainerTrash.Clear();
+        pk.OriginalTrainerName = trimmed ? ot[..max] : ot;
+        return trimmed;
+    }
+
+    private static void NotifyOTTrimmed<T>(PokeTradeDetail<T> detail, PokeRoutineExecutor<T> caller, string original, string trimmed) where T : PKM, new()
+        => Notify(detail, caller, $"Your OT **{original}** is too long for the requested language. It has been trimmed to **{trimmed}**.");
 
     private static void LogHeldItem<T>(T pk, PokeRoutineExecutor<T> caller) where T : PKM, new()
     {
