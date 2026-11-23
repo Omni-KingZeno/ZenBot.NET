@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Discord;
 using Discord.Commands;
 using PKHeX.Core;
@@ -37,7 +37,7 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
     [Command("botStart")]
     [Summary("Starts a bot by IP address/port.")]
     [RequireSudo]
-    public async Task StartBotAsync(string ip)
+    public async Task StartBotAsync([Summary("Console IP address")]string ip)
     {
         var bot = SysCord<T>.Runner.GetBot(ip);
         if (bot == null)
@@ -61,7 +61,7 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
     [Command("botStop")]
     [Summary("Stops a bot by IP address/port.")]
     [RequireSudo]
-    public async Task StopBotAsync(string ip)
+    public async Task StopBotAsync([Summary("Console IP address")]string ip)
     {
         var bot = SysCord<T>.Runner.GetBot(ip);
         if (bot == null)
@@ -86,7 +86,7 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
     [Alias("botPause")]
     [Summary("Commands a bot to Idle by IP address/port.")]
     [RequireSudo]
-    public async Task IdleBotAsync(string ip)
+    public async Task IdleBotAsync([Summary("Console IP address")]string ip)
     {
         var bot = SysCord<T>.Runner.GetBot(ip);
         if (bot == null)
@@ -135,7 +135,7 @@ public class BotModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new(
     [Command("botRestart")]
     [Summary("Restarts the bot(s) by IP address(es), separated by commas.")]
     [RequireSudo]
-    public async Task RestartBotAsync(string ipAddressesCommaSeparated)
+    public async Task RestartBotAsync([Summary("Comma-separated console IP addresses")]string ipAddressesCommaSeparated)
     {
         var ips = ipAddressesCommaSeparated.Split(',');
         foreach (var ip in ips)

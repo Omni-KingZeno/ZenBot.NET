@@ -1,4 +1,4 @@
-using Discord.Commands;
+﻿using Discord.Commands;
 using FuzzySharp;
 using PKHeX.Core;
 using PKHeX.Core.AutoMod;
@@ -14,7 +14,7 @@ public class ItemTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM
     [Alias("it", "item")]
     [Summary("Makes the bot trade you a Pokémon holding the requested item.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-    public async Task ItemTrade([Remainder] string item)
+    public async Task ItemTrade([Summary("Item name")][Remainder] string item)
     {
         var code = Info.GetRandomTradeCode();
         await ItemTrade(code, item).ConfigureAwait(false);

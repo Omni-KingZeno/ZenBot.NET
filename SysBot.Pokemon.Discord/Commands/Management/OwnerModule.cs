@@ -9,9 +9,9 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Command("addSudo")]
     [Summary("Adds mentioned user(s) to global sudo")]
     [RequireOwner]
-    public async Task SudoUsers()
+    public async Task SudoUsers([Summary("Ignored text")][Remainder] string _)
     {
-        var users = Context.Message.MentionedUsers;
+        var users = Context.Message.MentionedUsers.Where(u => u.Id != Context.Client.CurrentUser.Id);
         var objects = users.Select(GetReference);
         SysCordSettings.Settings.GlobalSudoList.AddIfNew(objects);
         await ReplyAsync("Done.").ConfigureAwait(false);
@@ -20,10 +20,10 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Command("addSudoRole")]
     [Summary("Adds mentioned role(s) to role sudo")]
     [RequireOwner]
-    public async Task SudoRoles()
+    public async Task SudoRoles([Summary("Ignored text")][Remainder] string _)
     {
-        var users = Context.Message.MentionedRoles;
-        var objects = users.Select(GetRoleReference);
+        var roles = Context.Message.MentionedRoles;
+        var objects = roles.Select(GetRoleReference);
         SysCordSettings.Settings.RoleSudo.AddIfNew(objects);
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
@@ -31,9 +31,9 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Command("removeSudo")]
     [Summary("Removes mentioned user(s) from global sudo")]
     [RequireOwner]
-    public async Task RemoveSudoUsers()
+    public async Task RemoveSudoUsers([Summary("Ignored text")][Remainder] string _)
     {
-        var users = Context.Message.MentionedUsers;
+        var users = Context.Message.MentionedUsers.Where(u => u.Id != Context.Client.CurrentUser.Id);
         var objects = users.Select(GetReference);
         SysCordSettings.Settings.GlobalSudoList.RemoveAll(z => objects.Any(o => o.ID == z.ID));
         await ReplyAsync("Done.").ConfigureAwait(false);
@@ -42,10 +42,10 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Command("removeSudorole")]
     [Summary("Removes mentioned role(s) from role sudo")]
     [RequireOwner]
-    public async Task RemoveSudoRoles()
+    public async Task RemoveSudoRoles([Summary("Ignored text")][Remainder] string _)
     {
-        var users = Context.Message.MentionedRoles;
-        var objects = users.Select(GetRoleReference);
+        var roles = Context.Message.MentionedRoles;
+        var objects = roles.Select(GetRoleReference);
         SysCordSettings.Settings.RoleSudo.RemoveAll(z => objects.Any(o => o.ID == z.ID));
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
@@ -133,7 +133,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [Alias("lg")]
     [Summary("Leaves guild based on supplied ID.")]
     [RequireOwner]
-    public async Task LeaveGuild(string userInput)
+    public async Task LeaveGuild([Summary("Guild ID")]string userInput)
     {
         if (!ulong.TryParse(userInput, out ulong id))
         {
@@ -160,6 +160,43 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         await ReplyAsync("Leaving all servers.").ConfigureAwait(false);
         foreach (var guild in Context.Client.Guilds)
             await guild.LeaveAsync().ConfigureAwait(false);
+    }
+
+    [Command("listguilds")]
+    [Alias("guilds", "lsg")]
+    [Summary("Lists all servers the bot is currently in, with name, ID, join date, and icon.")]
+    [RequireSudo]
+    public async Task ListGuilds()
+    {
+        var guilds = Context.Client.Guilds.OrderBy(g => g.Name).ToList();
+        var embeds = guilds.Select(g =>
+        {
+            var joined = g.CurrentUser?.JoinedAt;
+            var joinedText = joined.HasValue
+                ? $"<t:{joined.Value.ToUnixTimeSeconds()}:F> (<t:{joined.Value.ToUnixTimeSeconds()}:R>)"
+                : "Unknown";
+
+            var builder = new EmbedBuilder()
+                .WithTitle(g.Name)
+                .WithColor(Color.Purple)
+                .AddField("Guild ID", $"`{g.Id}`", inline: true)
+                .AddField("Members", g.MemberCount.ToString(), inline: true)
+                .AddField("Bot Joined", joinedText);
+
+            var icon = g.IconUrl;
+            if (!string.IsNullOrWhiteSpace(icon))
+                builder.WithThumbnailUrl(icon);
+
+            return builder.Build();
+        }).ToList();
+
+        // Discord 10 Embed limit per message
+        var pages = embeds.Chunk(10).ToList();
+        for (int i = 0; i < pages.Count; i++)
+        {
+            var header = i == 0 ? $"## Guilds ({guilds.Count} total)" : string.Empty;
+            await ReplyAsync(header, embeds: pages[i]).ConfigureAwait(false);
+        }
     }
 
     [Command("sudoku")]

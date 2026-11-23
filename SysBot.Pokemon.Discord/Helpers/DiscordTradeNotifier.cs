@@ -6,7 +6,7 @@ using SysBot.Base;
 
 namespace SysBot.Pokemon.Discord;
 
-public sealed record DiscordTradeNotifier<T>(T Data, PokeTradeTrainerInfo Info, int Code, SocketUser Trader, SocketCommandContext Context)
+public sealed record DiscordTradeNotifier<T>(T Data, PokeTradeTrainerInfo Info, int Code, IUser Trader, SocketCommandContext Context)
     : IPokeTradeNotifier<T>
     where T : PKM, new()
 {

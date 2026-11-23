@@ -90,23 +90,14 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Alias("tu", "tradeOther")]
     [Summary("Makes the bot trade the mentioned user the attached file.")]
     [RequireSudo]
-    public async Task TradeAsyncAttachUser([Summary("Trade Code")] int code)
+    public async Task TradeAsyncAttachUser([Summary("Trade Code")] int code, [Summary("Target User")][Remainder] string? target = null)
     {
-        if (Context.Message.MentionedUsers.Count > 1)
-        {
-            await ReplyAsync("Too many mentions. Queue one user at a time.").ConfigureAwait(false);
+        var user = await ResolveTargetUserAsync(target).ConfigureAwait(false);
+        if (user is null)
             return;
-        }
 
-        if (Context.Message.MentionedUsers.Count == 0)
-        {
-            await ReplyAsync("A user must be mentioned in order to do this.").ConfigureAwait(false);
-            return;
-        }
-
-        var usr = Context.Message.MentionedUsers.ElementAt(0);
-        var sig = usr.GetFavor();
-        await TradeAsyncAttach(code, sig, usr).ConfigureAwait(false);
+        var sig = user.GetFavor();
+        await TradeAsyncAttach(code, sig, user).ConfigureAwait(false);
     }
 
     [Command("tradeUser")]
@@ -123,8 +114,12 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Alias("tu")]
     [Summary("Makes the bot trade the mentioned user the provided Showdown Set.")]
     [RequireSudo]
-    public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
+    public async Task TradeUserAsync([Summary("Mentioned User")] string targetUser, [Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
     {
+        var user = await ResolveTargetUserAsync(targetUser).ConfigureAwait(false);
+        if (user is null)
+            return;
+
         await TradeAsyncShowdown(code, content, user).ConfigureAwait(false);
     }
 
@@ -132,10 +127,42 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Alias("tu")]
     [Summary("Makes the bot trade the mentioned user the provided Showdown Set.")]
     [RequireSudo]
-    public async Task TradeUserAsync([Summary("Mentioned User")] SocketUser user, [Summary("Showdown Set")][Remainder] string content)
+    public async Task TradeUserAsync([Summary("Mentioned User")] string targetUser, [Summary("Showdown Set")][Remainder] string content)
     {
+        var user = await ResolveTargetUserAsync(targetUser).ConfigureAwait(false);
+        if (user is null)
+            return;
+
         var code = Info.GetRandomTradeCode();
         await TradeAsyncShowdown(code, content, user).ConfigureAwait(false);
+    }
+
+    private async Task<IUser?> ResolveTargetUserAsync(string? rawTarget = null)
+    {
+        var botId = Context.Client.CurrentUser.Id;
+        var mentioned = Context.Message.MentionedUsers.Where(u => u.Id != botId).ToList();
+
+        if (mentioned.Count > 1)
+        {
+            await ReplyAsync("Too many mentions. Queue one user at a time.").ConfigureAwait(false);
+            return null;
+        }
+
+        if (mentioned.Count == 1)
+            return mentioned[0];
+
+        // Fallback: supports raw user IDs
+        if (!string.IsNullOrWhiteSpace(rawTarget) &&
+            (MentionUtils.TryParseUser(rawTarget.Trim(), out ulong userId) || ulong.TryParse(rawTarget.Trim(), out userId)) &&
+            userId != botId)
+        {
+            var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
+            if (user is not null)
+                return user;
+        }
+
+        await ReplyAsync("A valid user must be mentioned (or user ID provided) in order to do this.").ConfigureAwait(false);
+        return null;
     }
 
     [Command("eggtrade")]
@@ -180,7 +207,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         return true;
     }
 
-    private async Task TradeAsyncShowdown(int code, string content, SocketUser user, bool eggTrade = false)
+    private async Task TradeAsyncShowdown(int code, string content, IUser user, bool eggTrade = false)
     {
         if (!TryResolveCode(code, out var resolvedCode, out var codeError))
         {
@@ -240,7 +267,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             pk.ResetPartyStats();
 
             var sig = user.GetFavor();
-            await AddTradeToQueueAsync(code, user.Username, pk, sig, Context.User).ConfigureAwait(false);
+            await AddTradeToQueueAsync(code, user.Username, pk, sig, user).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -250,7 +277,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         }
     }
 
-    private async Task TradeAsyncAttach(int code, RequestSignificance sig, SocketUser usr)
+    private async Task TradeAsyncAttach(int code, RequestSignificance sig, IUser user)
     {
         if (!TryResolveCode(code, out var resolvedCode, out var codeError))
         {
@@ -274,7 +301,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             return;
         }
 
-        await AddTradeToQueueAsync(code, usr.Username, pk, sig, usr).ConfigureAwait(false);
+        await AddTradeToQueueAsync(code, user.Username, pk, sig, user).ConfigureAwait(false);
     }
 
     private static T? GetRequest(Download<ISpeciesForm> dl)
@@ -300,7 +327,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         static T? ConvertToFormat(PKM pkm) => EntityConverter.ConvertToType(pkm, typeof(T), out _) as T;
     }
 
-    private async Task AddTradeToQueueAsync(int code, string trainerName, T pk, RequestSignificance sig, SocketUser usr)
+    private async Task AddTradeToQueueAsync(int code, string trainerName, T pk, RequestSignificance sig, IUser user)
     {
         // Old generation entities are converted with no Handling trainer, resulting in a broken legality analysis.
         var la = new LegalityAnalysis(pk);
@@ -339,6 +366,6 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             return;
         }
 
-        await QueueHelper<T>.AddToQueueAsync(Context, code, trainerName, sig, pk, PokeRoutineType.LinkTrade, PokeTradeType.Specific, usr).ConfigureAwait(false);
+        await QueueHelper<T>.AddToQueueAsync(Context, code, trainerName, sig, pk, PokeRoutineType.LinkTrade, PokeTradeType.Specific, user).ConfigureAwait(false);
     }
 }

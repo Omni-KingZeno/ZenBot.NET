@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using PKHeX.Core;
 
@@ -9,7 +9,7 @@ public class BatchEditingModule : ModuleBase<SocketCommandContext>
 {
     [Command("batchInfo"), Alias("bei")]
     [Summary("Tries to get info about the requested property.")]
-    public async Task GetBatchInfo(string propertyName)
+    public async Task GetBatchInfo([Summary("Property name")]string propertyName)
     {
         if (EntityBatchEditor.Instance.TryGetPropertyType(propertyName, out var result))
             await ReplyAsync($"{propertyName}: {result}").ConfigureAwait(false);
@@ -19,7 +19,7 @@ public class BatchEditingModule : ModuleBase<SocketCommandContext>
 
     [Command("batchValidate"), Alias("bev")]
     [Summary("Tries to get info about the requested property.")]
-    public async Task ValidateBatchInfo(string instructions)
+    public async Task ValidateBatchInfo([Summary("Batch editor instructions")]string instructions)
     {
         bool valid = IsValidInstructionSet(instructions, out var invalid);
 

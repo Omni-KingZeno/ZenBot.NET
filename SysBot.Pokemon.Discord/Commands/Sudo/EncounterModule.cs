@@ -1,4 +1,4 @@
-using Discord.Commands;
+﻿using Discord.Commands;
 using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
@@ -8,7 +8,7 @@ public class EncounterModule<T> : ModuleBase<SocketCommandContext> where T : PKM
     [Command("toss")]
     [Summary("Makes all bots that are currently waiting for a go-ahead continue operation.")]
     [RequireSudo]
-    public async Task TossAsync(string name = "")
+    public async Task TossAsync([Summary("Pokemon name")]string name = "")
     {
         var bots = SysCord<T>.Runner.Bots.Select(z => z.Bot);
         foreach (var b in bots)

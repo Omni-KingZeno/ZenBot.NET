@@ -66,7 +66,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
             if (detail.Type == PokeTradeType.Random || detail.IsRetry)
                 return;
             if (SysCordSettings.Settings.UseTradeStartEmbeds)
-                c.SendMessageAsync(embed: BuildTradeStartEmbed(detail));
+                _ = SendStartEmbedAsync(c, detail);
             else
                 c.SendMessageAsync(GetMessage(bot, detail));
         }
@@ -79,7 +79,26 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
         Channels.Add(cid, entry);
     }
 
-    private static Embed BuildTradeStartEmbed(PokeTradeDetail<T> detail)
+    private static async Task SendStartEmbedAsync(ISocketMessageChannel c, PokeTradeDetail<T> detail)
+    {
+        try
+        {
+            string? avatar = null;
+            if (!detail.IsTwitchTrade && detail.Trainer.ID != 0)
+            {
+                // GetUser reads the cache, fall back to REST.
+                IUser? user = Client.GetUser(detail.Trainer.ID) ?? await Client.GetUserAsync(detail.Trainer.ID).ConfigureAwait(false);
+                avatar = user?.GetAvatarUrl() ?? user?.GetDefaultAvatarUrl();
+            }
+            await c.SendMessageAsync(embed: BuildTradeStartEmbed(detail, avatar)).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogSafe(ex, nameof(TradeStartModule<T>));
+        }
+    }
+
+    private static Embed BuildTradeStartEmbed(PokeTradeDetail<T> detail, string? resolvedAvatarUrl)
     {
         PKMStringWrapper<T> Strings = new(detail.TradeData, SysCord<T>.Runner.Hub.Config.Discord.TradeEmbedSettings, detail.Type);
 
@@ -98,10 +117,12 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
             ? EmbedColorHelper.ShinyMap[((Species)detail.TradeData.Species, detail.TradeData.Form)]
             : (PersonalColor)detail.TradeData.PersonalInfo.Color);
 
+        var twitchIcon = "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Twitch.png";
+        var discordIcon = "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Discord.png";
         var avatarUrl = detail.IsTwitchTrade
-            ? "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Twitch.png"
-            : detail.Trainer.ID == 0 ? "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/Discord.png"
-            : Client.GetUser(detail.Trainer.ID).GetAvatarUrl();
+            ? twitchIcon
+            : detail.Trainer.ID == 0 ? discordIcon
+            : resolvedAvatarUrl ?? discordIcon;
 
         var thumbnailUrl = detail.Type == PokeTradeType.ItemTrade ? Strings.GetItemImgURL(Strings.HeldItem) : Strings.GetImageURL();
         var footerURL = detail.Type == PokeTradeType.ItemTrade ? Strings.GetImageURL() : detail.TradeData.Species == 0 ? null : Strings.GetBallImageURL();

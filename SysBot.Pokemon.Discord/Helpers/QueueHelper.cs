@@ -12,7 +12,7 @@ public static class QueueHelper<T> where T : PKM, new()
     private const uint MaxTradeCode = 9999_9999;
     private static readonly PokeTradeHub<T> Hub = SysCord<T>.Runner.Hub;
 
-    public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader)
+    public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, IUser trader)
     {
         if ((uint)code > MaxTradeCode)
         {
@@ -87,7 +87,7 @@ public static class QueueHelper<T> where T : PKM, new()
         return AddToQueueAsync(context, code, trainer, sig, trade, routine, type, context.User);
     }
 
-    private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, out string receiving, out TradeEmbedBuilder<T>? embed)
+    private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, IUser trader, out string msg, out string receiving, out TradeEmbedBuilder<T>? embed)
     {
         var user = trader;
         var userID = user.Id;
@@ -158,7 +158,7 @@ public static class QueueHelper<T> where T : PKM, new()
         return true;
     }
 
-    private static async Task HandleDiscordExceptionAsync(SocketCommandContext context, SocketUser trader, HttpException ex)
+    private static async Task HandleDiscordExceptionAsync(SocketCommandContext context, IUser trader, HttpException ex)
     {
         var hub = SysCord<T>.Runner.Hub;
         var app = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);

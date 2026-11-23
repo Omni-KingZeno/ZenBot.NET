@@ -1,4 +1,4 @@
-using Discord.Commands;
+﻿using Discord.Commands;
 using PKHeX.Core;
 using SysBot.Base;
 
@@ -10,7 +10,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     [Command("click")]
     [Summary("Clicks the specified button.")]
     [RequireRoleAccess(nameof(DiscordManager.RolesRemoteControl))]
-    public async Task ClickAsync(SwitchButton b)
+    public async Task ClickAsync([Summary("Button to press")]SwitchButton b)
     {
         var bot = SysCord<T>.Runner.Bots.Find(z => IsRemoteControlBot(z.Bot));
         bot ??= SysCord<T>.Runner.GetBot(BotIpHelper<T>.Get(SysCord<T>.Runner));
@@ -26,7 +26,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     [Command("click")]
     [Summary("Clicks the specified button.")]
     [RequireSudo]
-    public async Task ClickAsync(string ip, SwitchButton b)
+    public async Task ClickAsync([Summary("Console IP address")]string ip, [Summary("Button to press")]SwitchButton b)
     {
         var bot = SysCord<T>.Runner.GetBot(ip);
         if (bot == null)
@@ -41,7 +41,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     [Command("setStick")]
     [Summary("Sets the stick to the specified position.")]
     [RequireRoleAccess(nameof(DiscordManager.RolesRemoteControl))]
-    public async Task SetStickAsync(SwitchStick s, short x, short y, ushort ms = 1_000)
+    public async Task SetStickAsync([Summary("Stick to move")]SwitchStick s, [Summary("X position")]short x, [Summary("Y position")]short y, [Summary("Duration in milliseconds")]ushort ms = 1_000)
     {
         var bot = SysCord<T>.Runner.Bots.Find(z => IsRemoteControlBot(z.Bot));
         bot ??= SysCord<T>.Runner.GetBot(BotIpHelper<T>.Get(SysCord<T>.Runner));
@@ -57,7 +57,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     [Command("setStick")]
     [Summary("Sets the stick to the specified position.")]
     [RequireSudo]
-    public async Task SetStickAsync(string ip, SwitchStick s, short x, short y, ushort ms = 1_000)
+    public async Task SetStickAsync([Summary("Console IP address")]string ip, [Summary("Stick to move")]SwitchStick s, [Summary("X position")]short x, [Summary("Y position")]short y, [Summary("Duration in milliseconds")]ushort ms = 1_000)
     {
         var bot = SysCord<T>.Runner.GetBot(ip);
         if (bot == null)
@@ -73,7 +73,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     [Alias("screenOn", "scrOn")]
     [Summary("Turns the screen on")]
     [RequireSudo]
-    public Task SetScreenOnAsync([Remainder] string ip)
+    public Task SetScreenOnAsync([Summary("Console IP address")][Remainder] string ip)
     {
         return SetScreen(true, ip);
     }
@@ -91,7 +91,7 @@ public class RemoteControlModule<T> : ModuleBase<SocketCommandContext> where T :
     [Alias("screenOff", "scrOff")]
     [Summary("Turns the screen off")]
     [RequireSudo]
-    public Task SetScreenOffAsync([Remainder] string ip)
+    public Task SetScreenOffAsync([Summary("Console IP address")][Remainder] string ip)
     {
         return SetScreen(false, ip);
     }

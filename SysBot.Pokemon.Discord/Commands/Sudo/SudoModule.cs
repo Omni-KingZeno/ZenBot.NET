@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using PKHeX.Core;
 
@@ -20,7 +20,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     [Command("blacklistComment")]
     [Summary("Adds a comment for a blacklisted Discord user ID.")]
     [RequireSudo]
-    public async Task BlackListUserComment(ulong id, [Remainder] string comment)
+    public async Task BlackListUserComment([Summary("Discord user ID")]ulong id, [Summary("Comment")][Remainder] string comment)
     {
         var obj = SysCordSettings.Settings.UserBlacklist.List.Find(z => z.ID == id);
         if (obj is null)

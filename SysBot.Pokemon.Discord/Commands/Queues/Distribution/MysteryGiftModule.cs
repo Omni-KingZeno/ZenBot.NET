@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
@@ -80,7 +80,7 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
     [Command("getEvent")]
     [Summary("Generates an event Pokemon by its Mystery Gift list number.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-    public async Task GetEvent(int number)
+    public async Task GetEvent([Summary("Selection from Event List")]int number)
     {
         var availablePokemon = GetAvailablePokemon();
 
@@ -103,11 +103,24 @@ public class MysteryGiftModule<T> : ModuleBase<SocketCommandContext> where T : P
         await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pk, PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User).ConfigureAwait(false);
     }
 
-    [Command("getEvent")]
+    [Command("giveEvent")]
     [Summary("Generates an event Pokemon by its Mystery Gift list number for another player.")]
     [RequireSudo]
-    public async Task GetEvent([Summary("Mentioned User")] SocketUser user, [Remainder][Summary("Selection from Event List")] int number)
+    public async Task GiveEvent([Summary("Mentioned User")] string target, [Remainder][Summary("Selection from Event List")] int number)
     {
+        var botId = Context.Client.CurrentUser.Id;
+        IUser? user = Context.Message.MentionedUsers.FirstOrDefault(u => u.Id != botId);
+        if (user is null &&
+            (MentionUtils.TryParseUser(target.Trim(), out ulong userId) || ulong.TryParse(target.Trim(), out userId)))
+        {
+            user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
+        }
+        if (user is null)
+        {
+            await ReplyAsync("A valid user must be mentioned (or user ID provided) in order to do this.").ConfigureAwait(false);
+            return;
+        }
+
         var availablePokemon = GetAvailablePokemon();
 
         if (number < 1 || number > availablePokemon.Count)
