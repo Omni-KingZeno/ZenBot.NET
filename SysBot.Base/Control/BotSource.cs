@@ -13,9 +13,6 @@ public class BotSource<T>(RoutineExecutor<T> Bot)
 
     public void Stop()
     {
-        if (!IsRunning || IsStopping)
-            return;
-
         IsStopping = true;
         Source.Cancel();
         Source = new CancellationTokenSource();
@@ -123,6 +120,12 @@ public class BotSource<T>(RoutineExecutor<T> Bot)
 
     public void Resume()
     {
+        if (IsPaused)
+        {
+            Bot.Resume();
+            IsPaused = false;
+            return;
+        }
         Start();
     }
 }
