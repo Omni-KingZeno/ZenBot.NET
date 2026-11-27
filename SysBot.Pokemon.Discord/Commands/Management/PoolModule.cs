@@ -1,11 +1,12 @@
 using Discord;
 using Discord.Commands;
+using Fergun.Interactive;
 using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord;
 
 [Summary("Distribution Pool Module")]
-public class PoolModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
+public class PoolModule<T>(InteractiveService Interactive) : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
     private static PokeTradeHub<T> Hub => SysCord<T>.Runner.Hub;
 
@@ -48,6 +49,6 @@ public class PoolModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
             embeds.Add(builder.Build());
         }
 
-        await PaginatedMessage.CreateAsync(Context, embeds).ConfigureAwait(false);
+        await Interactive.SendPaginatedEmbedsAsync(Context, embeds).ConfigureAwait(false);
     }
 }

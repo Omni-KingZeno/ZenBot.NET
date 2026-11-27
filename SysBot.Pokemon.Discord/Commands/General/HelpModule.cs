@@ -1,9 +1,10 @@
 using Discord;
 using Discord.Commands;
+using Fergun.Interactive;
 
 namespace SysBot.Pokemon.Discord;
 
-public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContext>
+public class HelpModule(CommandService Service, InteractiveService Interactive) : ModuleBase<SocketCommandContext>
 {
     private const string PictoGuideUrl = "https://raw.githubusercontent.com/Omni-KingZeno/Pokemon-Sprites/refs/heads/main/Bot/PictoCodeChart.png";
     private static bool IsLGPE => SysCordSettings.HubConfig.Mode == ProgramMode.LGPE;
@@ -230,7 +231,7 @@ public class HelpModule(CommandService Service) : ModuleBase<SocketCommandContex
             return;
         }
 
-        await PaginatedMessage.CreateAsync(Context, embeds);
+        await Interactive.SendPaginatedEmbedsAsync(Context, embeds).ConfigureAwait(false);
     }
 
     private void AddPictoGuide(EmbedBuilder builder)

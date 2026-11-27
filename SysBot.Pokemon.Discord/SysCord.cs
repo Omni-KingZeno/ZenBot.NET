@@ -3,6 +3,7 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+using Fergun.Interactive;
 using Microsoft.Extensions.DependencyInjection;
 using PKHeX.Core;
 using SysBot.Base;
@@ -49,7 +50,7 @@ public sealed partial class SysCord<T> where T : PKM, new()
         {
             // How much logging do you want to see?
             LogLevel = LogSeverity.Info,
-            GatewayIntents = Guilds | GuildMessages | GuildMessageReactions | DirectMessages,
+            GatewayIntents = Guilds | GuildMessages | DirectMessages,
             // If you or another service needs to do anything with messages
             // (ex. checking Reactions, checking the content of edited/deleted messages),
             // you must set the MessageCacheSize. You may adjust the number as needed.
@@ -85,9 +86,22 @@ public sealed partial class SysCord<T> where T : PKM, new()
     // If any services require the client, or the CommandService, or something else you keep on hand,
     // pass them as parameters into this method as needed.
     // If this method is getting pretty long, you can separate it out into another file using partials.
-    private static ServiceProvider ConfigureServices()
+    private ServiceProvider ConfigureServices()
     {
-        var map = new ServiceCollection();//.AddSingleton(new SomeServiceClass());
+        var interactiveConfig = new InteractiveConfig
+        {
+            DefaultTimeout = TimeSpan.FromSeconds(30),
+            ReturnAfterSendingPaginator = true,
+            LogLevel = LogSeverity.Info,
+        };
+
+        var interactive = new InteractiveService(_client, interactiveConfig);
+        interactive.Log += Log;
+
+        var map = new ServiceCollection()
+            .AddSingleton(_client)
+            .AddSingleton(interactiveConfig)
+            .AddSingleton(interactive);
 
         // When all your required services are in the collection, build the container.
         // Tip: There's an overload taking in a 'validateScopes' bool to make sure
@@ -183,7 +197,6 @@ public sealed partial class SysCord<T> where T : PKM, new()
         // Subscribe a handler to see if a message invokes a command.
         _client.Ready += LoadLoggingAndEcho;
         _client.MessageReceived += HandleMessageAsync;
-        _client.ReactionAdded += ReactionUtil.OnReactionAddedAsync;
     }
 
     private async Task HandleMessageAsync(SocketMessage arg)

@@ -2,6 +2,8 @@
 using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
+using Fergun.Interactive;
+using Fergun.Interactive.Pagination;
 using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 using SysBot.Base;
@@ -9,8 +11,9 @@ using SysBot.Base;
 namespace SysBot.Pokemon.Discord;
 
 [Summary("Commands for Giveawy Pokémon.")]
-public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
+public class GiveawayModule<T>(InteractiveService Interactive) : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
+    private const string FooterIconUrl = "https://i.imgur.com/nXNBrlr.png";
     private static PokeTradeHub<T> Hub => SysCord<T>.Runner.Hub;
     private static TradeQueueInfo<T> Info => Hub.Queues.Info;
 
@@ -37,6 +40,7 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     [RequireQueueRole(nameof(DiscordManager.RolesGiveaway))]
     public async Task DisplayGiveawayPoolCountAsync()
     {
+        const int perPage = 20;
         var pool = Hub.Giveaway.Pool;
         if (pool.Count == 0)
         {
@@ -44,25 +48,73 @@ public class GiveawayModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             return;
         }
 
-        var lines = pool.Files.Select((z, i) => $"{i + 1}: {z.Key} = {(Species)z.Value.RequestInfo.Species}").ToList();
+        var allEntries = pool.Files
+            .Select((z, i) => (
+                Line: $"{i + 1}: {z.Key} = {(Species)z.Value.RequestInfo.Species}",
+                KeyNorm: Normalize(z.Key),
+                SpeciesNorm: Normalize(((Species)z.Value.RequestInfo.Species).ToString())))
+            .ToList();
 
-        var embeds = new List<Embed>();
-        var pages = lines.Chunk(20).ToList();
+        var filtered = allEntries;
+        string activeQuery = string.Empty;
+        SearchablePaginator? paginator = null;
 
-        for (int i = 0; i < pages.Count; i++)
-        {
-            var builder = new EmbedBuilder
+        int initialPages = (int)Math.Ceiling(allEntries.Count / (double)perPage);
+
+        var builder = new ComponentPaginatorBuilder()
+            .AddUser(Context.User)
+            .WithPageCount(initialPages)
+            .WithActionOnTimeout(ActionOnStop.DisableInput)
+            .WithActionOnCancellation(ActionOnStop.DisableInput)
+            .WithPageFactory(p => BuildGiveawayPoolPage(p, paginator!.SearchButtonId, filtered, activeQuery, perPage));
+
+        paginator = new SearchablePaginator(
+            builder,
+            onSearch: query =>
             {
-                Color = Color.Blue,
-                Title = $"Giveaway Pool",
-                Description = string.Join("\n", pages[i]),
-            };
+                activeQuery = query;
+                var term = Normalize(query);
+                filtered = term.Length == 0
+                    ? allEntries
+                    : allEntries.Where(e => e.SpeciesNorm.Contains(term) || e.KeyNorm.Contains(term)).ToList();
 
-            embeds.Add(builder.Build());
-        }
+                return (int)Math.Ceiling(filtered.Count / (double)perPage);
+            },
+            modalTitle: "Search Giveaway Pool",
+            inputLabel: "Pokémon or File Name",
+            inputPlaceholder: "e.g. Pikachu (leave blank to show all)");
 
-        await PaginatedMessage.CreateAsync(Context, embeds).ConfigureAwait(false);
+        await Interactive.SendPaginatorAsync(paginator, Context.Channel, TimeSpan.FromSeconds(30), resetTimeoutOnInput: true).ConfigureAwait(false);
     }
+
+    private static IPage BuildGiveawayPoolPage(
+        IComponentPaginator paginator,
+        string searchButtonId,
+        List<(string Line, string KeyNorm, string SpeciesNorm)> entries,
+        string activeQuery,
+        int perPage)
+    {
+        var title = string.IsNullOrEmpty(activeQuery)
+            ? "Giveaway Pool"
+            : $"Giveaway Pool — Search: \"{activeQuery}\" ({entries.Count})";
+
+        var description = entries.Count == 0
+            ? $"No giveaway Pokémon matched **\"{activeQuery}\"**.\nClick **Search** and submit an empty box to view all."
+            : string.Join("\n", entries.Skip(paginator.CurrentPageIndex * perPage).Take(perPage).Select(e => e.Line));
+
+        var components = SearchablePaginator.BuildNavigationComponents(paginator, searchButtonId);
+
+        return new PageBuilder()
+            .WithColor(Color.Blue)
+            .WithTitle(title)
+            .WithDescription(description)
+            .WithFooter($"Page {paginator.CurrentPageIndex + 1} of {paginator.PageCount}", FooterIconUrl)
+            .WithComponents(components)
+            .Build();
+    }
+
+    private static string Normalize(string text) =>
+        string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 
     [Command("GAPoolReload")]
     [Alias("gpr")]
